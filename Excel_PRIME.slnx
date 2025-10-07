@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Z_SolutionItems/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Excel_PRIME/Excel_PRIME.csproj" />
+</Solution>
