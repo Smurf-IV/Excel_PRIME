@@ -1,8 +1,11 @@
 <Solution>
   <Folder Name="/Z_SolutionItems/">
+    <File Path=".editorconfig" />
     <File Path=".gitignore" />
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="Excel_PRIME.Bench/Excel_PRIME.Bench.csproj" Id="0def2195-1f1f-4f5d-9a15-da50360ff807" />
+  <Project Path="Excel_PRIME.Tests/Excel_PRIME.Tests.csproj" Id="40fd0493-961d-44f2-94b7-52d818e01b1e" />
   <Project Path="Excel_PRIME/Excel_PRIME.csproj" />
 </Solution>
