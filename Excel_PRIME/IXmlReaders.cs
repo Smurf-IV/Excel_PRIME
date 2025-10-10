@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,13 +7,22 @@ using System.Xml;
 
 namespace Excel_PRIME;
 
-public interface IXmlReader : IDisposable
+public interface IXmlWorkBookReader : IDisposable
+{
+    Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct);
+}
+
+public interface IXmlSharedStringsReader : IDisposable
+{
+}
+
+public interface IXmlSheetReader : IDisposable
 {
     /// <summary>
     /// Returns true when the Reader is positioned at the end of the stream. 
     /// </summary>
     bool EOF { get; }
-    
+
     /// <summary>
     /// Node Properties
     /// Get the type of the current node.

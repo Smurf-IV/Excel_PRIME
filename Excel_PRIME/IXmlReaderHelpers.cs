@@ -6,5 +6,7 @@ namespace Excel_PRIME;
 
 public interface IXmlReaderHelpers
 {
-    Task<IXmlReader> CreateReaderAsync(Stream stream, CancellationToken ct = default);
+    Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct = default);
+    Task<IXmlSharedStringsReader> CreateSharedStringsReaderAsync(Stream stream, CancellationToken ct = default);
+    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, CancellationToken ct = default);
 }

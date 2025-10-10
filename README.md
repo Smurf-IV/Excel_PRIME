@@ -1,7 +1,9 @@
 # Excel_PRIME
-**Excel** **P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
+**Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
 
 # What does that mean?
+_Yet another Excel reader ?_
+
 Lets take each of the above elements and explain:
 
 ## Excel
@@ -46,9 +48,9 @@ Read only, therefore no calculation / formula calls
 
 # It will **_not_** be:
 ## Thread safe
-- Initially it will **Not** be thread safe, because the xml reader will be locked to the sheet in use.
+- Initially it will **Not** be _same sheet_ thread safe, because the xml reader will be locked to the sheet in use.
 ## Cell object type
-- Cell conversion when read (i.e. you will know the type that you want, and you can convert it.)
+- Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
 - This could later become an option if the `XmlConvert` classes are efficient (Or via the interface specs)
 ## Poco
 - A POCO / Type populator (Extensions can be written for that later)
@@ -82,15 +84,21 @@ Read only, therefore no calculation / formula calls
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
     - [ ] Store from Local sheets (When opened)
+- [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
 - [ ] Extract rows via Range
     - [ ] Forward only!
-    - [ ] Keep last used offset (i.e. no need to reload)
-- [ ] Implement Interface for other Libs
-- [ ] Add Benchmark project
+    - [ ] Keep last used offset (i.e. no need to reload sheet if the next range API call is later)
+- [ ] Implement Interface for other Libs (Xml / Zip)
+- [ ] Add Other "Excel readers" to the Benchmark project
 
-## Phase 3 - Extension(s)
+## Phase 3
+- [ ] XSL**B**
+- [ ] Add Other "Excel readers" to the Benchmark project
+
+## Phase 4 - Extension(s)
 - [ ] Add option class to allow _Basic_ Cell type identification
     - [ ] Extract into those types
     - [ ] Deal with `DateOnly` / `TimeOnly` fields
-    - [ ] Use of user defined column schema
+    - [ ] Use of user defined column schema (Excel Number Format?)
+
 - [ ] More ideas to be added later ;-)
