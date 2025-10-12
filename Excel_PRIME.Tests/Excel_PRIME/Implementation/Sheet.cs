@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+using ExcelPRIME.Shared;
+
+namespace ExcelPRIME.Implementation;
+
+internal sealed class Sheet : ISheet
+{
+    private bool _isDisposed;
+    private readonly IXmlReaderHelpers _xmlReaderHelper;
+    private readonly IReadOnlyList<string> _sharedStrings;
+    private readonly TempFile _sourceFile;
+    private FileStream? _stream;
+    private IXmlSheetReader? _sheetReader;
+
+    /// <summary>
+    /// Get the internal file name of this worksheet
+    /// </summary>
+    internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
+
+    internal Sheet(TempFile sourceFile, IXmlReaderHelpers xmlReaderHelper, string name, int index, IReadOnlyList<string> sharedStrings)
+    {
+        _sourceFile = sourceFile;
+        _xmlReaderHelper = xmlReaderHelper;
+        _sharedStrings = sharedStrings;
+        Name = name;
+        Index = index;
+    }
+
+    /// <InheritDoc />
+    public string Name { get; }
+
+    /// <InheritDoc />
+    public int Index { get; }
+
+    public (int Height, int Width) SheetDimensions => _sheetReader.SheetDimensions;
+
+    public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        while (_sheetReader.CurrentRow <= SheetDimensions.Height)
+        {
+            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        throw new NotImplementedException();
+        while (_sheetReader.CurrentRow > SheetDimensions.Height)
+        {
+            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(string range, [EnumeratorCancellation] CancellationToken ct)
+    {
+        var startRow = 0;
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        throw new NotImplementedException();
+        yield break;
+    }
+
+    /// <InheritDoc />
+    public async Task<ICell?> GetRangeCellAsync(string rangeCell, CancellationToken ct)
+    {
+        var startRow = 0;
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        throw new NotImplementedException();
+    }
+
+    private async Task CheckLocationAsync(int startRow, CancellationToken ct)
+    {
+        if (_sheetReader == null
+            || _sheetReader.CurrentRow > startRow
+           )
+        {
+            _sheetReader?.Dispose();
+            if (_stream != null)
+            {
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = _sourceFile.OpenForAsyncRead();
+            }
+
+            _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);
+        }
+        while (_sheetReader.CurrentRow > startRow)
+        {
+            await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    private void Dispose(bool isDisposing)
+    {
+        if (!_isDisposed)
+        {
+            if (isDisposing)
+            {
+                _sheetReader?.Dispose();
+                _sheetReader = null;
+                _stream?.Dispose();
+                _stream = null;
+                _sourceFile.Dispose();
+            }
+
+            _isDisposed = true;
+        }
+    }
+
+    ~Sheet()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(isDisposing: true);
+        GC.SuppressFinalize(this);
+    }
+}
