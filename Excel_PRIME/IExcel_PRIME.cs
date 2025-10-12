@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+namespace ExcelPRIME;
+
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
-
-namespace Excel_PRIME;
-
 public interface IExcel_PRIME : IDisposable
 {
     /// <summary>
@@ -22,7 +22,7 @@ public interface IExcel_PRIME : IDisposable
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
     /// <exception cref="IOException">Thrown when the file cannot be accessed or opened.</exception>
     /// <exception cref="InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
-    Task OpenAsync(in string fileName, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default);
+    Task OpenAsync(string fileName, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default);
 
     /// <summary>
     /// Owns the fileStream, until disposed. Must be Seekable
@@ -37,7 +37,7 @@ public interface IExcel_PRIME : IDisposable
     /// <summary>
     /// Switch functionality to a new sheet
     /// </summary>
-    Task<ISheet?> GetSheetAsync(in string sheetName, CancellationToken ct = default);
+    Task<ISheet?> GetSheetAsync(string sheetName, CancellationToken ct = default);
 
     /// <summary>
     /// From the `definedName`s in the xlsx, use the name to return the range data
@@ -46,5 +46,5 @@ public interface IExcel_PRIME : IDisposable
     /// <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IAsyncEnumerable<object?[]> GetDefinedRangeAsync(in string rangeName, in string? useThisSheetName=null, CancellationToken ct = default);
+    IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName=null, [EnumeratorCancellation] CancellationToken ct = default);
 }

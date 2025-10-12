@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 #pragma warning disable CA1024
 
-namespace Excel_PRIME.Shared;
+namespace ExcelPRIME.Shared;
 
 #pragma warning disable CA1711 // Do not end Names with Dictionary
 
@@ -15,8 +15,8 @@ namespace Excel_PRIME.Shared;
 /// <typeparam name="TSecond"></typeparam>
 public class BiDictionary<TFirst, TSecond> where TFirst : notnull where TSecond : notnull
 {
-    private readonly IDictionary<TFirst, TSecond> _firstToSecond = new Dictionary<TFirst, TSecond>();
-    private readonly IDictionary<TSecond, TFirst> _secondToFirst = new Dictionary<TSecond, TFirst>();
+    private readonly Dictionary<TFirst, TSecond> _firstToSecond = new Dictionary<TFirst, TSecond>();
+    private readonly Dictionary<TSecond, TFirst> _secondToFirst = new Dictionary<TSecond, TFirst>();
 
     public BiDictionary(IDictionary<TFirst, TSecond> dictionary)
     {

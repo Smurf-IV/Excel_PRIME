@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Excel_PRIME;
+namespace ExcelPRIME;
 
 public enum FileType
 {
@@ -16,5 +16,5 @@ public record Options
     /// <summary>
     /// In the future this may be set, to allow the Open Xml cell type to be used in the return object
     /// </summary>
-    private bool ConvertToSpecifiedCellType;
+    internal bool ConvertToSpecifiedCellType { get; }
 }

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Excel_PRIME.Shared;
+namespace ExcelPRIME.Shared;
 
 /// <summary>
 /// Windows does not automatically delete temp files unless the user schedules a cleanup job.
@@ -31,18 +31,18 @@ public sealed class TempFile : IDisposable
     /// </summary>
     public static TempFile MakeThisATempFile(string fullName)
     {
-        var tempFile = new TempFile(false);
-        var fileInfo = new FileInfo(fullName);
+        TempFile tempFile = new TempFile(false);
+        FileInfo fileInfo = new FileInfo(fullName);
         if (!fileInfo.Exists)
         {
-            using var str = fileInfo.Create();
+            DirectoryInfo? dirInfo = fileInfo.Directory;
+            dirInfo?.Create();
+
+            using FileStream str = fileInfo.Create();
         }
         tempFile.MakeThisATempFileImpl(fileInfo);
         return tempFile;
     }
-
-    public FileStream Open(FileOptions options = FileOptions.SequentialScan | FileOptions.DeleteOnClose)
-        => new(FileInfo!.FullName, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, options);
 
     ~TempFile()
     {
@@ -74,7 +74,7 @@ public sealed class TempFile : IDisposable
 
     private string CreateTempFile(string? extension)
     {
-        var fileName = string.Empty;
+        string fileName = string.Empty;
 
         try
         {
@@ -83,15 +83,15 @@ public sealed class TempFile : IDisposable
             // a 0-byte file and returns the name of the created file.
             fileName = System.IO.Path.GetTempFileName();
             // Create a FileInfo object to set the file's attributes
-            var fileInfo = new FileInfo(fileName);
+            FileInfo fileInfo = new FileInfo(fileName);
 
             if (!string.IsNullOrWhiteSpace(extension))
             {
-                var attrs = fileInfo.Attributes;
+                FileAttributes attrs = fileInfo.Attributes;
                 fileInfo.Delete();
                 fileName += extension;
                 fileInfo = new FileInfo(fileName);
-                using (var str = fileInfo.Create())
+                using (FileStream str = fileInfo.Create())
                 {
                     // Empty
                 }

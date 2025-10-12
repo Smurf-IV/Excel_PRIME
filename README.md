@@ -2,7 +2,7 @@
 **Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
 
 # What does that mean?
-_Yet another Excel reader ?_
+_Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime.
 
 Lets take each of the above elements and explain:
 
@@ -11,9 +11,9 @@ Lets take each of the above elements and explain:
 
 ## Performant
 - Try to be as fast as possible, i.e.
-    - Forward only
+    - Forward only Lazy loading
     - No Attempting to decipher / convert the cell(s) types (Its all text in lx)
-    - No attempting to create datatables with headers etc.
+    - No attempting to create /use datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
 
@@ -61,44 +61,63 @@ Read only, therefore no calculation / formula calls
 
 # Targets
 ## Phase 0
-- [x] setup the github
+- [x] Setup this github
 - [x] Create the main project
 - [x] Add Unit Test project
 - [x] Add simple Test Data
 
-## Phase 1 - MVP
-- [ ] Use Net Core Interface(s)
-- [ ] Implement Open / Dispose (Async)
-    - [ ] Sheet Names
-    - [ ] Shared Strings
-- [ ] Implement Sheet loading (unzip and be ready for use)
-    - [ ] Q: Are strings per sheet as well ?
-- [ ] Implement Row extraction
-    - [ ] Skip
-    - [ ] Whole
-    - [ ] Subset (With offset)
-    - [ ] Deal with Null / Empty cells
-    - [ ] Efficient count (Test it !)
+## Phase Alpha
+- [x] Use Net Core Interface(s)
+    - [x] Use `ZipArchive`
+    - [x] Use `XDocument`
+- [x] Implement Open / Dispose (Async)
+    - [x] Sheet Names
+    - [x] Shared Strings
+- [x] Implement Sheet loading (unzip and be ready for use)
+    - [x] Use `XDocument`
+- [x] Implement Row extraction 
+    - [x] Skip
+    - [x] Delayed read - until a cell is actually needed
+    - [x] Deal with Null / Empty cells (Utilise sparse array)
+    - [x] Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
-## Phase 2 - Multi project deployments (Nuget)
+## Phase Beta
+- [ ] Benchmarks
+- [ ] Implement Sheet loading via `XmlReader.Create`
+- [ ] More UnitTests
+
+## Phase 1 - MVP
+- [ ] More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
+- [ ] Implement Sheet loading of
+    - [ ] Q: Are there _Shared strings_ per sheet as well ?
     - [ ] Store from Local sheets (When opened)
+- [ ] Implement Row extraction 
+    - [ ] Allow ColumnHeader addressing (i.e. `ABF`)
+- [ ] Implement RangeExtraction
+    - [ ] Global rangeNames
+    - [ ] Per Sheet rangeNames
+    - [ ] User defined
+
+## Phase 2 - Multi project deployments (Nuget)
+- [ ] More Benchmarks
+    - [ ] Add Other "Excel readers" to the Benchmark project(s)
+- [ ] Cell Information
+    - [ ] Value type indicator
+    - [ ] Formatter applied
+    - [ ] Anything else useful
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
-- [ ] Extract rows via Range
-    - [ ] Forward only!
-    - [ ] Keep last used offset (i.e. no need to reload sheet if the next range API call is later)
 - [ ] Implement Interface for other Libs (Xml / Zip)
-- [ ] Add Other "Excel readers" to the Benchmark project
 
 ## Phase 3
 - [ ] XSL**B**
-- [ ] Add Other "Excel readers" to the Benchmark project
+
 
 ## Phase 4 - Extension(s)
-- [ ] Add option class to allow _Basic_ Cell type identification
+- [ ] Add option class to allow _Basic_ Cell value type identification
     - [ ] Extract into those types
     - [ ] Deal with `DateOnly` / `TimeOnly` fields
-    - [ ] Use of user defined column schema (Excel Number Format?)
+    - [ ] Use of user defined column schema (Excel Number Format nuget?)
 
 - [ ] More ideas to be added later ;-)

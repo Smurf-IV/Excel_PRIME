@@ -1,4 +1,4 @@
-﻿namespace Excel_PRIME;
+﻿namespace ExcelPRIME;
 
 public record DefinedRange
 {

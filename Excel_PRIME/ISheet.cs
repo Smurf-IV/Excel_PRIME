@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Excel_PRIME;
+namespace ExcelPRIME;
 
 public interface ISheet : IDisposable
 {
@@ -13,27 +14,44 @@ public interface ISheet : IDisposable
     string Name { get; }
 
     /// <summary>
-    /// Returns the cell data at the current iterated row
+    /// Excel Index of this worksheet (Starts at 1)
     /// </summary>
-    /// <param name="skipRows">Skip over the headers / blanks etc</param>
+    int Index { get; }
+
+    /// <summary>
+    /// What are the Max dimension defined cells (Many may be blank)
+    /// </summary>
+    (int Height, int Width) SheetDimensions { get; }
+
+    /// <summary>
+    /// The Current row iterator offset (Starts at 1)
+    /// </summary>
+    int CurrentRow { get; }
+
+    /// <summary>
+    /// Returns the row data at the current iterated row
+    /// </summary>
+    /// <param name="startRow">Skip over the headers / blanks etc</param>
+    /// <param name="ct"></param>
+    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns the row data at the current iterated row
+    /// </summary>
+    /// <param name="startRow">Skip over the headers / blanks etc</param>
     /// <param name="startColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="numberOfColumns">matrix / table width</param>
     /// <param name="ct"></param>
-    IAsyncEnumerable<object?[]> GetRowDataAsync(int skipRows, int startColumn, int numberOfColumns, CancellationToken ct = default);
-
-    /// <summary>
-    /// Retrieves (If exists) the cell data value
-    /// </summary>
-    Task<object?> GetCellAsync( int rowIndex, int columnIndex, CancellationToken ct = default);
+    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Using A1:A1 style, to return data from: a single cell, a single column, a matrix / table 
     /// </summary>
-    IAsyncEnumerable<object?[]> GetDefinedRangeAsync(in string range, CancellationToken ct = default);
+    IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(string range, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves (If exists) the cell data value
     /// </summary>
-    Task<object?> GetRangeCellAsync(in string rnageCell, CancellationToken ct = default);
+    Task<ICell?> GetRangeCellAsync(string rangeCell, CancellationToken ct = default);
 
 }

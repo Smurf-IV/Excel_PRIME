@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using AwesomeAssertions;
 
 using NUnit.Framework;
 
-namespace Excel_PRIME.Tests;
+namespace ExcelPRIME.Tests;
 
 internal class RowTests
 {
@@ -20,10 +16,10 @@ internal class RowTests
         using IExcel_PRIME workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName);
         workbook.SheetNames().Should().NotBeEmpty();
-        foreach (var worksheet in workbook.SheetNames())
+        foreach (string sheetName in workbook.SheetNames())
         {
-            using var worksheetReader = worksheet.WorksheetReader;
-            foreach (var row in worksheetReader)
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            await foreach (IRow row in worksheet!.GetRowDataAsync())
             {
             }
         }

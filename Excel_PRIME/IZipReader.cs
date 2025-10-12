@@ -3,19 +3,21 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Excel_PRIME;
+namespace ExcelPRIME;
 
 public interface IZipReader : IDisposable
 {
     /// <summary>
     /// Initializes an instance of the internal ZipReader on the given stream.
     /// </summary>
-    /// <param name="stream">The input seekable stream.</param>
+    /// <param name="fileStream">The input seekable stream.</param>
+    /// <remarks>stream is _not_ owned by the zip Archive</remarks>
     Task OpenArchiveAsync(Stream fileStream, System.Threading.CancellationToken ct);
 
     /// <summary>
-    /// Opens the entry. And copys to the supplied stream
+    /// Opens the entry (If exists), And copy's (Async) to the supplied stream
     /// </summary>
-    Task CopyToAsync(string entryName, Stream targteStream, CancellationToken ct);
+    /// <returns>true if exists</returns>
+    Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct);
 
 }

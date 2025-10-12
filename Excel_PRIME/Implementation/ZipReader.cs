@@ -4,9 +4,9 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Excel_PRIME.Implementation;
+namespace ExcelPRIME.Implementation;
 
-internal class InternalZipReader : IZipReader
+internal sealed class ZipReader : IZipReader
 {
     private bool _isDisposed;
     private ZipArchive? _archive;
@@ -17,15 +17,22 @@ internal class InternalZipReader : IZipReader
             ct);
     }
 
-    public async Task CopyToAsync(string entryName, Stream targteStream, CancellationToken ct)
+    public async Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct)
     {
-        ZipArchiveEntry entry = _archive!.GetEntry(entryName)!;
-        using var source = entry.Open();
-        await source.CopyToAsync(targteStream, ct)
+        ZipArchiveEntry? entry = _archive!.GetEntry(entryName);
+        if (entry == null)
+        {
+            return false;
+        }
+
+        using Stream source = entry.Open();
+        await source.CopyToAsync(targetStream, ct)
                 .ConfigureAwait(false);
+        await source.FlushAsync(ct).ConfigureAwait(false);
+        return true;
     }
 
-    protected virtual void Dispose(bool isDisposing)
+    private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {

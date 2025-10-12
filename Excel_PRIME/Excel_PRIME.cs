@@ -1,39 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
-using Excel_PRIME.Implementation;
-using Excel_PRIME.Shared;
-using Excel_PRIME.XML;
+using ExcelPRIME.Implementation;
+using ExcelPRIME.Shared;
+
+
+namespace ExcelPRIME;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
-
-namespace Excel_PRIME;
-
-public class Excel_PRIME : IExcel_PRIME
+public sealed class Excel_PRIME : IExcel_PRIME
 {
     private bool _isDisposed;
-    private readonly IXmlReaderHelpers _xmlReader;
+    private readonly IXmlReaderHelpers _xmlReaderHelper;
     private readonly IZipReader _zipReader;
     private Stream? _fs;
     private readonly Dictionary<string, TempFile> _baseFiles = new();
     private readonly Dictionary<int, Sheet> _sheets = new();
-    private ReadOnlyDictionary<string, int> _sheetNamesWithrId = new Dictionary<string, int>(0).AsReadOnly();
+    private IReadOnlyDictionary<string, int> _sheetNamesWithrId = new Dictionary<string, int>().AsReadOnly();
+    private IReadOnlyList<string> _sharedStrings = [];
 
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
     {
-        _xmlReader = xmlReader ?? new XmlReaderHelpers();
-        _zipReader = zipReader ?? new InternalZipReader();
+        _xmlReaderHelper = xmlReader ?? new XmlReaderHelpers();
+        _zipReader = zipReader ?? new ZipReader();
     }
 
     /// <summary>
@@ -47,7 +42,8 @@ public class Excel_PRIME : IExcel_PRIME
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
     /// <exception cref="IOException">Thrown when the file cannot be accessed or opened.</exception>
     /// <exception cref="InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
-    public Task OpenAsync(in string fileName, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default)
+    public Task OpenAsync(string fileName, FileType fileType = FileType.Xlsx, Options? options = null,
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
         _fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
@@ -64,163 +60,112 @@ public class Excel_PRIME : IExcel_PRIME
         }
         _fs = fileStream;
         await _zipReader.OpenArchiveAsync(fileStream, ct).ConfigureAwait(false);
+        // Check and get the Shared strings
+        await GetSharedStrings(ct).ConfigureAwait(false);
+
         // Now perform the Getting of the base data
-        var workbook = TempFile.MakeThisATempFile("workbook.xml");
+        TempFile workbook = new TempFile("workbook.xml");
         _baseFiles["xl/workbook.xml"] = workbook;
-        using (var targetStream = workbook.FileInfo.OpenWrite())
+        using (FileStream targetStream = workbook.FileInfo.OpenWrite())
         {
             await _zipReader.CopyToAsync("xl/workbook.xml", targetStream, ct).ConfigureAwait(false);
         }
+
         await GetSheetNamesAsync(workbook, ct).ConfigureAwait(false);
 
-        var workbook_rels = TempFile.MakeThisATempFile("workbook.xml.rels");
-        _baseFiles["xl/_rels/workbook.xml.rels"] = workbook_rels;
-        using (var targetStream = workbook.FileInfo.OpenWrite())
-        {
-            await _zipReader.CopyToAsync("xl/_rels/workbook.xml.rels", targetStream, ct).ConfigureAwait(false);
-        }
+        //TempFile workbook_rels = new TempFile("workbook.xml.rels");
+        //_baseFiles["xl/_rels/workbook.xml.rels"] = workbook_rels;
+        //using (FileStream targetStream = workbook.FileInfo.OpenWrite())
+        //{
+        //    await _zipReader.CopyToAsync("xl/_rels/workbook.xml.rels", targetStream, ct).ConfigureAwait(false);
+        //}
 
-        await GetSheetRelationsAsync(workbook_rels, ct).ConfigureAwait(false);
+        //        await GetSheetRelationsAsync(workbook_rels, ct).ConfigureAwait(false);
 
-        _sheets = sheets.Where(x => sheetRelations.ContainsKey(x.RelationId))
-            .Select(x => new { Sheet = x, ZipEntry = _archive.GetEntry($"xl/{sheetRelations[x.RelationId].Target}") ?? throw new XlsxHelperException($"zip entry not found for {x.SheetName}.") })
-            .Select(x => new Worksheet(x.Sheet.SheetName, new WorksheetReader(x.ZipEntry!.Open(), _sharedStringLookup)))
-            .ToArray();
+        //_sheets = sheets.Where(x => sheetRelations.ContainsKey(x.RelationId))
+        //    .Select(x => new { Sheet = x, ZipEntry = _archive.GetEntry($"xl/{sheetRelations[x.RelationId].Target}") ?? throw new XlsxHelperException($"zip entry not found for {x.SheetName}.") })
+        //    .Select(x => new Worksheet(x.Sheet.SheetName, new WorksheetReader(x.ZipEntry!.Open(), _sharedStringLookup)))
+        //    .ToArray();
 
     }
 
-    private async Task GetSheetRelationsAsync(TempFile workbook_rels, CancellationToken ct)
+    private async Task GetSharedStrings(CancellationToken ct)
     {
-        using var stream = workbook_rels.FileInfo.OpenRead();
-        var sheetNamesWithrId = new Dictionary<string, (string target, string type)>();
-        var stack = new Stack<string>();
-        using var reader = await _xmlReader.CreateReaderAsync(stream, ct).ConfigureAwait(false);
-        while (await reader.ReadAsync(ct).ConfigureAwait(false)
-            && !reader.EOF)
+        // Check that the shared string actually exists
+        using TempFile shareStrings = new TempFile("sharedStrings.xml");
+        bool exists;
+        using (FileStream targetStream = shareStrings.FileInfo.OpenWrite())
         {
-            if (reader.IsElement)
-            {
-                if (reader.Name == "Relationship"
-                    && stack.Count == 1
-                    && stack.Peek() == "Relationships"
-                    )
-                {
-                    var target = reader.GetAttribute("Target");
-                    var id = reader.GetAttribute("Id");
-                    var type = reader.GetAttribute("Type");
-                    if (!string.IsNullOrWhiteSpace(target)
-                        && !string.IsNullOrWhiteSpace(id)
-                        && !string.IsNullOrWhiteSpace(type)
-                        )
-                    {
-                        sheetNamesWithrId.Add(id, (target, type));
-                    }
-                }
-
-                if (!reader.IsEmptyElement)
-                {
-                    stack.Push(reader.Name);
-                }
-            }
-
-            if (reader.IsEndElement)
-            {
-                stack.Pop();
-            }
+            exists = await _zipReader.CopyToAsync("xl/sharedStrings.xml", targetStream, ct).ConfigureAwait(false);
         }
 
-        var sharedStringTarget = sheetNamesWithrId.Values.FirstOrDefault(x => x.type == XmlNameSpaces.SharedStringRelationshipType).target ?? "sharedStrings.xml";
-        var sharedStringEntry = _archive.GetEntry($"xl/{sharedStringTarget}");
-        _sharedStringLookup = new SharedStringLookup(sharedStringEntry?.Open() ?? new MemoryStream(), (sharedStringEntry?.Length ?? 0) > 20_000_000);
+        if (exists)
+        {
+            using FileStream fileStream = shareStrings.FileInfo.OpenRead();
+            _sharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
+                .ConfigureAwait(false);
+        }
     }
 
     private async Task GetSheetNamesAsync(TempFile workbook, CancellationToken ct)
     {
-        using var stream = workbook.FileInfo.OpenRead();
-        var relationshipNamespace = XmlNameSpaces.RelationshipsOpenXmlFormat;
-        using var reader = await _xmlReader.CreateReaderAsync(stream, ct).ConfigureAwait(false);
-        var sheetNamesWithrId = new Dictionary<string, int>();
-        var stack = new Stack<string>();
-        while (await reader.ReadAsync(ct).ConfigureAwait(false)
-            && !reader.EOF)
-        {
-            if (reader.IsElement)
-            {
-                if (reader.Name == "workbook"
-                    && stack.Count == 0
-                )
-                {
-                    relationshipNamespace = reader.GetAttribute("xmlns:r") == XmlNameSpaces.RelationshipsOclc
-                        ? XmlNameSpaces.RelationshipsOclc
-                        : XmlNameSpaces.RelationshipsOpenXmlFormat;
-                }
-                if (reader.Name == "sheet"
-                    && stack.Count == 2
-                    && stack.Peek() == "sheets")
-                {
-                    var sheetname = reader.GetAttribute("name");
-                    var rId = reader.GetAttribute("id", relationshipNamespace);
-                    if (!string.IsNullOrWhiteSpace(sheetname) && !string.IsNullOrWhiteSpace(rId))
-                    {
-                        sheetNamesWithrId.Add(sheetname, Convert.ToInt32(rId, CultureInfo.InvariantCulture));
-                    }
-                }
-
-                if (!reader.IsEmptyElement)
-                {
-                    stack.Push(reader.Name);
-                }
-            }
-
-            if (reader.IsEndElement)
-            {
-                stack.Pop();
-            }
-        }
-        _sheetNamesWithrId = sheetNamesWithrId.AsReadOnly();
-    }
-
-
-    /// <InheritDoc />
-    public IEnumerable<string> SheetNames()
-    {
-        foreach (var name in _sheetNamesWithrId.Keys)
-        {
-            yield return name;
-        }
+        using FileStream fileStream = workbook.FileInfo.OpenRead();
+        using IXmlWorkBookReader? wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(fileStream, ct)
+            .ConfigureAwait(false);
+        _sheetNamesWithrId = await wbr!.GetSheetNamesAsync(ct).ConfigureAwait(false);
     }
 
     /// <InheritDoc />
-    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(in string rangeName, in string? useThisSheetName = null, CancellationToken ct = default)
+    public IEnumerable<string> SheetNames() => _sheetNamesWithrId.Keys;
+
+    /// <InheritDoc />
+    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
 
     /// <InheritDoc />
-    public Task<ISheet?> GetSheetAsync(in string sheetName, CancellationToken ct = default)
+    public async Task<ISheet?> GetSheetAsync(string sheetName, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        // Find rId
+        if (!_sheetNamesWithrId.TryGetValue(sheetName, out int rId))
+        {
+            throw new KeyNotFoundException($"{sheetName} doe snot exist");
+        }
+
+        if (_sheets.TryGetValue(rId, out Sheet? sheet))
+        {
+            return sheet;
+        }
+
+        var sheetFile = new TempFile($"sheet{rId}.xml");
+        using (FileStream targetStream = sheetFile.FileInfo.OpenWrite())
+        {
+            string sheetFileName = Sheet.GetFileName(rId);
+            await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
+        }
+
+        sheet = new Sheet(sheetFile, _xmlReaderHelper, sheetName, rId, _sharedStrings);
+        _sheets[rId] = sheet;
+        return sheet;
     }
 
-    protected virtual void Dispose(bool isDisposing)
+    private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {
             if (isDisposing)
             {
-                while (_baseFiles.Any())
+                foreach (TempFile tf in _baseFiles.Values)
                 {
-                    var tf = _baseFiles.Pop();
                     tf.Dispose();
                 }
-                while (_sheets.Any())
+                _baseFiles.Clear();
+                foreach ((int _, Sheet sheet) in _sheets)
                 {
-                    foreach ((var _, var sheet) in _sheets)
-                    {
-                        sheet.Dispose();
-                    }
-                    _sheets.Clear();
+                    sheet.Dispose();
                 }
+                _sheets.Clear();
                 _fs?.Dispose();
                 _fs = null;
             }

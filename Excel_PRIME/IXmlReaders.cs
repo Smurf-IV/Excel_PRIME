@@ -1,64 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
-namespace Excel_PRIME;
+namespace ExcelPRIME;
 
 public interface IXmlWorkBookReader : IDisposable
 {
-    Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct);
-}
+    Task<IReadOnlyDictionary<string, int>> GetSheetNamesAsync(CancellationToken ct);
 
-public interface IXmlSharedStringsReader : IDisposable
-{
+    Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct);
 }
 
 public interface IXmlSheetReader : IDisposable
 {
     /// <summary>
-    /// Returns true when the Reader is positioned at the end of the stream. 
+    /// What are the Max dimension defined cells (Many may be blank)
     /// </summary>
-    bool EOF { get; }
+    (int Height, int Width) SheetDimensions { get; }
 
-    /// <summary>
-    /// Node Properties
-    /// Get the type of the current node.
-    /// </summary>
-    string NodeType { get; }
+    int CurrentRow { get; }
 
-    /// <summary>
-    /// Gets the name of the current node, including the namespace prefix.
-    /// </summary>
-    string Name { get; }
+    Task<IRow?> GetNextRowAsync(CancellationToken ct);
 
-    /// <summary>
-    /// Gets the value of the attribute with the specified Name and optional and NamespaceURI
-    /// </summary>
-    string? GetAttribute(string name, string? namespaceURI = null);
-
-    /// <summary>
-    /// Moving through the Stream
-    /// Reads the next node from the stream.
-    /// </summary>
-    Task<bool> ReadAsync(CancellationToken ct);
-
-    /// <summary>
-    /// Returns true id this node is an element
-    /// </summary>
-    bool IsElement { get; }
-
-    /// <summary>
-    /// Returns true id this node is an "Empty element"
-    /// </summary>
-    bool IsEmptyElement { get; }
-
-    /// <summary>
-    /// Returns true id this node is an "End element"
-    /// </summary>
-    bool IsEndElement { get; }
-
+    Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct);
 
 }

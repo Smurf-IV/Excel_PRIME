@@ -6,6 +6,7 @@
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 		<IsPublishable>False</IsPublishable>
 		<IsPackable>false</IsPackable>
+		<RootNamespace>ExcelPRIME.Bench</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

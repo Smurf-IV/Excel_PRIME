@@ -1,4 +1,4 @@
-﻿namespace Excel_PRIME.XML;
+﻿namespace ExcelPRIME.XML;
 
 internal static class XmlNameSpaces
 {

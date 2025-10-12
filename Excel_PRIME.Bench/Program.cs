@@ -1,14 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 
-namespace Excel_PRIME.Bench;
+namespace ExcelPRIME.Bench;
 
 [ExcludeFromCodeCoverage]
 internal class Program
 {
     static void Main(string[] args)
     {
-        var _ = BenchmarkRunner.Run(typeof(Program).Assembly);
+        Summary[] _ = BenchmarkRunner.Run(typeof(Program).Assembly);
     }
 }

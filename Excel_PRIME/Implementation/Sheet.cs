@@ -1,56 +1,119 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
-using Excel_PRIME.Shared;
+using ExcelPRIME.Shared;
 
-namespace Excel_PRIME.Implementation;
+namespace ExcelPRIME.Implementation;
 
-internal class Sheet : ISheet
+internal sealed class Sheet : ISheet
 {
     private bool _isDisposed;
-    private readonly IXmlReader _xmlReader;
+    private readonly IXmlReaderHelpers _xmlReaderHelper;
+    private readonly IReadOnlyList<string> _sharedStrings;
     private readonly TempFile _sourceFile;
+    private FileStream? _stream;
+    private IXmlSheetReader? _sheetReader;
 
-    internal Sheet(TempFile sourceFile, IXmlReader xmlReader, string name)
+    /// <summary>
+    /// Get the internal file name of this worksheet
+    /// </summary>
+    internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
+
+    internal Sheet(TempFile sourceFile, IXmlReaderHelpers xmlReaderHelper, string name, int index, IReadOnlyList<string> sharedStrings)
     {
         _sourceFile = sourceFile;
-        _xmlReader = xmlReader;
+        _xmlReaderHelper = xmlReaderHelper;
+        _sharedStrings = sharedStrings;
         Name = name;
+        Index = index;
     }
 
+    /// <InheritDoc />
     public string Name { get; }
 
-    public Task<object?> GetCellAsync(int rowIndex, int columnIndex, CancellationToken ct = default)
+    /// <InheritDoc />
+    public int Index { get; }
+
+    public (int Height, int Width) SheetDimensions => _sheetReader.SheetDimensions;
+
+    public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, [EnumeratorCancellation] CancellationToken ct = default)
     {
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        while (_sheetReader.CurrentRow <= SheetDimensions.Height)
+        {
+            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        throw new NotImplementedException();
+        while (_sheetReader.CurrentRow > SheetDimensions.Height)
+        {
+            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(string range, [EnumeratorCancellation] CancellationToken ct)
+    {
+        var startRow = 0;
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
+        throw new NotImplementedException();
+        yield break;
+    }
+
+    /// <InheritDoc />
+    public async Task<ICell?> GetRangeCellAsync(string rangeCell, CancellationToken ct)
+    {
+        var startRow = 0;
+        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         throw new NotImplementedException();
     }
 
-    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(in string range, CancellationToken ct = default)
+    private async Task CheckLocationAsync(int startRow, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        if (_sheetReader == null
+            || _sheetReader.CurrentRow > startRow
+           )
+        {
+            _sheetReader?.Dispose();
+            if (_stream != null)
+            {
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = _sourceFile.FileInfo.OpenRead();
+            }
+
+            _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);
+        }
+        while (_sheetReader.CurrentRow > startRow)
+        {
+            await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+        }
     }
 
-    public Task<object?> GetRangeCellAsync(in string rnageCell, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IAsyncEnumerable<object?[]> GetRowDataAsync(int skipRows, int startColumn, int numberOfColumns, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected virtual void Dispose(bool isDisposing)
+    private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {
             if (isDisposing)
             {
-                _xmlReader.Dispose();
+                _sheetReader?.Dispose();
+                _sheetReader = null;
+                _stream?.Dispose();
+                _stream = null;
                 _sourceFile.Dispose();
             }
 
@@ -58,12 +121,11 @@ internal class Sheet : ISheet
         }
     }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~Sheet()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    ~Sheet()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(false);
+    }
 
     public void Dispose()
     {

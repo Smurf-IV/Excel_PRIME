@@ -1,0 +1,14 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=51d48606_002D615f_002D41ca_002D878d_002D378e0c32a0c3/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="A000_FileNotExist_ThrowsFileNotFoundException" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.LoadingTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.SheetTests.A010_EmptyXlsx("Data/empty.xlsx")&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.SheetTests.A010_StepThroughEmptyXlsx&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.SheetTests.A020_GetsWorkSheets&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.SheetTests.A030_DisposeReleasesFile&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.SheetTests.A040_StyleAndFormattedFile&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.Tests.A020_StyleAndFormattedFile&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.Tests.A010_ReadCells("Data/SameKey.xlsx")&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::9F36CA16-C4E8-DCE0-D8B9-664CC07A6D2F::net8.0::ExcelPRIME.Tests.RowTests.A010_EmptyXlsx("Data/empty.xlsx")&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

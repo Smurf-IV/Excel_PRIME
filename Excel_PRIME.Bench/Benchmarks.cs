@@ -6,7 +6,7 @@ using BenchmarkDotNet.Attributes;
 
 using Microsoft.VSDiagnostics;
 
-namespace Excel_PRIME.Bench;
+namespace ExcelPRIME.Bench;
 
 // For more information on the VS BenchmarkDotNet Diagnosers see https://learn.microsoft.com/visualstudio/profiling/profiling-with-benchmark-dotnet
 [ExcludeFromCodeCoverage]
