@@ -20,10 +20,10 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Setup Nuget.exe
-      uses: warrenbuckley/Setup-Nuget@v1
-    #- name: restore-nuget-packages
-    #  uses: IT-Service/restore-nuget-packages@v1
+    #- name: Setup Nuget.exe
+    #  uses: warrenbuckley/Setup-Nuget@v1
+    - name: restore-nuget-packages
+      uses: IT-Service/restore-nuget-packages@v1
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
