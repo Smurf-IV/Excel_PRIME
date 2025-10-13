@@ -11,7 +11,7 @@ namespace ExcelPRIME.Shared;
 /// </summary>
 public sealed class TempFile : IDisposable
 {
-    public FileInfo FileInfo { get; private set; } = null!;
+    private readonly FileInfo _fi;
 
     /// <summary>
     /// 
@@ -19,106 +19,43 @@ public sealed class TempFile : IDisposable
     /// <param name="extension">Optional extension of the temp file (Include the dot)</param>
     public TempFile(string? extension = null)
     {
-        CreateTempFile(extension);
-    }
-
-    private TempFile(bool _)
-    {
-    }
-
-    /// <summary>
-    /// Creates the file (If necesary), and sets attributes to Temp
-    /// </summary>
-    public static TempFile MakeThisATempFile(string fullName)
-    {
-        TempFile tempFile = new TempFile(false);
-        FileInfo fileInfo = new FileInfo(fullName);
-        if (!fileInfo.Exists)
-        {
-            DirectoryInfo? dirInfo = fileInfo.Directory;
-            dirInfo?.Create();
-
-            using FileStream str = fileInfo.Create();
-        }
-        tempFile.MakeThisATempFileImpl(fileInfo);
-        return tempFile;
-    }
-
-    ~TempFile()
-    {
-        Dispose(false);
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool _)
-    {
-        if (FileInfo!.Exists)
-        {
-            try
-            {
-                FileInfo.Delete();
-            }
-            catch
-            {
-                // best effort
-                FileInfo.Attributes &= ~FileAttributes.Temporary;
-                MoveFileEx(FileInfo.FullName, null, MoveFileFlags.DelayUntilReboot);
-            }
-        }
-    }
-
-    private string CreateTempFile(string? extension)
-    {
-        string fileName = string.Empty;
-
         try
         {
             // Get the full name of the newly created Temporary file. 
             // Note that the GetTempFileName() method actually creates
             // a 0-byte file and returns the name of the created file.
-            fileName = System.IO.Path.GetTempFileName();
+            var fileName = System.IO.Path.GetTempFileName();
             // Create a FileInfo object to set the file's attributes
-            FileInfo fileInfo = new FileInfo(fileName);
+            _fi = new FileInfo(fileName);
 
             if (!string.IsNullOrWhiteSpace(extension))
             {
-                FileAttributes attrs = fileInfo.Attributes;
-                fileInfo.Delete();
+                FileAttributes attrs = _fi.Attributes;
+                _fi.Delete();
                 fileName += extension;
-                fileInfo = new FileInfo(fileName);
-                using (FileStream str = fileInfo.Create())
+                _fi = new FileInfo(fileName);
+                using (FileStream str = _fi.Create())
                 {
                     // Empty
                 }
                 // Reset the attributes
-                fileInfo.Attributes = attrs;
+                _fi.Attributes = attrs;
             }
-            MakeThisATempFileImpl(fileInfo);
-
-            Console.WriteLine("TEMP file created at: " + fileName);
+            // Set the Attribute property of this file to Temporary. 
+            // Although this is not completely necessary, the .NET Framework is able 
+            // to optimize the use of Temporary files by keeping them cached in memory.
+            _fi.Attributes |= FileAttributes.Temporary | FileAttributes.NotContentIndexed | FileAttributes.NoScrubData;
         }
         catch (Exception ex)
         {
             Console.WriteLine("Unable to create TEMP file or set its attributes: " + ex.Message);
         }
-
-        return fileName;
     }
 
-    private void MakeThisATempFileImpl(FileInfo fileInfo)
-    {
-        FileInfo = fileInfo;
+    public FileStream OpenForAsyncWrite() => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 32*1024, true);
 
-        // Set the Attribute property of this file to Temporary. 
-        // Although this is not completely necessary, the .NET Framework is able 
-        // to optimize the use of Temporary files by keeping them cached in memory.
-        FileInfo.Attributes |= FileAttributes.Temporary;
-    }
+    public FileStream OpenForAsyncRead() => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Read, FileShare.None, 32 * 1024, true);
+
 
     // ReSharper disable UnusedMember.Local
     [Flags]
@@ -138,4 +75,31 @@ public sealed class TempFile : IDisposable
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static extern bool MoveFileEx(string lpExistingFileName, string? lpNewFileName, MoveFileFlags dwFlags);
 
+    ~TempFile()
+    {
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool _)
+    {
+        if (_fi.Exists)
+        {
+            try
+            {
+                _fi.Delete();
+            }
+            catch
+            {
+                // best effort
+                _fi.Attributes &= ~FileAttributes.Temporary;
+                MoveFileEx(_fi.FullName, null, MoveFileFlags.DelayUntilReboot);
+            }
+        }
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace ExcelPRIME.Shared;
 
@@ -7,7 +8,7 @@ namespace ExcelPRIME.Shared;
 /// https://stackoverflow.com/a/2652855
 /// Then some small modifications for language usage
 /// </summary>
-internal static class ExcelColumns
+internal static partial class ExcelColumns
 {
     /// <summary>
     /// Convert Column Number into Column Name - Character(s) eg 1->A, 2->B
@@ -34,9 +35,15 @@ internal static class ExcelColumns
     /// Covert Column Name - Character(s) into a Column Number eg A->1, B->2, AA -> 27
     /// </summary>
     /// <param name="columnName">Column Name - Character(s)</param>
+    /// <param name="includesRowNumber">Has this been stripped, if not - then true</param>
     /// <returns>Column Number</returns>
-    public static int GetExcelColumnNumber(this string columnName)
+    public static int GetExcelColumnNumber(this string columnName, bool includesRowNumber = true)
     {
+        if (includesRowNumber)
+        {
+            columnName = RemoveNumbers().Replace(columnName, string.Empty);
+        }
+
         int[] digits = new int[columnName.Length];
         for (int i = 0; i < columnName.Length; ++i)
         {
@@ -88,4 +95,7 @@ internal static class ExcelColumns
         }
         return row - 1;
     }
+
+    [GeneratedRegex(@"\d")]
+    internal static partial Regex RemoveNumbers();
 }

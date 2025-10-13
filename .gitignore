@@ -53,3 +53,5 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 /.vs
+/Excel_PRIME.Bench/Data/100mb.xlsx
+*.bak

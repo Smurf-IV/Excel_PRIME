@@ -22,8 +22,8 @@ public class AccessEveryCellBenchmarks
     [Params(
         "Data/Blank Data 1 Million Rows.xlsx",
         "Data/sampledocs-50mb-xlsx-file.xlsx",
-        "Data/sampledocs-50mb-xlsx-file-sst.xlsx",
-        "Data/100mb.xlsx"
+        "Data/sampledocs-50mb-xlsx-file-sst.xlsx"
+        //,"Data/100mb.xlsx"
     )]
     public string FileName { get; set; }
 

@@ -93,7 +93,7 @@ internal sealed class Sheet : ISheet
             }
             else
             {
-                _stream = _sourceFile.FileInfo.OpenRead();
+                _stream = _sourceFile.OpenForAsyncRead();
             }
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);

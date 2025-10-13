@@ -21,7 +21,7 @@ internal class Cell : ICell
         bool isTextRow = cellElement.Attributes("t").Any(a => a.Value == "s");
         string? columnName = cellElement.Attributes("r").Select(a => a.Value).FirstOrDefault();
 
-        ColumnLetters = Regex.Replace(columnName, @"\d", "");
+        ColumnLetters = ExcelColumns.RemoveNumbers().Replace(columnName, string.Empty);
 
         //RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));
 
@@ -29,7 +29,7 @@ internal class Cell : ICell
 
         //CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
 
-        ExcelColumnOffset = ColumnLetters.GetExcelColumnNumber();
+        ExcelColumnOffset = ColumnLetters.GetExcelColumnNumber(false);
 
         if (isTextRow)
         {

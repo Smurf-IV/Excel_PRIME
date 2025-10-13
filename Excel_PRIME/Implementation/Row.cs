@@ -90,9 +90,11 @@ internal sealed class Row : IRow
     }
 
     /// <InheritDoc />
-    public Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
+    public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        await GetCellsAsync(ct).ConfigureAwait(false);
+        _cells.TryGetValue(excelColumnIndex - 1, out Cell? found);
+        return found;
     }
 
     /// <InheritDoc />

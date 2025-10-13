@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
-public class Tests
+public class RowCellTests
 {
     [Test]
     [TestCase("Data/special-char.xlsx")]

@@ -26,7 +26,7 @@ internal class XmlSheetReader : IXmlSheetReader
         {
             var idx = dim.Split(':');
             _startRow = idx[0].GetRowNumber();
-            // Might be an empty sheet (i.e. onl "A1")
+            // Might be an empty sheet (i.e. only "A1")
             SheetDimensions = idx.Length == 1 
                 ? new ValueTuple<int, int>(1, 1)
                 : new ValueTuple<int, int>(idx[1].GetRowNumber(), idx[1].GetExcelColumnNumber());

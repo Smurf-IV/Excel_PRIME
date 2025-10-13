@@ -15,6 +15,7 @@ internal class SheetTests
     [Test]
     [TestCase("Data/empty.xlsx", 1)]
     [TestCase("Data/multipleemptysheets.xlsx", 3)]
+    [TestCase("Data/Hidden.xlsx", 3)]
     public async Task A010_StepThroughEmptyXlsx(string fileName, int expected)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
@@ -25,6 +26,8 @@ internal class SheetTests
     [Test]
     [TestCase("Data/multisheet1.xlsx", new[] { "one", "two", "three", "b", "a" })]
     [TestCase("Data/singlesheet.xlsx", new[] { "one" })]
+    [TestCase("Data/sample_file_bad.xlsx", new[] { "MasterInvoice_Detailed_XLSX" })] // This file contains package relations that use absolute rooted paths instead of relative paths. "/xl/workbook.xml" vs "xl/workbook.xml"
+    [TestCase("Data/sample_file_good.xlsx", new[] { "MasterInvoice_Detailed_XLSX" })]
     public async Task A020_GetsWorkSheets(string fileName, string[] worksheetNames)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();

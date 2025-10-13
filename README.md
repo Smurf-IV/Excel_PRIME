@@ -82,17 +82,51 @@ Read only, therefore no calculation / formula calls
     - [x] Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
 ## Phase Beta
-- [ ] Benchmarks
-- [ ] Implement Sheet loading via `XmlReader.Create`
-- [ ] More UnitTests
+- [x] Benchmarks
+    - [x] Add Other "Excel readers" to the Benchmark project(s)
+- [x] More UnitTests
+Seems like I have some work to do:
+```
+
+BenchmarkDotNet v0.15.4, Windows 11 (10.0.26100.6584/24H2/2024Update/HudsonValley)
+Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical cores
+.NET SDK 10.0.100-rc.1.25451.107
+  [Host] : .NET 8.0.20 (8.0.20, 8.0.2025.41914), X64 RyuJIT x86-64-v3
+  Dry    : .NET 8.0.20 (8.0.20, 8.0.2025.41914), X64 RyuJIT x86-64-v3
+
+
+```
+| Method                     | Max          |
+|--------------------------- |-------------:|
+| **AccessEveryCellSylvan**      |  **4,835.00 ms** |
+| AccessEveryCellXlsxHelper  | 20,724.69 ms |
+| AccessEveryCellExcel_Prime | 33,230.03 ms |
+|                            |              |
+| **AccessEveryCellSylvan**      |  **7,339.47 ms** |
+| AccessEveryCellXlsxHelper  |  8,325.41 ms |
+| AccessEveryCellExcel_Prime | 57,440.71 ms |
+|                            |              |
+| **AccessEveryCellSylvan**      |  **3,184.49 ms** |
+| AccessEveryCellXlsxHelper  |  3,945.23 ms |
+| AccessEveryCellExcel_Prime | 25,463.68 ms |
+|                            |              |
+| **AccessEveryCellSylvan**      |     **77.64 ms** |
+| AccessEveryCellXlsxHelper  |  3,551.77 ms |
+| AccessEveryCellExcel_Prime | 21,429.76 ms |
+
+<hr />
 
 ## Phase 1 - MVP
-- [ ] More Benchmarks
+- [ ] Implement `XmlReader.Create` for
+    - [ ] Loading sharedStrings
+    - [ ] Sheet loading
+- [ ] Better `Storage` of the SharedStrings
+- [ ] - [ ] More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
     - [ ] Q: Are there _Shared strings_ per sheet as well ?
-    - [ ] Store from Local sheets (When opened)
+    - [ ] Store `definedName` from Local sheets (When opened)
 - [ ] Implement Row extraction 
     - [ ] Allow ColumnHeader addressing (i.e. `ABF`)
 - [ ] Implement RangeExtraction
@@ -102,7 +136,7 @@ Read only, therefore no calculation / formula calls
 
 ## Phase 2 - Multi project deployments (Nuget)
 - [ ] More Benchmarks
-    - [ ] Add Other "Excel readers" to the Benchmark project(s)
+    - [ ] Add even more "Excel readers" to the Benchmark project(s)
 - [ ] Cell Information
     - [ ] Value type indicator
     - [ ] Formatter applied
@@ -119,5 +153,9 @@ Read only, therefore no calculation / formula calls
     - [ ] Extract into those types
     - [ ] Deal with `DateOnly` / `TimeOnly` fields
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
+- [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?
+    - [ ] Locking
+    - [ ] How to deal with rows that are completely blank
+    - [ ] `fibres` ?
 
 - [ ] More ideas to be added later ;-)

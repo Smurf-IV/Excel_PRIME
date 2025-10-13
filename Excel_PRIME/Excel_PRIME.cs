@@ -66,7 +66,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
         // Now perform the Getting of the base data
         TempFile workbook = new TempFile("workbook.xml");
         _baseFiles["xl/workbook.xml"] = workbook;
-        using (FileStream targetStream = workbook.FileInfo.OpenWrite())
+        using (FileStream targetStream = workbook.OpenForAsyncWrite())
         {
             await _zipReader.CopyToAsync("xl/workbook.xml", targetStream, ct).ConfigureAwait(false);
         }
@@ -94,14 +94,14 @@ public sealed class Excel_PRIME : IExcel_PRIME
         // Check that the shared string actually exists
         using TempFile shareStrings = new TempFile("sharedStrings.xml");
         bool exists;
-        using (FileStream targetStream = shareStrings.FileInfo.OpenWrite())
+        using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
         {
             exists = await _zipReader.CopyToAsync("xl/sharedStrings.xml", targetStream, ct).ConfigureAwait(false);
         }
 
         if (exists)
         {
-            using FileStream fileStream = shareStrings.FileInfo.OpenRead();
+            using FileStream fileStream = shareStrings.OpenForAsyncRead();
             _sharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
                 .ConfigureAwait(false);
         }
@@ -109,7 +109,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
 
     private async Task GetSheetNamesAsync(TempFile workbook, CancellationToken ct)
     {
-        using FileStream fileStream = workbook.FileInfo.OpenRead();
+        using FileStream fileStream = workbook.OpenForAsyncRead();
         using IXmlWorkBookReader? wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(fileStream, ct)
             .ConfigureAwait(false);
         _sheetNamesWithrId = await wbr!.GetSheetNamesAsync(ct).ConfigureAwait(false);
@@ -139,7 +139,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
         }
 
         var sheetFile = new TempFile($"sheet{rId}.xml");
-        using (FileStream targetStream = sheetFile.FileInfo.OpenWrite())
+        using (FileStream targetStream = sheetFile.OpenForAsyncWrite())
         {
             string sheetFileName = Sheet.GetFileName(rId);
             await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
