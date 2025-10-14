@@ -58,7 +58,7 @@ Read only, therefore no calculation / formula calls
 - Totally beyond the scope of this project remit
 
 <hr />
-
+[![.NET](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml)
 # Targets
 ## Phase 0
 - [x] Setup this github
