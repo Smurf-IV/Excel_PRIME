@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -11,7 +10,7 @@ namespace ExcelPRIME.Implementation;
 internal class LazyLoadSharedStrings : ISharedString
 {
     private bool _isDisposed;
-    private readonly Dictionary<string, string> _currentlyLoaded = [];
+    private readonly Dictionary<int, string> _currentlyLoaded = [];
     private readonly XmlReader _reader;
     private readonly Stack<string> _nodeHierarchy = new();
 
@@ -50,7 +49,7 @@ internal class LazyLoadSharedStrings : ISharedString
             count = 128;
         }
 
-        _currentlyLoaded = new Dictionary<string, string>(count);
+        _currentlyLoaded = new Dictionary<int, string>(count);
     }
 
     public string? this[string xmlIndex] // TODO: Should this be refactored to take a Cancellation Token
@@ -61,18 +60,35 @@ internal class LazyLoadSharedStrings : ISharedString
             {
                 return null;
             }
-            if (!_currentlyLoaded.TryGetValue(xmlIndex, out var sharedString))
+            int requestIndex = IntParseUnsafe(xmlIndex);
+
+            if (!_currentlyLoaded.TryGetValue(requestIndex, out var sharedString))
             {
-                sharedString = LoadUntil(xmlIndex);
+                sharedString = LoadUntil(requestIndex);
             }
             return sharedString;
         }
     }
 
-    private string? LoadUntil(string xmlIndex)
+    // https://stackoverflow.com/a/6723764
+    private static unsafe int IntParseUnsafe(string value)
+    {
+        int result = 0;
+        fixed (char* v = value)
+        {
+            char* str = v;
+            while (*str != '\0')
+            {
+                result = 10 * result + (*str - 48);
+                str++;
+            }
+        }
+        return result;
+    }
+
+    private string? LoadUntil(int untilIndex)
     {
         // TODO: If passed te CancellationToke, should it also be Async ?
-        var untilIndex = Convert.ToInt32(xmlIndex, CultureInfo.InvariantCulture);
         string? lastCellText = null;
         bool hasMultipleTextForCell = false;
         string? cellValueText = null;
@@ -113,9 +129,7 @@ internal class LazyLoadSharedStrings : ISharedString
                 if (IsSiElementNode(_nodeHierarchy))
                 {
                     var cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
-#pragma warning disable CA1305 // Use the internally faster no culture conversion
-                    _currentlyLoaded.Add(_currentlyLoaded.Count.ToString(), cellText!);
-#pragma warning restore CA1305
+                    _currentlyLoaded.Add(_currentlyLoaded.Count, cellText!);
                     lastCellText = cellText;
                     hasMultipleTextForCell = false;
                     cellValueText = null;
