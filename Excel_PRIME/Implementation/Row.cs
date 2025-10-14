@@ -12,13 +12,13 @@ namespace ExcelPRIME.Implementation;
 internal sealed class Row : IRow
 {
     private readonly XElement _rowElement;
-    private readonly IReadOnlyList<string> _sharedStrings;
+    private readonly ISharedString _sharedStrings;
     private readonly int _maxColumnDimension;
     private bool _isDisposed;
     private int? _rowOffset;
     private Dictionary<int, Cell>? _cells;
 
-    public Row(XElement rowElement, IReadOnlyList<string> sharedStrings, int maxColumnDimension)
+    public Row(XElement rowElement, ISharedString sharedStrings, int maxColumnDimension)
     {
         _rowElement = rowElement;
         _sharedStrings = sharedStrings;
@@ -66,6 +66,16 @@ internal sealed class Row : IRow
     public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
+        for (int i = 0; i < _maxColumnDimension; i++)
+        {
+            _cells.TryGetValue(i, out Cell? found);
+            yield return found;
+        }
+    }
+
+    public IEnumerable<ICell?> GetAllCells(CancellationToken ct = default)
+    {
+        GetCellsAsync(ct).GetAwaiter().GetResult();
         for (int i = 0; i < _maxColumnDimension; i++)
         {
             _cells.TryGetValue(i, out Cell? found);

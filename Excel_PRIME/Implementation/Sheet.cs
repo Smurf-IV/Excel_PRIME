@@ -13,7 +13,7 @@ internal sealed class Sheet : ISheet
 {
     private bool _isDisposed;
     private readonly IXmlReaderHelpers _xmlReaderHelper;
-    private readonly IReadOnlyList<string> _sharedStrings;
+    private readonly ISharedString _sharedStrings;
     private readonly TempFile _sourceFile;
     private FileStream? _stream;
     private IXmlSheetReader? _sheetReader;
@@ -23,7 +23,7 @@ internal sealed class Sheet : ISheet
     /// </summary>
     internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
 
-    internal Sheet(TempFile sourceFile, IXmlReaderHelpers xmlReaderHelper, string name, int index, IReadOnlyList<string> sharedStrings)
+    internal Sheet(TempFile sourceFile, IXmlReaderHelpers xmlReaderHelper, string name, int index, ISharedString sharedStrings)
     {
         _sourceFile = sourceFile;
         _xmlReaderHelper = xmlReaderHelper;
@@ -43,23 +43,32 @@ internal sealed class Sheet : ISheet
     public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         while (_sheetReader.CurrentRow <= SheetDimensions.Height)
         {
-            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+            yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
+        }
+    }
+
+    public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    {
+        CheckLocationAsync(startRow, ct).GetAwaiter().GetResult();
+        while (_sheetReader.CurrentRow <= SheetDimensions.Height)
+        {
+            yield return _sheetReader.GetNextRow(cellGetMode, ct);
         }
     }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         throw new NotImplementedException();
         while (_sheetReader.CurrentRow > SheetDimensions.Height)
         {
-            yield return await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+            yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
         }
     }
 
@@ -100,7 +109,7 @@ internal sealed class Sheet : ISheet
         }
         while (_sheetReader.CurrentRow > startRow)
         {
-            await _sheetReader.GetNextRowAsync(ct).ConfigureAwait(false);
+            await _sheetReader.GetNextRowAsync(RowCellGet.None, ct).ConfigureAwait(false);
         }
     }
 

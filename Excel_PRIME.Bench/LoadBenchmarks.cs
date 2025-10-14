@@ -2,9 +2,6 @@
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Order;
-
-using Microsoft.VSDiagnostics;
 
 using Sylvan.Data.Excel;
 

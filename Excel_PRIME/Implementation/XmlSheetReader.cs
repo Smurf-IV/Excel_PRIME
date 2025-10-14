@@ -11,12 +11,12 @@ namespace ExcelPRIME.Implementation;
 
 internal class XmlSheetReader : IXmlSheetReader
 {
-    private readonly IReadOnlyList<string> _sharedStrings;
+    private readonly ISharedString _sharedStrings;
     private readonly IEnumerator<XElement> _stepper;
     private bool _isDisposed;
     private readonly int _startRow;
 
-    public XmlSheetReader(XDocument document, IReadOnlyList<string> sharedStrings)
+    public XmlSheetReader(XDocument document, ISharedString sharedStrings)
     {
         _sharedStrings = sharedStrings;
         XElement? dimElement = document.Descendants()
@@ -27,7 +27,7 @@ internal class XmlSheetReader : IXmlSheetReader
             var idx = dim.Split(':');
             _startRow = idx[0].GetRowNumber();
             // Might be an empty sheet (i.e. only "A1")
-            SheetDimensions = idx.Length == 1 
+            SheetDimensions = idx.Length == 1
                 ? new ValueTuple<int, int>(1, 1)
                 : new ValueTuple<int, int>(idx[1].GetRowNumber(), idx[1].GetExcelColumnNumber());
         }
@@ -75,15 +75,26 @@ internal class XmlSheetReader : IXmlSheetReader
         GC.SuppressFinalize(this);
     }
 
-    public Task<IRow?> GetNextRowAsync(CancellationToken ct)
+    public Task<IRow?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    {
+        return Task.FromResult(GetNextRow(cellGetMode, ct));
+    }
+
+    public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
         CurrentRow++;
         if (CurrentRow < _startRow || !_stepper.MoveNext())
         {
-            return Task.FromResult((IRow?)null);
+            return (IRow?)null;
         }
 
-        return Task.FromResult<IRow?>(new Row(_stepper.Current, _sharedStrings, SheetDimensions.Width));
+        IRow nextRow = new Row(_stepper.Current, _sharedStrings, SheetDimensions.Width);
+        if (cellGetMode > RowCellGet.None)
+        {
+            nextRow.GetAllCells(ct);
+        }
+
+        return nextRow;
     }
 
     public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct)

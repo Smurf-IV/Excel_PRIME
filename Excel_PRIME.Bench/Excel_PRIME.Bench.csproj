@@ -23,6 +23,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="Data\100mb.xlsx">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Data\Blank Data 1 Million Rows.xlsx">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

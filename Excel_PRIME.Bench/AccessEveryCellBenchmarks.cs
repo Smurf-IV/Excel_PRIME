@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Order;
-
-using Microsoft.VSDiagnostics;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 
 using Sylvan.Data.Excel;
 
@@ -16,14 +12,34 @@ using XlsxHelper;
 
 namespace ExcelPRIME.Bench;
 
+
 [ExcludeFromCodeCoverage]
+//[Config(typeof(Config))]
 public class AccessEveryCellBenchmarks
 {
+    private class Config : ManualConfig
+    {
+        public Config()
+        {
+            // DefaultJob
+            //AddJob(Job.Dry);      // Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
+            //AddJob(Job.ShortRun);     // ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+            //AddJob(Job.MediumRun);      // MediumRun(IterationCount=15, LaunchCount=2, WarmupCount=10)
+            //AddLogger(ConsoleLogger.Default);
+            //AddColumn(TargetMethodColumn.Method, StatisticColumn.Max);
+            //AddExporter(HtmlExporter.Default, MarkdownExporter.GitHub, MarkdownExporter.Console);
+            //AddAnalyser(EnvironmentAnalyser.Default);
+            AddDiagnoser(MemoryDiagnoser.Default);
+            //UnionRule = ConfigUnionRule.AlwaysUseLocal;
+            SummaryStyle = BenchmarkDotNet.Reports.SummaryStyle.Default.WithRatioStyle(RatioStyle.Trend);
+        }
+    }
+
     [Params(
         "Data/Blank Data 1 Million Rows.xlsx",
         "Data/sampledocs-50mb-xlsx-file.xlsx",
-        "Data/sampledocs-50mb-xlsx-file-sst.xlsx"
-        //,"Data/100mb.xlsx"
+        "Data/sampledocs-50mb-xlsx-file-sst.xlsx",
+        "Data/100mb.xlsx"
     )]
     public string FileName { get; set; }
 
@@ -35,9 +51,9 @@ public class AccessEveryCellBenchmarks
         {
             while (await reader.ReadAsync().ConfigureAwait(true))
             {
-                if (reader.RowFieldCount > 0)
+                for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
-                    _ = reader.GetExcelValue(1);
+                    _ = reader.GetExcelValue(ordinal);
                 }
             }
         } while (await reader.NextResultAsync().ConfigureAwait(true));
@@ -52,16 +68,16 @@ public class AccessEveryCellBenchmarks
             using WorksheetReader worksheetReader = worksheet.WorksheetReader;
             foreach (Row row in worksheetReader)
             {
-                if (row.Cells.Any())
+                foreach (Cell cell in row.Cells)
                 {
-                    _ = row.Cells[0].CellValue;
+                    _ = cell.CellValue;
                 }
             }
         }
     }
 
     [Benchmark]
-    public async Task AccessEveryCellExcel_Prime()
+    public async Task AccessEveryCellAsyncExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
         await workbook.OpenAsync(FileName).ConfigureAwait(true);
@@ -75,10 +91,32 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                ICell? cell = await row.GetCellAsync(1).ConfigureAwait(true);
-                if (cell != null)
+                await foreach (ICell? cell in row.GetAllCellsAsync())
                 {   // Because this returns upto the dimension of the sheet width
-                    _ = cell.RawValue!.ToString();
+                    _ = cell?.RawValue!.ToString();
+                }
+            }
+        }
+    }
+
+    [Benchmark]
+    public async Task AccessEveryCellExcel_Prime()
+    {
+        using IExcel_PRIME workbook = new Excel_PRIME();
+        await workbook.OpenAsync(FileName).ConfigureAwait(true);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            foreach (IRow? row in worksheet!.GetRowData())
+            {
+                if (row == null)
+                {   // Because this returns upto the dimension of the sheet Height
+                    break;
+                }
+
+                foreach (ICell? cell in row.GetAllCells())
+                {   // Because this returns upto the dimension of the sheet width
+                    _ = cell?.RawValue!.ToString();
                 }
             }
         }

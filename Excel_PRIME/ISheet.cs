@@ -33,7 +33,8 @@ public interface ISheet : IDisposable
     /// </summary>
     /// <param name="startRow">Skip over the headers / blanks etc</param>
     /// <param name="ct"></param>
-    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, [EnumeratorCancellation] CancellationToken ct = default);
+    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default);
+    IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Returns the row data at the current iterated row
@@ -42,7 +43,7 @@ public interface ISheet : IDisposable
     /// <param name="startColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="numberOfColumns">matrix / table width</param>
     /// <param name="ct"></param>
-    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, [EnumeratorCancellation] CancellationToken ct = default);
+    IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Using A1:A1 style, to return data from: a single cell, a single column, a matrix / table 

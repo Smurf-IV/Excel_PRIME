@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 using ExcelPRIME.Shared;
@@ -16,7 +10,7 @@ internal class Cell : ICell
 {
     private bool _isDisposed;
 
-    public Cell(XElement cellElement, IReadOnlyList<string> sharedStrings)
+    public Cell(XElement cellElement, ISharedString sharedStrings)
     {
         bool isTextRow = cellElement.Attributes("t").Any(a => a.Value == "s");
         string? columnName = cellElement.Attributes("r").Select(a => a.Value).FirstOrDefault();
@@ -33,7 +27,7 @@ internal class Cell : ICell
 
         if (isTextRow)
         {
-            RawValue = sharedStrings[int.Parse(cellElement.Value, CultureInfo.InvariantCulture)];
+            RawValue = sharedStrings[cellElement.Value];
         }
         else
         {

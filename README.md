@@ -122,10 +122,11 @@ Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical 
 ## Phase 1 - MVP
 - [ ] Add Non `IAsyncEnumerable`s and benchmark
 - [ ] Implement `XmlReader.Create` for
-    - [ ] Loading sharedStrings
+    - [x] Loading sharedStrings
     - [ ] Sheet loading
-- [ ] Better `Storage` of the SharedStrings
-- [ ] - [ ] More Benchmarks
+- [x] Better `Storage` of the SharedStrings
+    - [x] Use of LazyLoading Class
+- [ ] More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
@@ -149,7 +150,7 @@ Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical 
 - [ ] Implement Interface for other Libs (Xml / Zip)
 
 ## Phase 3
-- [ ] XSL**B**
+- [ ] XLS**B**
 
 
 ## Phase 4 - Extension(s)

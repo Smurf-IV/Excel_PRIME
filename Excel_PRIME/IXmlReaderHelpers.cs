@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,10 +9,10 @@ public interface IXmlReaderHelpers
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
+    /// <param name="stream">This _is_ owned by the `ISharedString`</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<string>> GetSharedStringsAsync(Stream stream, CancellationToken ct);
+    Task<ISharedString> GetSharedStringsAsync(Stream stream, CancellationToken ct);
 
     /// <summary>
     /// Create the interface implementation to get details out of the WorkBook
@@ -29,5 +28,5 @@ public interface IXmlReaderHelpers
     /// <param name="sharedStrings"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReader?> CreateSheetReaderAsync(Stream stream, IReadOnlyList<string> sharedStrings, CancellationToken ct);
+    Task<IXmlSheetReader?> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct);
 }

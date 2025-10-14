@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -23,7 +22,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private readonly Dictionary<string, TempFile> _baseFiles = new();
     private readonly Dictionary<int, Sheet> _sheets = new();
     private IReadOnlyDictionary<string, int> _sheetNamesWithrId = new Dictionary<string, int>().AsReadOnly();
-    private IReadOnlyList<string> _sharedStrings = [];
+    private ISharedString? _sharedStrings;
 
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
     {
@@ -92,7 +91,8 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private async Task GetSharedStrings(CancellationToken ct)
     {
         // Check that the shared string actually exists
-        using TempFile shareStrings = new TempFile("sharedStrings.xml");
+        TempFile shareStrings = new TempFile("sharedStrings.xml");
+        _baseFiles["xl/sharedStrings.xml"] = shareStrings;
         bool exists;
         using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
         {
@@ -101,7 +101,9 @@ public sealed class Excel_PRIME : IExcel_PRIME
 
         if (exists)
         {
-            using FileStream fileStream = shareStrings.OpenForAsyncRead();
+#pragma warning disable CA2000 // <param name="stream">This _is_ owned by the `ISharedString`</param>
+            FileStream fileStream = shareStrings.OpenForAsyncRead();
+#pragma warning restore CA2000
             _sharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
                 .ConfigureAwait(false);
         }
@@ -156,6 +158,8 @@ public sealed class Excel_PRIME : IExcel_PRIME
         {
             if (isDisposing)
             {
+                _sharedStrings?.Dispose();
+                _sharedStrings = null;
                 foreach (TempFile tf in _baseFiles.Values)
                 {
                     tf.Dispose();

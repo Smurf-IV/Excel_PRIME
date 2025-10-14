@@ -17,7 +17,8 @@ public interface IRow : IDisposable
     /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
     /// </summary>
     IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
-    
+    IEnumerable<ICell?> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
+
     /// <summary>
     /// Retrieves the cell data
     /// </summary>
