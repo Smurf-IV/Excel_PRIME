@@ -58,7 +58,13 @@ Read only, therefore no calculation / formula calls
 - Totally beyond the scope of this project remit
 
 <hr />
-[![.NET](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml)
+
+| Badge   | Area   |
+|--------------------------- |-------------|
+| [![.NET](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml) | Release build and tests |
+
+<hr />
+
 # Targets
 ## Phase 0
 - [x] Setup this github
@@ -81,20 +87,17 @@ Read only, therefore no calculation / formula calls
     - [x] Deal with Null / Empty cells (Utilise sparse array)
     - [x] Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
-## Phase Beta
+## Phase Beta - Benchmarks
 - [x] Benchmarks
     - [x] Add Other "Excel readers" to the Benchmark project(s)
 - [x] More UnitTests
 Seems like I have some work to do:
 ```
-
 BenchmarkDotNet v0.15.4, Windows 11 (10.0.26100.6584/24H2/2024Update/HudsonValley)
 Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical cores
 .NET SDK 10.0.100-rc.1.25451.107
   [Host] : .NET 8.0.20 (8.0.20, 8.0.2025.41914), X64 RyuJIT x86-64-v3
   Dry    : .NET 8.0.20 (8.0.20, 8.0.2025.41914), X64 RyuJIT x86-64-v3
-
-
 ```
 | Method                     | Max          |
 |--------------------------- |-------------:|
@@ -117,6 +120,7 @@ Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical 
 <hr />
 
 ## Phase 1 - MVP
+- [ ] Add Non `IAsyncEnumerable`s and benchmark
 - [ ] Implement `XmlReader.Create` for
     - [ ] Loading sharedStrings
     - [ ] Sheet loading
