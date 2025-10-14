@@ -15,6 +15,8 @@ internal class Cell : ICell
         bool isTextRow = cellElement.Attributes("t").Any(a => a.Value == "s");
         string? columnName = cellElement.Attributes("r").Select(a => a.Value).FirstOrDefault();
 
+        // If this goes boom, then something is seriously wrong,
+        // TODO: The exception needs to state something useful!
         ColumnLetters = ExcelColumns.RemoveNumbers().Replace(columnName, string.Empty);
 
         //RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));

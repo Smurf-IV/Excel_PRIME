@@ -14,27 +14,8 @@ namespace ExcelPRIME.Bench;
 
 
 [ExcludeFromCodeCoverage]
-//[Config(typeof(Config))]
 public class AccessEveryCellBenchmarks
 {
-    private class Config : ManualConfig
-    {
-        public Config()
-        {
-            // DefaultJob
-            //AddJob(Job.Dry);      // Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
-            //AddJob(Job.ShortRun);     // ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
-            //AddJob(Job.MediumRun);      // MediumRun(IterationCount=15, LaunchCount=2, WarmupCount=10)
-            //AddLogger(ConsoleLogger.Default);
-            //AddColumn(TargetMethodColumn.Method, StatisticColumn.Max);
-            //AddExporter(HtmlExporter.Default, MarkdownExporter.GitHub, MarkdownExporter.Console);
-            //AddAnalyser(EnvironmentAnalyser.Default);
-            AddDiagnoser(MemoryDiagnoser.Default);
-            //UnionRule = ConfigUnionRule.AlwaysUseLocal;
-            SummaryStyle = BenchmarkDotNet.Reports.SummaryStyle.Default.WithRatioStyle(RatioStyle.Trend);
-        }
-    }
-
     [Params(
         "Data/Blank Data 1 Million Rows.xlsx",
         "Data/sampledocs-50mb-xlsx-file.xlsx",

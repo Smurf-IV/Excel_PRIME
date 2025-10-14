@@ -32,7 +32,8 @@ internal class LazyLoadSharedStrings : ISharedString
             {
                 _nodeHierarchy.Push(_reader.Name);
             }
-            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "sst" })
+            if (ct.IsCancellationRequested
+                || _reader is { NodeType: XmlNodeType.Element, LocalName: "sst" })
             {
                 break;
             }
@@ -52,7 +53,7 @@ internal class LazyLoadSharedStrings : ISharedString
         _currentlyLoaded = new Dictionary<string, string>(count);
     }
 
-    public string? this[string xmlIndex]
+    public string? this[string xmlIndex] // TODO: Should this be refactored to take a Cancellation Token
     {
         get
         {
@@ -70,6 +71,7 @@ internal class LazyLoadSharedStrings : ISharedString
 
     private string? LoadUntil(string xmlIndex)
     {
+        // TODO: If passed te CancellationToke, should it also be Async ?
         var untilIndex = Convert.ToInt32(xmlIndex, CultureInfo.InvariantCulture);
         string? lastCellText = null;
         bool hasMultipleTextForCell = false;
@@ -111,7 +113,9 @@ internal class LazyLoadSharedStrings : ISharedString
                 if (IsSiElementNode(_nodeHierarchy))
                 {
                     var cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
-                    _currentlyLoaded.Add($"{_currentlyLoaded.Count}", cellText!);
+#pragma warning disable CA1305 // Use the internally faster no culture conversion
+                    _currentlyLoaded.Add(_currentlyLoaded.Count.ToString(), cellText!);
+#pragma warning restore CA1305
                     lastCellText = cellText;
                     hasMultipleTextForCell = false;
                     cellValueText = null;
