@@ -11,7 +11,7 @@ namespace ExcelPRIME.Shared;
 /// </summary>
 public sealed class TempFile : IDisposable
 {
-    private readonly FileInfo _fi;
+    private readonly FileInfo _fi = null!;
 
     /// <summary>
     /// 

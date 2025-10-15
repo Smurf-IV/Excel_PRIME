@@ -91,6 +91,7 @@ Read only, therefore no calculation / formula calls
 - [x] Benchmarks
     - [x] Add Other "Excel readers" to the Benchmark project(s)
 - [x] More UnitTests
+
 Seems like I have some work to do:
 ```
 BenchmarkDotNet v0.15.4, Windows 11 (10.0.26100.6584/24H2/2024Update/HudsonValley)
@@ -121,6 +122,7 @@ Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical 
 
 ## Phase 1 - MVP
 - [ ] Add Non `IAsyncEnumerable`s and benchmark
+    - [x] Changes done 2025-10-13
 
 | Method                          | FileName             | Mean         | Error        | StdDev       | Ratio            | RatioSD | Gen0         | Gen1         | Gen2       | Allocated   | Alloc Ratio  |
 |-------------------------------- |--------------------- |-------------:|-------------:|-------------:|-----------------:|--------:|-------------:|-------------:|-----------:|------------:|-------------:|
@@ -143,6 +145,32 @@ Intel Core i9-9900K CPU 3.60GHz (Coffee Lake), 1 CPU, 16 logical and 8 physical 
 | AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] |  3,051.97 ms |    257.79 ms |    14.131 ms |   166.70x slower |   4.79x |   93000.0000 |            - |          - |   742.14 MB |  41.08x more |
 | AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 21,005.90 ms |  2,875.97 ms |   157.641 ms | 1,147.33x slower |  33.46x |  821000.0000 |  590000.0000 |  8000.0000 |  6485.07 MB | 358.93x more |
 | AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 20,832.36 ms |  1,993.69 ms |   109.281 ms | 1,137.85x slower |  32.76x |  812000.0000 |  581000.0000 |  8000.0000 |  6416.41 MB | 355.13x more |
+
+    - [x] Changes done 2025-10-14
+
+| Method                          | FileName             | Mean         | Error         | StdDev       | Ratio            | RatioSD | Gen0         | Gen1         | Gen2       | Allocated   | Alloc Ratio  |
+|-------------------------------- |--------------------- |-------------:|--------------:|-------------:|-----------------:|--------:|-------------:|-------------:|-----------:|------------:|-------------:|
+| **AccessEveryCellSylvan**           | **Data/100mb.xlsx**      |  **4,552.13 ms** |    **860.207 ms** |    **47.151 ms** |         **baseline** |        **** |   **49000.0000** |   **47000.0000** |  **3000.0000** |    **403.8 MB** |             **** |
+| AccessEveryCellXlsxHelper       | Data/100mb.xlsx      | 19,588.22 ms |  2,998.794 ms |   164.374 ms |     4.30x slower |   0.05x |  424000.0000 |    5000.0000 |  2000.0000 |  3380.59 MB |   8.37x more |
+| AccessEveryCellAsyncExcel_Prime | Data/100mb.xlsx      | 31,440.00 ms | 13,731.937 ms |   752.694 ms |     6.91x slower |   0.16x | 1236000.0000 |  865000.0000 |  1000.0000 |  9861.72 MB |  24.42x more |
+| AccessEveryCellExcel_Prime      | Data/100mb.xlsx      | 29,864.75 ms | 16,507.782 ms |   904.847 ms |     6.56x slower |   0.18x | 1225000.0000 |  854000.0000 | 10000.0000 |  9708.04 MB |  24.04x more |
+|                                 |                      |              |               |              |                  |         |              |              |            |             |              |
+| **AccessEveryCellSylvan**           | **Data/(...).xlsx [35]** |  **7,607.97 ms** |  **2,659.789 ms** |   **145.792 ms** |         **baseline** |        **** |   **65000.0000** |   **46000.0000** | **41000.0000** |  **2736.63 MB** |             **** |
+| AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] |  7,558.58 ms |    656.938 ms |    36.009 ms |     1.01x faster |   0.02x |  218000.0000 |    1000.0000 |          - |  1739.24 MB |   1.57x less |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 57,067.48 ms |  1,083.106 ms |    59.369 ms |     7.50x slower |   0.12x | 2267000.0000 | 1508000.0000 |  1000.0000 | 18080.79 MB |   6.61x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 58,214.50 ms | 18,809.976 ms | 1,031.038 ms |     7.65x slower |   0.17x | 2258000.0000 | 1503000.0000 | 10000.0000 | 17940.49 MB |   6.56x more |
+|                                 |                      |              |               |              |                  |         |              |              |            |             |              |
+| **AccessEveryCellSylvan**           | **Data/(...).xlsx [39]** |  **3,284.64 ms** |    **102.451 ms** |     **5.616 ms** |         **baseline** |        **** |   **14000.0000** |    **1000.0000** |          **-** |   **115.46 MB** |             **** |
+| AccessEveryCellXlsxHelper       | Data/(...).xlsx [39] |  3,392.15 ms |    189.324 ms |    10.378 ms |     1.03x slower |   0.00x |  100000.0000 |            - |          - |   799.73 MB |   6.93x more |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [39] | 24,851.86 ms |  3,904.259 ms |   214.006 ms |     7.57x slower |   0.06x | 1028000.0000 |  692000.0000 |  8000.0000 |  8141.21 MB |  70.51x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [39] | 23,939.73 ms |  2,082.430 ms |   114.145 ms |     7.29x slower |   0.03x | 1020000.0000 |  684000.0000 |  8000.0000 |  8072.74 MB |  69.92x more |
+|                                 |                      |              |               |              |                  |         |              |              |            |             |              |
+| **AccessEveryCellSylvan**           | **Data/(...).xlsx [35]** |     **19.17 ms** |      **4.471 ms** |     **0.245 ms** |         **baseline** |        **** |    **2468.7500** |    **2375.0000** |   **218.7500** |    **18.07 MB** |             **** |
+| AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] |  2,984.95 ms |    474.120 ms |    25.988 ms |   155.76x slower |   2.08x |   93000.0000 |            - |          - |   742.13 MB |  41.08x more |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 21,909.18 ms | 15,112.848 ms |   828.386 ms | 1,143.25x slower |  39.51x |  821000.0000 |  590000.0000 |  8000.0000 |  6485.06 MB | 358.93x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 21,442.36 ms |  1,281.360 ms |    70.236 ms | 1,118.89x slower |  12.75x |  812000.0000 |  581000.0000 |  8000.0000 |  6416.39 MB | 355.13x more |
+
+
 
 - [ ] - [ ] Implement `XmlReader.Create` for
     - [x] Loading sharedStrings
