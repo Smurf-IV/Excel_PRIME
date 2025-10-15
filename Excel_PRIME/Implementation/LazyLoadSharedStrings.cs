@@ -10,7 +10,7 @@ namespace ExcelPRIME.Implementation;
 internal class LazyLoadSharedStrings : ISharedString
 {
     private bool _isDisposed;
-    private readonly Dictionary<int, string> _currentlyLoaded = [];
+    private readonly List<string> _currentlyLoaded;
     private readonly XmlReader _reader;
     private readonly Stack<string> _nodeHierarchy = new();
 
@@ -49,7 +49,7 @@ internal class LazyLoadSharedStrings : ISharedString
             count = 128;
         }
 
-        _currentlyLoaded = new Dictionary<int, string>(count);
+        _currentlyLoaded = new List<string>(count);
     }
 
     public string? this[string xmlIndex] // TODO: Should this be refactored to take a Cancellation Token
@@ -62,11 +62,11 @@ internal class LazyLoadSharedStrings : ISharedString
             }
             int requestIndex = IntParseUnsafe(xmlIndex);
 
-            if (!_currentlyLoaded.TryGetValue(requestIndex, out var sharedString))
+            if (requestIndex >= _currentlyLoaded.Count)
             {
-                sharedString = LoadUntil(requestIndex);
+                LoadUntil(requestIndex);
             }
-            return sharedString;
+            return _currentlyLoaded[requestIndex];
         }
     }
 
@@ -86,10 +86,9 @@ internal class LazyLoadSharedStrings : ISharedString
         return result;
     }
 
-    private string? LoadUntil(int untilIndex)
+    private void LoadUntil(int untilIndex)
     {
         // TODO: If passed te CancellationToke, should it also be Async ?
-        string? lastCellText = null;
         bool hasMultipleTextForCell = false;
         string? cellValueText = null;
         StringBuilder currentStNodeBuilder = new();
@@ -129,15 +128,13 @@ internal class LazyLoadSharedStrings : ISharedString
                 if (IsSiElementNode(_nodeHierarchy))
                 {
                     var cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
-                    _currentlyLoaded.Add(_currentlyLoaded.Count, cellText!);
-                    lastCellText = cellText;
+                    _currentlyLoaded.Add(cellText!);
                     hasMultipleTextForCell = false;
                     cellValueText = null;
                     currentStNodeBuilder.Clear();
                 }
             }
         }
-        return lastCellText;
     }
 
     private bool IsSiElementNode(Stack<string> nodeHierarchy)
