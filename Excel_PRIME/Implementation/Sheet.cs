@@ -14,8 +14,7 @@ internal sealed class Sheet : ISheet
     private bool _isDisposed;
     private readonly IXmlReaderHelpers _xmlReaderHelper;
     private readonly ISharedString _sharedStrings;
-    private readonly TempFile _sourceFile;
-    private FileStream? _stream;
+    private readonly FileStream _stream;
     private IXmlSheetReader? _sheetReader;
 
     /// <summary>
@@ -23,9 +22,10 @@ internal sealed class Sheet : ISheet
     /// </summary>
     internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
 
-    internal Sheet(TempFile sourceFile, IXmlReaderHelpers xmlReaderHelper, string name, int index, ISharedString sharedStrings)
+    internal Sheet(FileStream stream, IXmlReaderHelpers xmlReaderHelper, string name, int index, ISharedString sharedStrings)
     {
-        _sourceFile = sourceFile;
+        _stream = stream;
+        _stream.Position = 0;
         _xmlReaderHelper = xmlReaderHelper;
         _sharedStrings = sharedStrings;
         Name = name;
@@ -75,7 +75,7 @@ internal sealed class Sheet : ISheet
     /// <InheritDoc />
     public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(string range, [EnumeratorCancellation] CancellationToken ct)
     {
-        var startRow = 0;
+        int startRow = 0;
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         throw new NotImplementedException();
         yield break;
@@ -84,7 +84,7 @@ internal sealed class Sheet : ISheet
     /// <InheritDoc />
     public async Task<ICell?> GetRangeCellAsync(string rangeCell, CancellationToken ct)
     {
-        var startRow = 0;
+        int startRow = 0;
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         throw new NotImplementedException();
     }
@@ -96,18 +96,11 @@ internal sealed class Sheet : ISheet
            )
         {
             _sheetReader?.Dispose();
-            if (_stream != null)
-            {
-                _stream.Position = 0;
-            }
-            else
-            {
-                _stream = _sourceFile.OpenForAsyncRead();
-            }
+             _stream.Position = 0;
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);
         }
-        while (_sheetReader.CurrentRow > startRow)
+        while (_sheetReader.CurrentRow < startRow)
         {
             await _sheetReader.GetNextRowAsync(RowCellGet.None, ct).ConfigureAwait(false);
         }
@@ -121,9 +114,7 @@ internal sealed class Sheet : ISheet
             {
                 _sheetReader?.Dispose();
                 _sheetReader = null;
-                _stream?.Dispose();
-                _stream = null;
-                _sourceFile.Dispose();
+                _stream.Dispose();
             }
 
             _isDisposed = true;

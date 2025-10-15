@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -20,9 +21,10 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private readonly IZipReader _zipReader;
     private Stream? _fs;
     private readonly Dictionary<string, TempFile> _baseFiles = new();
-    private readonly Dictionary<int, Sheet> _sheets = new();
+    private readonly Dictionary<int, TempFile> _sheetFiles = new();
     private IReadOnlyDictionary<string, int> _sheetNamesWithrId = new Dictionary<string, int>().AsReadOnly();
     private ISharedString? _sharedStrings;
+    private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
 
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
     {
@@ -135,21 +137,21 @@ public sealed class Excel_PRIME : IExcel_PRIME
             throw new KeyNotFoundException($"{sheetName} doe snot exist");
         }
 
-        if (_sheets.TryGetValue(rId, out Sheet? sheet))
+        TempFile sheetFile = await _locker.LockAsync(async () =>
         {
-            return sheet;
-        }
+            if (!_sheetFiles.TryGetValue(rId, out TempFile? sheetFile))
+            {
+                sheetFile = new TempFile($"sheet{rId}.xml");
+                _sheetFiles[rId] = sheetFile;
+                using FileStream targetStream = sheetFile.OpenForAsyncWrite();
+                string sheetFileName = Sheet.GetFileName(rId);
+                await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
+            }
+            return sheetFile;
+        }).ConfigureAwait(false);
 
-        var sheetFile = new TempFile($"sheet{rId}.xml");
-        using (FileStream targetStream = sheetFile.OpenForAsyncWrite())
-        {
-            string sheetFileName = Sheet.GetFileName(rId);
-            await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
-        }
-
-        sheet = new Sheet(sheetFile, _xmlReaderHelper, sheetName, rId, _sharedStrings);
-        _sheets[rId] = sheet;
-        return sheet;
+        FileStream stream = sheetFile.OpenForAsyncRead(true);
+        return new Sheet(stream, _xmlReaderHelper, sheetName, rId, _sharedStrings);
     }
 
     private void Dispose(bool isDisposing)
@@ -160,16 +162,15 @@ public sealed class Excel_PRIME : IExcel_PRIME
             {
                 _sharedStrings?.Dispose();
                 _sharedStrings = null;
+                foreach ((int _, TempFile tf) in _sheetFiles)
+                {
+                    tf.Dispose();
+                }
                 foreach (TempFile tf in _baseFiles.Values)
                 {
                     tf.Dispose();
                 }
                 _baseFiles.Clear();
-                foreach ((int _, Sheet sheet) in _sheets)
-                {
-                    sheet.Dispose();
-                }
-                _sheets.Clear();
                 _fs?.Dispose();
                 _fs = null;
             }

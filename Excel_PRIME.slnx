@@ -3,6 +3,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
     <File Path="LICENSE" />
+    <File Path="Performance.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="Excel_PRIME.Bench/Excel_PRIME.Bench.csproj" Id="0def2195-1f1f-4f5d-9a15-da50360ff807" />

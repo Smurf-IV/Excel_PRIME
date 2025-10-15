@@ -24,7 +24,7 @@ internal class XmlSheetReader : IXmlSheetReader
         string? dim = dimElement?.FirstAttribute?.Value;
         if (dim != null)
         {
-            var idx = dim.Split(':');
+            string[] idx = dim.Split(':');
             _startRow = idx[0].GetRowNumber();
             // Might be an empty sheet (i.e. only "A1")
             SheetDimensions = idx.Length == 1

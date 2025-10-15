@@ -72,7 +72,7 @@ internal static partial class ExcelColumns
         for (; i < columnRef.Length; i++)
         {
             c = columnRef[i];
-            var v = c - 'A';
+            int v = c - 'A';
             if ((uint)v < 26u)
             {
                 col = ((col + 1) * 26) + v;
@@ -86,7 +86,7 @@ internal static partial class ExcelColumns
         for (; i < columnRef.Length; i++)
         {
             c = columnRef[i];
-            var v = c - '0';
+            int v = c - '0';
             if ((uint)v >= 10u)
             {
                 return 0;

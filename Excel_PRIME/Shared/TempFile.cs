@@ -24,7 +24,7 @@ public sealed class TempFile : IDisposable
             // Get the full name of the newly created Temporary file. 
             // Note that the GetTempFileName() method actually creates
             // a 0-byte file and returns the name of the created file.
-            var fileName = System.IO.Path.GetTempFileName();
+            string fileName = System.IO.Path.GetTempFileName();
             // Create a FileInfo object to set the file's attributes
             _fi = new FileInfo(fileName);
 
@@ -52,9 +52,10 @@ public sealed class TempFile : IDisposable
         }
     }
 
-    public FileStream OpenForAsyncWrite() => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 32*1024, true);
+    public FileStream OpenForAsyncWrite() => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 32 * 1024, true);
 
-    public FileStream OpenForAsyncRead() => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Read, FileShare.None, 32 * 1024, true);
+    public FileStream OpenForAsyncRead(bool allowReadShare=false)
+        => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Read, allowReadShare ? FileShare.Read : FileShare.None, 32 * 1024, true);
 
 
     // ReSharper disable UnusedMember.Local

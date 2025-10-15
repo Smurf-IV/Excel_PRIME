@@ -61,4 +61,21 @@ internal class SheetTests
         using FileStream stream = File.Open(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
     }
 
+    [Test]
+    [TestCase("Data/multisheet1.xlsx")]
+    public async Task A040_ReOpenWorkSheets(string fileName)
+    {
+        using IExcel_PRIME workbook = new Excel_PRIME();
+        await workbook.OpenAsync(fileName);
+        foreach (string worksheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+        }
+
+        // Now make sure that the sheet source files have not been disposed etc.
+        foreach (string worksheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+        }
+    }
 }

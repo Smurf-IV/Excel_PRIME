@@ -38,7 +38,7 @@ internal class LazyLoadSharedStrings : ISharedString
             }
         }
 
-        var countStr = _reader.GetAttribute("uniqueCount");
+        string? countStr = _reader.GetAttribute("uniqueCount");
         if (!string.IsNullOrEmpty(countStr)
             && int.TryParse(countStr, out int count)
             && count >= 0)
@@ -102,7 +102,7 @@ internal class LazyLoadSharedStrings : ISharedString
                 )
             {
                 //there can be multiple `t` tags for each `si` node, in that case combine all.
-                var text = _reader.Value;
+                string text = _reader.Value;
                 if (cellValueText != null)
                 {
                     if (!hasMultipleTextForCell)
@@ -127,7 +127,7 @@ internal class LazyLoadSharedStrings : ISharedString
 
                 if (IsSiElementNode(_nodeHierarchy))
                 {
-                    var cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
+                    string? cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
                     _currentlyLoaded.Add(cellText!);
                     hasMultipleTextForCell = false;
                     cellValueText = null;
