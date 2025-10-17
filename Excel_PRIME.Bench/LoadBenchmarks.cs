@@ -1,31 +1,33 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
+
 
 using Sylvan.Data.Excel;
 
 using XlsxHelper;
 
+
 namespace ExcelPRIME.Bench;
 /*
-| Method              | FileName             | Mean           | Error        | StdDev       | Median         | Ratio | RatioSD | Gen0        | Gen1       | Gen2      | Allocated   | Alloc Ratio |
-|-------------------- |--------------------- |---------------:|-------------:|-------------:|---------------:|------:|--------:|------------:|-----------:|----------:|------------:|------------:|
-| LoadWithExcel_Prime | Data/100mb.xlsx      | 2,652,606.9 us | 52,991.58 us | 52,044.82 us | 2,652,595.6 us | 52.89 |    2.42 | 101000.0000 | 71000.0000 | 4000.0000 | 829111.1 KB |      11.681 |
-| LoadWithSylvan      | Data/100mb.xlsx      |    50,235.3 us |    994.60 us |  2,054.03 us |    50,313.7 us |  1.00 |    0.06 |   9900.0000 |  9800.0000 | 1300.0000 | 70977.77 KB |       1.000 |
-| LoadWithXlsxHelper  | Data/100mb.xlsx      |       808.4 us |     29.91 us |     88.18 us |       757.6 us |  0.02 |    0.00 |     21.4844 |    19.5313 |         - |   183.64 KB |       0.003 |
-|                     |                      |                |              |              |                |       |         |             |            |           |             |             |
-| LoadWithSylvan      | Data/(...).xlsx [35] |    39,568.3 us |    781.67 us |  1,764.36 us |    39,723.0 us | 1.002 |    0.06 |   6384.6154 |  6076.9231 |  846.1538 | 45921.85 KB |       1.000 |
-| LoadWithExcel_Prime | Data/(...).xlsx [35] |     5,591.5 us |     82.44 us |     84.66 us |     5,606.8 us | 0.142 |    0.01 |    218.7500 |   203.1250 |         - |  1819.39 KB |       0.040 |
-| LoadWithXlsxHelper  | Data/(...).xlsx [35] |       228.9 us |      4.38 us |      5.70 us |       227.5 us | 0.006 |    0.00 |     12.2070 |    11.7188 |         - |   103.54 KB |       0.002 |
-|                     |                      |                |              |              |                |       |         |             |            |           |             |             |
-| LoadWithSylvan      | Data/(...).xlsx [39] |    12,606.5 us |    236.85 us |    253.43 us |    12,574.4 us |  1.00 |    0.03 |   1125.0000 |  1109.3750 |         - |     9352 KB |       1.000 |
-| LoadWithExcel_Prime | Data/(...).xlsx [39] |     2,960.7 us |     76.58 us |    222.18 us |     2,855.0 us |  0.23 |    0.02 |     54.6875 |    23.4375 |         - |   476.97 KB |       0.051 |
-| LoadWithXlsxHelper  | Data/(...).xlsx [39] |       161.6 us |      3.15 us |      3.10 us |       161.2 us |  0.01 |    0.00 |      8.7891 |     8.3008 |         - |    74.97 KB |       0.008 |
-|                     |                      |                |              |              |                |       |         |             |            |           |             |             |
-| LoadWithSylvan      | Data/(...).xlsx [35] |    18,688.2 us |    340.12 us |    746.56 us |    18,586.3 us | 1.002 |    0.06 |   2468.7500 |  2375.0000 |  218.7500 | 18501.64 KB |       1.000 |
-| LoadWithExcel_Prime | Data/(...).xlsx [35] |     2,980.0 us |     85.21 us |    251.26 us |     2,858.7 us | 0.160 |    0.01 |     50.7813 |    15.6250 |         - |   430.99 KB |       0.023 |
-| LoadWithXlsxHelper  | Data/(...).xlsx [35] |       170.5 us |      2.98 us |      4.27 us |       170.0 us | 0.009 |    0.00 |      9.2773 |     8.7891 |         - |    76.45 KB |       0.004 |
+| Method              | FileName             | Mean        | Error       | StdDev      | Ratio           | RatioSD | Gen0      | Gen1      | Gen2     | Allocated   | Alloc Ratio   |
+|-------------------- |--------------------- |------------:|------------:|------------:|----------------:|--------:|----------:|----------:|---------:|------------:|--------------:|
+| LoadWithSylvan      | Data/(...).xlsx [35] | 36,766.1 us | 25,222.5 us | 1,382.53 us |        baseline |         | 6357.1429 | 6071.4286 | 785.7143 | 45920.59 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [35] |    226.3 us |    112.2 us |     6.15 us | 162.576x faster |   6.50x |   12.6953 |   12.2070 |        - |    103.7 KB | 442.829x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [35] |  2,896.0 us |  5,381.3 us |   294.97 us |  12.779x faster |   1.14x |   42.9688 |   15.6250 |        - |   352.72 KB | 130.191x less |
+| LoadWithFastExcel   | Data/(...).xlsx [35] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |
+|                     |                      |             |             |             |                 |         |           |           |          |             |               |
+| LoadWithSylvan      | Data/(...).xlsx [39] | 12,959.8 us |  2,152.1 us |   117.97 us |        baseline |         | 1125.0000 | 1109.3750 |        - |  9352.07 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [39] |    179.3 us |    263.4 us |    14.44 us |   72.60x faster |   5.07x |    8.7891 |    8.3008 |        - |       75 KB | 124.688x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [39] |  2,618.8 us |  5,775.5 us |   316.58 us |    4.99x faster |   0.49x |   39.0625 |   15.6250 |        - |   323.96 KB |  28.868x less |
+| LoadWithFastExcel   | Data/(...).xlsx [39] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |
+|                     |                      |             |             |             |                 |         |           |           |          |             |               |
+| LoadWithSylvan      | Data/(...).xlsx [35] | 18,789.0 us |  7,430.1 us |   407.27 us |        baseline |         | 2468.7500 | 2406.2500 | 218.7500 | 18501.56 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [35] |    167.5 us |    258.4 us |    14.16 us | 112.731x faster |   8.41x |    9.2773 |    8.7891 |        - |    76.45 KB | 242.017x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [35] |  2,587.8 us |  4,751.0 us |   260.42 us |   7.307x faster |   0.62x |   39.0625 |   15.6250 |        - |   324.47 KB |  57.020x less |
+| LoadWithFastExcel   | Data/(...).xlsx [35] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |
  */
 
 [ExcludeFromCodeCoverage]
@@ -39,22 +41,35 @@ public class LoadBenchmarks
         )]
     public string FileName { get; set; }
 
-    //[Benchmark(Baseline = true)]
+    [Benchmark(Baseline = true)]
     public async Task LoadWithSylvan()
     {
         using var reader = await ExcelDataReader.CreateAsync(FileName);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public void LoadWithXlsxHelper()
     {
         var reader = XlsxReader.OpenWorkbook(FileName);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public async Task LoadWithExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
         await workbook.OpenAsync(FileName);
     }
+
+    //[Benchmark]   Does not work
+    //public void LoadWithKapralExcel()
+    //{
+    //    using Kapral.FastExcel.FastExcel excel = new (FileName);
+    //}
+
+    [Benchmark]
+    public void LoadWithFastExcel()
+    {
+        using FastExcel.FastExcel excel = new(new FileInfo(FileName));
+    }
+
 }

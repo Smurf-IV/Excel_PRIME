@@ -97,3 +97,25 @@ And then slightly different versions of the following dependent on date:
 | AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 21,442.36 ms |  1,281.360 ms |    70.236 ms | 1,118.89x slower |  12.75x |  812000.0000 |  581000.0000 |  8000.0000 |  6416.39 MB | 355.13x more |
 
 <hr />
+
+# 2025-10-17
+- Shows that the strings are now lazy loaded
+- Still not as good as `XlsxHelper` for the just file loading
+- `FastExcel` does not like these files - or I'm probably doing something wrong
+
+| Method              | FileName             | Mean        | Error       | StdDev      | Ratio           | RatioSD | Gen0      | Gen1      | Gen2     | Allocated   | Alloc Ratio   |
+|-------------------- |--------------------- |------------:|------------:|------------:|----------------:|--------:|----------:|----------:|---------:|------------:|--------------:|
+| LoadWithSylvan      | Data/(...).xlsx [35] | 36,766.1 us | 25,222.5 us | 1,382.53 us |        baseline |         | 6357.1429 | 6071.4286 | 785.7143 | 45920.59 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [35] |    226.3 us |    112.2 us |     6.15 us | 162.576x faster |   6.50x |   12.6953 |   12.2070 |        - |    103.7 KB | 442.829x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [35] |  2,896.0 us |  5,381.3 us |   294.97 us |  12.779x faster |   1.14x |   42.9688 |   15.6250 |        - |   352.72 KB | 130.191x less |
+| LoadWithFastExcel   | Data/(...).xlsx [35] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |
+|                     |                      |             |             |             |                 |         |           |           |          |             |               |
+| LoadWithSylvan      | Data/(...).xlsx [39] | 12,959.8 us |  2,152.1 us |   117.97 us |        baseline |         | 1125.0000 | 1109.3750 |        - |  9352.07 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [39] |    179.3 us |    263.4 us |    14.44 us |   72.60x faster |   5.07x |    8.7891 |    8.3008 |        - |       75 KB | 124.688x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [39] |  2,618.8 us |  5,775.5 us |   316.58 us |    4.99x faster |   0.49x |   39.0625 |   15.6250 |        - |   323.96 KB |  28.868x less |
+| LoadWithFastExcel   | Data/(...).xlsx [39] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |
+|                     |                      |             |             |             |                 |         |           |           |          |             |               |
+| LoadWithSylvan      | Data/(...).xlsx [35] | 18,789.0 us |  7,430.1 us |   407.27 us |        baseline |         | 2468.7500 | 2406.2500 | 218.7500 | 18501.56 KB |               |
+| LoadWithXlsxHelper  | Data/(...).xlsx [35] |    167.5 us |    258.4 us |    14.16 us | 112.731x faster |   8.41x |    9.2773 |    8.7891 |        - |    76.45 KB | 242.017x less |
+| LoadWithExcel_Prime | Data/(...).xlsx [35] |  2,587.8 us |  4,751.0 us |   260.42 us |   7.307x faster |   0.62x |   39.0625 |   15.6250 |        - |   324.47 KB |  57.020x less |
+| LoadWithFastExcel   | Data/(...).xlsx [35] |          NA |          NA |          NA |               ? |       ? |        NA |        NA |       NA |          NA |             ? |

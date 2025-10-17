@@ -1,4 +1,4 @@
-# Excel_PRIME
+﻿# Excel_PRIME
 **Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
 
 # What does that mean?
@@ -67,48 +67,49 @@ Read only, therefore no calculation / formula calls
 
 # Targets
 ## Phase 0
-- [x] Setup this github
-- [x] Create the main project
-- [x] Add Unit Test project
-- [x] Add simple Test Data
+- ✅ Setup this github
+- ✅ Create the main project
+- ✅ Add Unit Test project
+- ✅ Add simple Test Data
 
 ## Phase Alpha
-- [x] Use Net Core Interface(s)
-    - [x] Use `ZipArchive`
-    - [x] Use `XDocument`
-- [x] Implement Open / Dispose (Async)
-    - [x] Sheet Names
-    - [x] Shared Strings
-- [x] Implement Sheet loading (unzip and be ready for use)
-    - [x] Use `XDocument`
-- [x] Implement Row extraction 
-    - [x] Skip
-    - [x] Delayed read - until a cell is actually needed
-    - [x] Deal with Null / Empty cells (Utilise sparse array)
-    - [x] Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
+- ✅ Use Net Core Interface(s)
+    - ✅ Use `ZipArchive`
+    - ✅ Use `XDocument`
+- ✅ Implement Open / Dispose (Async)
+    - ✅ Sheet Names
+    - ✅ Shared Strings
+- ✅ Implement Sheet loading (unzip and be ready for use)
+    - ✅ Use `XDocument`
+- ✅ Implement Row extraction 
+    - ✅ Skip
+    - ✅ Delayed read - until a cell is actually needed
+    - ✅ Deal with Null / Empty cells (Utilise sparse array)
+    - ✅ Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
 ## Phase Beta - Benchmarks
-- [x] Benchmarks
-    - [x] Add Other "Excel readers" to the Benchmark project(s)
-- [x] More UnitTests
-    - [x] Performance [2025-10-08](performance.md#2025-10-08)
+- ✅ Benchmarks
+    - ✅ Add Other "Excel readers" to the Benchmark project(s)
+- ✅ More UnitTests
+    - ⚠️ Performance [2025-10-08](performance.md#2025-10-08)
 
 <hr />
 
 ## Phase 1 - MVP
-- [ ] Add Non `IAsyncEnumerable`s and benchmark
-    - [x] Performance [2025-10-13](performance.md#2025-10-13)
-- [ ] Implement `XmlReader.Create` for
+- [>] Add Non `IAsyncEnumerable`s and benchmark
+    - ⚠️ Performance [2025-10-13](performance.md#2025-10-13)
+- [>] Implement `XmlReader.Create` for
     - [x] Loading sharedStrings
-    - [x] Performance [2025-10-14](performance.md#2025-10-14)
-    - [ ] Sheet loading
-- [x] Better `Storage` of the SharedStrings
-    - [x] Use of LazyLoading Class
+        - ⚠️ Performance [2025-10-14](performance.md#2025-10-14)
+    - [»] Sheet loading
+- ✅ Better `Storage` of the SharedStrings
+    - ✅ Use of LazyLoading Class
+        - ⚠️ Performance [2025-10-14](performance.md#2025-10-14)
 - [ ] More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
-- [ ] Implement Sheet loading of
-    - [ ] Multiple times with locking
+- [>] Implement Sheet loading of
+    - ✅ Multiple times with locking
     - [ ] Store `definedName` from Local sheets (When opened)
 - [ ] Implement Row extraction 
     - [ ] Allow ColumnHeader addressing (i.e. `ABF`)
@@ -120,6 +121,16 @@ Read only, therefore no calculation / formula calls
 ## Phase 2 - Multi project deployments (Nuget)
 - [ ] More Benchmarks
     - [ ] Add even more "Excel readers" to the Benchmark project(s)
+- [ ] Indicate that things may be `Hidden`
+    - [ ] Sheet
+    - [ ] Row
+    - [ ] Column
+    - [ ] Cell ?
+- [ ] Indicate that things may be `Readonly`
+    - [ ] Sheet
+    - [ ] Row
+    - [ ] Column
+    - [ ] Cell ?
 - [ ] Cell Information
     - [ ] Value type indicator
     - [ ] Formatter applied
@@ -141,4 +152,4 @@ Read only, therefore no calculation / formula calls
     - [ ] How to deal with rows that are completely blank
     - [ ] `fibres` ?
 
-- [ ] More ideas to be added later ;-)
+- [ ] More ideas to be added later, Please suggest... ;-)

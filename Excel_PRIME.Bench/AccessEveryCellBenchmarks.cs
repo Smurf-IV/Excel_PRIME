@@ -24,7 +24,7 @@ public class AccessEveryCellBenchmarks
     )]
     public string FileName { get; set; }
 
-    [Benchmark(Baseline = true)]
+    //[Benchmark(Baseline = true)]
     public async Task AccessEveryCellSylvan()
     {
         using ExcelDataReader reader = await ExcelDataReader.CreateAsync(FileName).ConfigureAwait(true);
@@ -40,7 +40,7 @@ public class AccessEveryCellBenchmarks
         } while (await reader.NextResultAsync().ConfigureAwait(true));
     }
 
-    [Benchmark]
+    //[Benchmark]
     public void AccessEveryCellXlsxHelper()
     {
         Workbook workbook = XlsxReader.OpenWorkbook(FileName);
@@ -57,7 +57,7 @@ public class AccessEveryCellBenchmarks
         }
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task AccessEveryCellAsyncExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
@@ -80,7 +80,7 @@ public class AccessEveryCellBenchmarks
         }
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task AccessEveryCellExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
