@@ -91,20 +91,20 @@ Read only, therefore no calculation / formula calls
 - ✅ Benchmarks
     - ✅ Add Other "Excel readers" to the Benchmark project(s)
 - ✅ More UnitTests
-    - ⚠️ Performance [2025-10-08](performance.md#2025-10-08)
+    - ⚠️ Performance [2025-10-08](Performance.md#2025-10-08)
 
 <hr />
 
 ## Phase 1 - MVP
 - [>] Add Non `IAsyncEnumerable`s and benchmark
-    - ⚠️ Performance [2025-10-13](performance.md#2025-10-13)
+    - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
 - [>] Implement `XmlReader.Create` for
     - [x] Loading sharedStrings
-        - ⚠️ Performance [2025-10-14](performance.md#2025-10-14)
+        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
     - [»] Sheet loading
 - ✅ Better `Storage` of the SharedStrings
     - ✅ Use of LazyLoading Class
-        - ⚠️ Performance [2025-10-14](performance.md#2025-10-14)
+        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
 - [ ] More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
