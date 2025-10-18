@@ -97,7 +97,7 @@ public class AccessEveryCellBenchmarks
 
                 foreach (ICell? cell in row.GetAllCells())
                 {   // Because this returns upto the dimension of the sheet width
-                    _ = cell?.RawValue!.ToString();
+                    _ = cell?.RawValue?.ToString();
                 }
             }
         }

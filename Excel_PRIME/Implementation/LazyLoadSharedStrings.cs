@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 
+using ExcelPRIME.Shared;
+
 namespace ExcelPRIME.Implementation;
 
 internal class LazyLoadSharedStrings : ISharedString
@@ -18,10 +20,12 @@ internal class LazyLoadSharedStrings : ISharedString
     {
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
-            CloseInput = true,
-            IgnoreComments = true,
             CheckCharacters = false,
+            CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
+            IgnoreComments = true,
+            ValidationType = ValidationType.None,
+            ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
         // advance to the content
@@ -60,7 +64,7 @@ internal class LazyLoadSharedStrings : ISharedString
             {
                 return null;
             }
-            int requestIndex = IntParseUnsafe(xmlIndex);
+            int requestIndex = xmlIndex.IntParseUnsafe();
 
             if (requestIndex >= _currentlyLoaded.Count)
             {
@@ -68,22 +72,6 @@ internal class LazyLoadSharedStrings : ISharedString
             }
             return _currentlyLoaded[requestIndex];
         }
-    }
-
-    // https://stackoverflow.com/a/6723764
-    private static unsafe int IntParseUnsafe(string value)
-    {
-        int result = 0;
-        fixed (char* v = value)
-        {
-            char* str = v;
-            while (*str != '\0')
-            {
-                result = 10 * result + (*str - 48);
-                str++;
-            }
-        }
-        return result;
     }
 
     private void LoadUntil(int untilIndex)

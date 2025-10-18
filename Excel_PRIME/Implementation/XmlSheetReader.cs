@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
+using System.Xml;
 
 using ExcelPRIME.Shared;
 
@@ -12,34 +12,95 @@ namespace ExcelPRIME.Implementation;
 internal class XmlSheetReader : IXmlSheetReader
 {
     private readonly ISharedString _sharedStrings;
-    private readonly IEnumerator<XElement> _stepper;
+    private readonly XmlReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
 
-    public XmlSheetReader(XDocument document, ISharedString sharedStrings)
+    public XmlSheetReader(Stream stream, ISharedString sharedStrings, CancellationToken ct)
     {
         _sharedStrings = sharedStrings;
-        XElement? dimElement = document.Descendants()
-            .FirstOrDefault(d => d.Name.LocalName == "dimension");
-        string? dim = dimElement?.FirstAttribute?.Value;
-        if (dim != null)
+        _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
-            string[] idx = dim.Split(':');
-            _startRow = idx[0].GetRowNumber();
-            // Might be an empty sheet (i.e. only "A1")
-            SheetDimensions = idx.Length == 1
-                ? new ValueTuple<int, int>(1, 1)
-                : new ValueTuple<int, int>(idx[1].GetRowNumber(), idx[1].GetExcelColumnNumber());
-        }
-        else
+            CheckCharacters = false,
+            CloseInput = true,
+            ConformanceLevel = ConformanceLevel.Document,
+            IgnoreComments = true,
+            ValidationType = ValidationType.None,
+            ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
+            Async = true // TBD
+        });
+        // Step into the worksheet
+        while (_reader.Read() && !ct.IsCancellationRequested)
         {
-            SheetDimensions = new ValueTuple<int, int>(0, 0);
+            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "worksheet" })
+            {
+                break;
+            }
         }
 
-        _stepper = document.Descendants()
-            .Where(d => d.Name.LocalName == "row")
-            .GetEnumerator();
+        var foundSheetData = false;
+        while (!ct.IsCancellationRequested
+               && !foundSheetData
+               && _reader.Read()    // Do not read after finding sheetData
+               )
+        {
+            if (_reader.NodeType == XmlNodeType.Element)
+            {
+                switch (_reader.LocalName)
+                {
+                    case "dimension":
+                        {
+                            string? dim = _reader.GetAttribute("ref");
+                            if (dim != null)
+                            {
+                                string[] idx = dim.Split(':');
+                                _startRow = idx[0].GetRowNumber();
+                                // Might be an empty sheet (i.e. only "A1")
+                                SheetDimensions = idx.Length == 1
+                                    ? new ValueTuple<int, int>(1, 1)
+                                    : new ValueTuple<int, int>(idx[1].GetRowNumber()+1, idx[1].GetExcelColumnNumber()+1);
+                            }
+                            else
+                            {
+                                SheetDimensions = new ValueTuple<int, int>(0, 0);
+                            }
+                        }
+                        break;
+
+                    case "cols":
+                        if (_reader.IsEmptyElement)
+                        {
+                            // TODO: Need to understand when and how this is used
+                            continue;
+                        }
+                        break;
+
+                    case "sheetData":
+                        foundSheetData = true;
+                        break;
+                }
+            }
+        }
         CurrentRow = 0;
+    }
+
+    private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
+    {
+        while (await _reader.ReadAsync().ConfigureAwait(false)
+               && !ct.IsCancellationRequested
+               )
+        {
+            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "row" })
+            {
+                CurrentRow++;
+                return true;
+            }
+        }
+        if (_reader.EOF)
+        {   // No rows to read, or the Dimension is lying
+            CurrentRow++;
+        }
+        return false;
     }
 
     private void Dispose(bool isDisposing)
@@ -48,7 +109,7 @@ internal class XmlSheetReader : IXmlSheetReader
         {
             if (isDisposing)
             {
-                _stepper.Dispose();
+                _reader.Dispose();
             }
 
             _isDisposed = true;
@@ -75,26 +136,33 @@ internal class XmlSheetReader : IXmlSheetReader
         GC.SuppressFinalize(this);
     }
 
-    public Task<IRow?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    public async Task<IRow?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
-        return Task.FromResult(GetNextRow(cellGetMode, ct));
+        if (CurrentRow < _startRow ||
+            !await ReadToNextStartRowAsync(ct).ConfigureAwait(false)
+            )
+        {
+            return null;
+        }
+        Row nextRow = new Row(_reader, _sharedStrings, SheetDimensions.Width);
+        if (cellGetMode > RowCellGet.None)
+        {
+            _ = nextRow.GetAllCellsAsync(ct);
+        }
+
+        //if (nextRow.RowOffset > CurrentRow)
+        //{
+        //    // TODO: How to deal with blank rows in the sheet?
+        //    // i.e. ones that do not have a definition in the xml! Therefore, will "Look like a jump"
+        //    throw new IndexOutOfRangeException($"nextRow.RowOffset [{nextRow.RowOffset}] > CurrentRow [{CurrentRow}]");
+        //}
+
+        return nextRow;
     }
 
     public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
-        CurrentRow++;
-        if (CurrentRow < _startRow || !_stepper.MoveNext())
-        {
-            return (IRow?)null;
-        }
-
-        IRow nextRow = new Row(_stepper.Current, _sharedStrings, SheetDimensions.Width);
-        if (cellGetMode > RowCellGet.None)
-        {
-            nextRow.GetAllCells(ct);
-        }
-
-        return nextRow;
+        return GetNextRowAsync(cellGetMode, ct).GetAwaiter().GetResult();
     }
 
     public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct)

@@ -24,9 +24,9 @@ internal sealed class XmlReaderHelpers : IXmlReaderHelpers
     }
 
     /// <InheritDoc />
-    public async Task<IXmlSheetReader?> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct)
+    public Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct)
     {
-        XDocument? document = await XDocument.LoadAsync(stream, LoadOptions.None, ct).ConfigureAwait(false);
-        return new XmlSheetReader(document, sharedStrings);
+        IXmlSheetReader xmlSheetReader = new XmlSheetReader(stream, sharedStrings, ct);
+        return Task.FromResult(xmlSheetReader);
     }
 }

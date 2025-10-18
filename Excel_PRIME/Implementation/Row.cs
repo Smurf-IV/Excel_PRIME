@@ -2,27 +2,48 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
+
+using ExcelPRIME.Shared;
 
 namespace ExcelPRIME.Implementation;
 
 internal sealed class Row : IRow
 {
-    private readonly XElement _rowElement;
+    private readonly XmlReader _reader;
     private readonly ISharedString _sharedStrings;
     private readonly int _maxColumnDimension;
     private bool _isDisposed;
-    private int? _rowOffset;
     private Dictionary<int, Cell>? _cells;
 
-    public Row(XElement rowElement, ISharedString sharedStrings, int maxColumnDimension)
+    public Row(XmlReader rowElement, ISharedString sharedStrings, int maxColumnDimension)
     {
-        _rowElement = rowElement;
+        _reader = rowElement;
         _sharedStrings = sharedStrings;
         _maxColumnDimension = maxColumnDimension;
+        if (_reader is { NodeType: XmlNodeType.Element, LocalName: "row" })
+        {
+            while (_reader.MoveToNextAttribute())
+            {
+                switch (_reader.LocalName)
+                {
+                    case "r":
+                        RowOffset = _reader.Value.IntParseUnsafe();
+                        break;
+                    case "hidden":
+                        // TODO: Do something about this
+                        //_isCurrentRowHidden = ReadBooleanValue(_reader, buffer);
+                        break;
+                }
+            }
+
+            _reader.MoveToElement();
+        }
     }
 
     private void Dispose(bool isDisposing)
@@ -51,16 +72,7 @@ internal sealed class Row : IRow
     }
 
     /// <InheritDoc />
-    public int RowOffset
-    {
-        get
-        {
-            _rowOffset ??= _rowElement.Attributes("r")
-                            .Select(a => int.Parse(a.Value, CultureInfo.InvariantCulture))
-                            .FirstOrDefault();
-            return _rowOffset.GetValueOrDefault();
-        }
-    }
+    public int RowOffset { get; }
 
     /// <InheritDoc />
     public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
@@ -83,20 +95,37 @@ internal sealed class Row : IRow
         }
     }
 
-    private Task GetCellsAsync(CancellationToken ct)
+    private async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cells != null)
         {
-            return Task.CompletedTask;
+            return;
         }
-
         _cells = new Dictionary<int, Cell>();
-        foreach (XElement cellElement in _rowElement.Elements())
+        if (_reader.IsEmptyElement)
         {
-            Cell cell = new Cell(cellElement, _sharedStrings);
-            _cells.Add(cell.ExcelColumnOffset - 1, cell);
+            return;
         }
-        return Task.CompletedTask;
+        int currentDepth = _reader.Depth;
+        if (_reader.NodeType != XmlNodeType.Element)
+        {
+            if (_reader.ReadState != 0)
+            {
+                return;
+            }
+            currentDepth--;
+        }
+        while (await _reader.ReadAsync().ConfigureAwait(false)
+               && !ct.IsCancellationRequested
+                && _reader.Depth > currentDepth
+               )
+        {
+            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "c" })
+            {
+                Cell cell = new Cell(_reader, _sharedStrings);
+                _cells.Add(cell.ExcelColumnOffset - 1, cell);
+            }
+        }
     }
 
     /// <InheritDoc />

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 using ExcelPRIME.Shared;
@@ -10,14 +12,31 @@ internal class Cell : ICell
 {
     private bool _isDisposed;
 
-    public Cell(XElement cellElement, ISharedString sharedStrings)
+    public Cell(XmlReader reader, ISharedString sharedStrings)
     {
-        bool isTextRow = cellElement.Attributes("t").Any(a => a.Value == "s");
-        string? columnName = cellElement.Attributes("r").Select(a => a.Value).FirstOrDefault();
+        string address = string.Empty;// = reader.GetAttribute("r");
+        string type = string.Empty;// = reader.GetAttribute("t");
+        int needed = 0;
+        while (reader.MoveToNextAttribute())
+        {
+            switch (reader.LocalName)
+            {
+                case "r":
+                    address = reader.Value;
+                    needed++;
+                    break;
+                case "t":
+                    type = reader.Value;
+                    needed++;
+                    break;
+            }
+        }
+        // var style = reader.GetAttribute("s"); Use this when formatting the value
+        bool isTextRow = type == "s";
 
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        ColumnLetters = ExcelColumns.RemoveNumbers().Replace(columnName, string.Empty);
+        ColumnLetters = address.RemoveNumbers();
 
         //RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));
 
@@ -26,26 +45,27 @@ internal class Cell : ICell
         //CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
 
         ExcelColumnOffset = ColumnLetters.GetExcelColumnNumber(false);
-
-        if (isTextRow)
+        string? value = null;
+        if (reader.Read() 
+            && reader is { IsEmptyElement: false, LocalName: "v" })
         {
-            RawValue = sharedStrings[cellElement.Value];
+            if (reader.IsStartElement() 
+                || reader.MoveToContent() == XmlNodeType.Element
+                )
+            {
+                value = reader.ReadString();
+            }
+        }
+
+        if (value != null)
+        {
+            RawValue = isTextRow
+                ? sharedStrings[value]
+                : value;
         }
         else
         {
-            // cellElement.Value will give a concatenated Value + reference/calculation
-            XElement? node = cellElement.Elements()
-                .SingleOrDefault(x => x.Name.LocalName == "v");
-
-            if (node != null)
-            {
-                RawValue = node.Value;
-            }
-            else
-            {
-                RawValue = cellElement.Value;
-            }
-
+            value = value;
         }
     }
 

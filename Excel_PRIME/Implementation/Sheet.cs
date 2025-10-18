@@ -46,7 +46,7 @@ internal sealed class Sheet : ISheet
     public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
-        while (_sheetReader.CurrentRow <= SheetDimensions.Height)
+        while (_sheetReader.CurrentRow < SheetDimensions.Height)
         {
             yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
         }

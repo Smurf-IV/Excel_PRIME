@@ -28,5 +28,5 @@ public interface IXmlReaderHelpers
     /// <param name="sharedStrings"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReader?> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct);
+    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct);
 }

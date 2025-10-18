@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace ExcelPRIME.Shared;
 
@@ -8,7 +8,7 @@ namespace ExcelPRIME.Shared;
 /// https://stackoverflow.com/a/2652855
 /// Then some small modifications for language usage
 /// </summary>
-internal static partial class ExcelColumns
+internal static class ExcelColumns
 {
     /// <summary>
     /// Convert Column Number into Column Name - Character(s) eg 1->A, 2->B
@@ -41,7 +41,7 @@ internal static partial class ExcelColumns
     {
         if (includesRowNumber)
         {
-            columnName = RemoveNumbers().Replace(columnName, string.Empty);
+            columnName = columnName.RemoveNumbers();
         }
 
         int[] digits = new int[columnName.Length];
@@ -96,6 +96,37 @@ internal static partial class ExcelColumns
         return row - 1;
     }
 
-    [GeneratedRegex(@"\d")]
-    internal static partial Regex RemoveNumbers();
+    public static string RemoveNumbers(this string cellAddress)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cellAddress);
+
+        if (cellAddress.Length < 2)
+        {
+            throw new ArgumentException("cellAddress length should be at least 2 character long.");
+        }
+
+        return cellAddress.TrimEnd('1', '2', '3', '4', '5', '6', '7', '8', '9', '0');
+        //int splitAt = 0;
+        //if (IsValidColumnChar(span[0]))
+        //{
+        //    splitAt++;
+        //    if (IsValidColumnChar(span[1]))
+        //    {
+        //        splitAt++;
+        //        if (IsValidColumnChar(span[2]))
+        //        {
+        //            splitAt++;
+        //        }
+        //    }
+        //}
+
+        //return span.Trim()
+        //return cellAddress.Substring(0, splitAt);
+    }
+
+    private static bool IsValidColumnChar(char ch)
+    {
+        return char.IsAsciiLetter(ch);
+    }
+
 }

@@ -19,7 +19,7 @@ public interface ISheet : IDisposable
     int Index { get; }
 
     /// <summary>
-    /// What are the Max dimension defined cells (Many may be blank)
+    /// What are the Max dimension defined [Excel Rows, Excel Cells] (Many may be blank)
     /// </summary>
     (int Height, int Width) SheetDimensions { get; }
 
