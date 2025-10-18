@@ -20,7 +20,7 @@ public interface ICell : IDisposable
     /// <summary>
     /// The Excel column identifier, e.g. `ABY`
     /// </summary>
-    string ColumnLetters { get; }
+    ReadOnlyMemory<char> ColumnLetters { get; }
 
     /// <summary>
     /// Excel 1 Based

@@ -97,15 +97,18 @@ Read only, therefore no calculation / formula calls
 
 ## Phase 1 - MVP
 - [>] Add Non `IAsyncEnumerable`s and benchmark
-    - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
-- [>] Implement `XmlReader.Create` for
+        - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
+    - ⚠️ Still not convinced whether to implement "all the way down"
+- ✅ Implement `XmlReader.Create` for
     - [x] Loading sharedStrings
         - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
-    - [»] Sheet loading
+    - ✅ Sheet loading
+    - ✅ Some Profiling Enahancements 
+        - ⚠️ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
 - ✅ Better `Storage` of the SharedStrings
     - ✅ Use of LazyLoading Class
         - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
-- [ ] More Benchmarks
+- ✅ More Benchmarks
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [>] Implement Sheet loading of

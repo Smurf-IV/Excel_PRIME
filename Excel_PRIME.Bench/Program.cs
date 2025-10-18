@@ -18,6 +18,14 @@ internal class Program
     {
         Summary[] _ = BenchmarkRunner.Run(typeof(Program).Assembly, new Config());
     }
+    private class MyRule : IColumnHidingRule
+    {
+        public bool NeedToHide(IColumn column)
+        {
+            return column.Category == ColumnCategory.Statistics
+                || column.ColumnName == "RatioSD";
+        }
+    }
     private class Config : ManualConfig
     {
         public Config()
@@ -31,6 +39,7 @@ internal class Program
             AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray()); // manual config has no columns by default
             //AddColumn(TargetMethodColumn.Method, StatisticColumn.Max);
             //AddExporter(HtmlExporter.Default, MarkdownExporter.GitHub, MarkdownExporter.Console);
+            HideColumns(new MyRule());
             AddAnalyser(EnvironmentAnalyser.Default);
             AddDiagnoser(MemoryDiagnoser.Default);
             UnionRule = ConfigUnionRule.AlwaysUseLocal;

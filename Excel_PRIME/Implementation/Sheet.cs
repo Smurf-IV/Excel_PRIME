@@ -55,7 +55,7 @@ internal sealed class Sheet : ISheet
     public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
         CheckLocationAsync(startRow, ct).GetAwaiter().GetResult();
-        while (_sheetReader.CurrentRow <= SheetDimensions.Height)
+        while (_sheetReader.CurrentRow < SheetDimensions.Height)
         {
             yield return _sheetReader.GetNextRow(cellGetMode, ct);
         }
@@ -66,7 +66,7 @@ internal sealed class Sheet : ISheet
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         throw new NotImplementedException();
-        while (_sheetReader.CurrentRow > SheetDimensions.Height)
+        while (_sheetReader.CurrentRow < SheetDimensions.Height)
         {
             yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
         }

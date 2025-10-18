@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace ExcelPRIME.Shared;
 
@@ -15,6 +15,7 @@ internal static class ExcelColumns
     /// </summary>
     /// <param name="columnNumber">Column Number</param>
     /// <returns>Column Name - Character(s)</returns>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static string GetExcelColumnName(this int columnNumber)
     {
         string columnName = string.Empty;   // No need for a StringBuilder,as this will only be done max 3 times
@@ -32,37 +33,14 @@ internal static class ExcelColumns
     }
 
     /// <summary>
-    /// Covert Column Name - Character(s) into a Column Number eg A->1, B->2, AA -> 27
+    /// Convert ColumnNameRef - Character(s) into a Row - Column Number eg A->1, B->2, AA -> 27
     /// </summary>
-    /// <param name="columnName">Column Name - Character(s)</param>
-    /// <param name="includesRowNumber">Has this been stripped, if not - then true</param>
-    /// <returns>Column Number</returns>
-    public static int GetExcelColumnNumber(this string columnName, bool includesRowNumber = true)
-    {
-        if (includesRowNumber)
-        {
-            columnName = columnName.RemoveNumbers();
-        }
-
-        int[] digits = new int[columnName.Length];
-        for (int i = 0; i < columnName.Length; ++i)
-        {
-            digits[i] = Convert.ToInt32(columnName[i]) - 64;
-        }
-        int mul = 1; int res = 0;
-        for (int pos = digits.Length - 1; pos >= 0; --pos)
-        {
-            res += digits[pos] * mul;
-            mul *= 26;
-        }
-        return res;
-    }
-
-    public static int GetRowNumber(this string columnRef)
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static (int row, int col, ReadOnlyMemory<char> colName) GetRowColNumbers(this string columnRef)
     {
         if (columnRef.Length == 0)
         {
-            return 0;
+            return (0, 0, columnRef.AsMemory());
         }
 
         int col = -1;
@@ -83,50 +61,18 @@ internal static class ExcelColumns
             }
         }
 
+        ReadOnlyMemory<char> colName = columnRef.AsMemory(0, i);
         for (; i < columnRef.Length; i++)
         {
             c = columnRef[i];
             int v = c - '0';
             if ((uint)v >= 10u)
             {
-                return 0;
+                return (0, col, colName);
             }
-            row = row * 10 + v;
+            row = (row * 10) + v;
         }
-        return row - 1;
-    }
-
-    public static string RemoveNumbers(this string cellAddress)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(cellAddress);
-
-        if (cellAddress.Length < 2)
-        {
-            throw new ArgumentException("cellAddress length should be at least 2 character long.");
-        }
-
-        return cellAddress.TrimEnd('1', '2', '3', '4', '5', '6', '7', '8', '9', '0');
-        //int splitAt = 0;
-        //if (IsValidColumnChar(span[0]))
-        //{
-        //    splitAt++;
-        //    if (IsValidColumnChar(span[1]))
-        //    {
-        //        splitAt++;
-        //        if (IsValidColumnChar(span[2]))
-        //        {
-        //            splitAt++;
-        //        }
-        //    }
-        //}
-
-        //return span.Trim()
-        //return cellAddress.Substring(0, splitAt);
-    }
-
-    private static bool IsValidColumnChar(char ch)
-    {
-        return char.IsAsciiLetter(ch);
+        return (row - 1, col, colName);
     }
 
 }

@@ -1,8 +1,11 @@
-﻿namespace ExcelPRIME.Shared;
+﻿using System.Runtime.CompilerServices;
+
+namespace ExcelPRIME.Shared;
 
 internal static class Extensions
 {
     // https://stackoverflow.com/a/6723764
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static unsafe int IntParseUnsafe(this string value)
     {
         int result = 0;

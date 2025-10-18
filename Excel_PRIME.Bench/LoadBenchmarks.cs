@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -41,19 +42,19 @@ public class LoadBenchmarks
         )]
     public string FileName { get; set; }
 
-    [Benchmark(Baseline = true)]
+    //[Benchmark(Baseline = true)]
     public async Task LoadWithSylvan()
     {
-        using var reader = await ExcelDataReader.CreateAsync(FileName);
+        using ExcelDataReader reader = await ExcelDataReader.CreateAsync(FileName);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public void LoadWithXlsxHelper()
     {
-        var reader = XlsxReader.OpenWorkbook(FileName);
+        Workbook reader = XlsxReader.OpenWorkbook(FileName);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task LoadWithExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
@@ -66,10 +67,13 @@ public class LoadBenchmarks
     //    using Kapral.FastExcel.FastExcel excel = new (FileName);
     //}
 
-    [Benchmark]
+    //[Benchmark]
     public void LoadWithFastExcel()
     {
-        using FastExcel.FastExcel excel = new(new FileInfo(FileName));
+        string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
+        FileInfo inputFile = new FileInfo(filePath);
+
+        using FastExcel.FastExcel excel = new(inputFile);
     }
 
 }

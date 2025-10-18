@@ -7,9 +7,10 @@ namespace ExcelPRIME.Shared;
 /// <summary>
 /// Borrowed from here https://stackoverflow.com/a/50139704
 /// </summary>
-internal class SemaphoreLocker
+internal class SemaphoreLocker : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private bool _isDisposed;
 
     public async Task LockAsync(Func<Task> worker)
     {
@@ -64,5 +65,31 @@ internal class SemaphoreLocker
                 _semaphore.Release();
             }
         }
+    }
+
+    private void Dispose(bool isDisposing)
+    {
+        if (!_isDisposed)
+        {
+            if (isDisposing)
+            {
+                _semaphore.Dispose();
+            }
+
+            _isDisposed = true;
+        }
+    }
+
+    ~SemaphoreLocker()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(isDisposing: true);
+        GC.SuppressFinalize(this);
     }
 }

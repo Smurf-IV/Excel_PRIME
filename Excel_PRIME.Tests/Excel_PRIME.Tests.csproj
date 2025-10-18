@@ -23,7 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AwesomeAssertions" Version="9.2.0" />
+		<PackageReference Include="AwesomeAssertions" Version="9.2.1" />
 		<PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -38,7 +38,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
+		<PackageReference Include="NUnit3TestAdapter" Version="6.0.0-beta.1" />
 	</ItemGroup>
 
 	<ItemGroup>

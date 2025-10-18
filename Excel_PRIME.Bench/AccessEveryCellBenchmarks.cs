@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
@@ -24,10 +26,11 @@ public class AccessEveryCellBenchmarks
     )]
     public string FileName { get; set; }
 
-    //[Benchmark(Baseline = true)]
+    [Benchmark(Baseline = true)]
     public async Task AccessEveryCellSylvan()
     {
-        using ExcelDataReader reader = await ExcelDataReader.CreateAsync(FileName).ConfigureAwait(true);
+        using ExcelDataReader reader = ExcelDataReader.Create(FileName);
+        //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(FileName).ConfigureAwait(true);
         do
         {
             while (await reader.ReadAsync().ConfigureAwait(true))
@@ -40,7 +43,7 @@ public class AccessEveryCellBenchmarks
         } while (await reader.NextResultAsync().ConfigureAwait(true));
     }
 
-    //[Benchmark]
+    [Benchmark]
     public void AccessEveryCellXlsxHelper()
     {
         Workbook workbook = XlsxReader.OpenWorkbook(FileName);
@@ -57,7 +60,29 @@ public class AccessEveryCellBenchmarks
         }
     }
 
-    //[Benchmark]
+    [Benchmark]
+    public void AccessEveryCellFastExcel()
+    {
+        string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
+        FileInfo inputFile = new FileInfo(filePath);
+
+        using FastExcel.FastExcel excel = new(inputFile, true);
+
+        Workbook workbook = XlsxReader.OpenWorkbook(FileName);
+        foreach (Worksheet worksheet in workbook.Worksheets)
+        {
+            using WorksheetReader worksheetReader = worksheet.WorksheetReader;
+            foreach (Row row in worksheetReader)
+            {
+                foreach (Cell cell in row.Cells)
+                {
+                    _ = cell.CellValue;
+                }
+            }
+        }
+    }
+
+    [Benchmark]
     public async Task AccessEveryCellAsyncExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
@@ -74,13 +99,13 @@ public class AccessEveryCellBenchmarks
 
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {   // Because this returns upto the dimension of the sheet width
-                    _ = cell?.RawValue!.ToString();
+                    _ = cell?.RawValue?.ToString();
                 }
             }
         }
     }
 
-    //[Benchmark]
+    [Benchmark]
     public async Task AccessEveryCellExcel_Prime()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();

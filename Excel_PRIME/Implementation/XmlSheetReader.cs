@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -11,7 +12,7 @@ namespace ExcelPRIME.Implementation;
 
 internal class XmlSheetReader : IXmlSheetReader
 {
-    private readonly ISharedString _sharedStrings;
+    private readonly ISharedString? _sharedStrings;
     private readonly XmlReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
@@ -54,11 +55,19 @@ internal class XmlSheetReader : IXmlSheetReader
                             if (dim != null)
                             {
                                 string[] idx = dim.Split(':');
-                                _startRow = idx[0].GetRowNumber();
+                                (int row, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
+                                _startRow = row;
                                 // Might be an empty sheet (i.e. only "A1")
-                                SheetDimensions = idx.Length == 1
-                                    ? new ValueTuple<int, int>(1, 1)
-                                    : new ValueTuple<int, int>(idx[1].GetRowNumber()+1, idx[1].GetExcelColumnNumber()+1);
+                                if (idx.Length == 1)
+                                {
+                                    SheetDimensions = new ValueTuple<int, int>(1, 1);
+                                }
+                                else
+                                {
+                                    (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
+
+                                    SheetDimensions = new ValueTuple<int, int>(rowMax + 1, colMax);
+                                }
                             }
                             else
                             {
@@ -110,6 +119,7 @@ internal class XmlSheetReader : IXmlSheetReader
             if (isDisposing)
             {
                 _reader.Dispose();
+                _sharedStrings?.Dispose();
             }
 
             _isDisposed = true;

@@ -9,7 +9,7 @@ using ExcelPRIME.Shared;
 
 namespace ExcelPRIME.Implementation;
 
-internal class LazyLoadSharedStrings : ISharedString
+internal sealed class LazyLoadSharedStrings : ISharedString
 {
     private bool _isDisposed;
     private readonly List<string> _currentlyLoaded;
@@ -70,7 +70,9 @@ internal class LazyLoadSharedStrings : ISharedString
             {
                 LoadUntil(requestIndex);
             }
-            return _currentlyLoaded[requestIndex];
+            return (requestIndex >= _currentlyLoaded.Count)
+                ? string.Empty  // Something has gone wrong !!
+                : _currentlyLoaded[requestIndex];
         }
     }
 

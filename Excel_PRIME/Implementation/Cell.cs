@@ -36,15 +36,10 @@ internal class Cell : ICell
 
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        ColumnLetters = address.RemoveNumbers();
-
-        //RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));
-
-        //ColumnName = worksheet.FastExcel.DefinedNames.FindColumnName(worksheet.Name, columnLetter) ?? columnLetter;
-
-        //CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
-
-        ExcelColumnOffset = ColumnLetters.GetExcelColumnNumber(false);
+        (int _, int col, ReadOnlyMemory<char> colName) = address.GetRowColNumbers();
+        ColumnLetters = colName;
+        //RowNumber = row;
+        ExcelColumnOffset = col;
         string? value = null;
         if (reader.Read() 
             && reader is { IsEmptyElement: false, LocalName: "v" })
@@ -62,10 +57,6 @@ internal class Cell : ICell
             RawValue = isTextRow
                 ? sharedStrings[value]
                 : value;
-        }
-        else
-        {
-            value = value;
         }
     }
 
@@ -101,7 +92,7 @@ internal class Cell : ICell
     public Type RawExcelType => throw new NotImplementedException();
 
     /// <InheritDoc />
-    public string ColumnLetters { get; }
+    public ReadOnlyMemory<char> ColumnLetters { get; }
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; }
