@@ -55,8 +55,8 @@ internal class XmlSheetReader : IXmlSheetReader
                             if (dim != null)
                             {
                                 string[] idx = dim.Split(':');
-                                (int row, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
-                                _startRow = row;
+                                (int rowExcel, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
+                                _startRow = rowExcel-1;  // Take it back to the array offset
                                 // Might be an empty sheet (i.e. only "A1")
                                 if (idx.Length == 1)
                                 {
@@ -66,7 +66,7 @@ internal class XmlSheetReader : IXmlSheetReader
                                 {
                                     (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
 
-                                    SheetDimensions = new ValueTuple<int, int>(rowMax + 1, colMax);
+                                    SheetDimensions = new ValueTuple<int, int>(rowMax, colMax);
                                 }
                             }
                             else

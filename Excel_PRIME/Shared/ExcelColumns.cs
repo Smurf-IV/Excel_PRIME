@@ -33,18 +33,18 @@ internal static class ExcelColumns
     }
 
     /// <summary>
-    /// Convert ColumnNameRef - Character(s) into a Row - Column Number eg A->1, B->2, AA -> 27
+    /// Convert ColumnNameRef - Character(s) into a Row - Column Excel Number eg A->1, B->2, AA -> 27
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static (int row, int col, ReadOnlyMemory<char> colName) GetRowColNumbers(this string columnRef)
+    public static (int rowExcel, int colExcel, ReadOnlyMemory<char> colName) GetRowColNumbers(this string columnRef)
     {
         if (columnRef.Length == 0)
         {
             return (0, 0, columnRef.AsMemory());
         }
 
-        int col = -1;
-        int row = 0;
+        int colExcel = -1;
+        int rowExcel = 0;
         int i = 0;
         char c;
         for (; i < columnRef.Length; i++)
@@ -53,7 +53,7 @@ internal static class ExcelColumns
             int v = c - 'A';
             if ((uint)v < 26u)
             {
-                col = ((col + 1) * 26) + v;
+                colExcel = ((colExcel + 1) * 26) + v;
             }
             else
             {
@@ -61,6 +61,7 @@ internal static class ExcelColumns
             }
         }
 
+        colExcel++; // Make it into the Excel 1 offset #
         ReadOnlyMemory<char> colName = columnRef.AsMemory(0, i);
         for (; i < columnRef.Length; i++)
         {
@@ -68,11 +69,11 @@ internal static class ExcelColumns
             int v = c - '0';
             if ((uint)v >= 10u)
             {
-                return (0, col, colName);
+                return (0, colExcel, colName);
             }
-            row = (row * 10) + v;
+            rowExcel = (rowExcel * 10) + v;
         }
-        return (row - 1, col, colName);
+        return (rowExcel, colExcel, colName);
     }
 
 }
