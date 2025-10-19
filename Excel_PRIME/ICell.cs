@@ -8,14 +8,14 @@ public interface ICell : IDisposable
     /// Gets the value as read from the file
     /// </summary>
     /// <remarks>
-    /// Could be the actual type if read from binary file, otherwise `string?`
+    /// Could be the actual value type if specified, otherwise `string?`
     /// </remarks>
     object? RawValue { get; }
 
     /// <summary>
-    /// Returns the type as specified in the Excel file attribute
+    /// Returns the type as specified in the Excel file attribute if specified, otherwise `string`
     /// </summary>
-    Type RawExcelType { get; }
+    Type? RawExcelType { get; }
 
     /// <summary>
     /// The Excel column identifier, e.g. `ABY`

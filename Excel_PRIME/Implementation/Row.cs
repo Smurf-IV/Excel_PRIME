@@ -122,7 +122,7 @@ internal sealed class Row : IRow
         {
             if (_reader is { NodeType: XmlNodeType.Element, LocalName: "c" })
             {
-                Cell cell = new Cell(_reader, _sharedStrings);
+                Cell cell = await Cell.ConstructCellAsync(_reader, _sharedStrings).ConfigureAwait(false);
                 _cells.Add(cell.ExcelColumnOffset - 1, cell);
             }
         }

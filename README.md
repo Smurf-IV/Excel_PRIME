@@ -90,6 +90,8 @@ Read only, therefore no calculation / formula calls
 ## Phase Beta - Benchmarks
 - ✅ Benchmarks
     - ✅ Add Other "Excel readers" to the Benchmark project(s)
+    - Now With `Sylvan.Data.Excel`
+    - Now With `XlsxHelper`
 - ✅ More UnitTests
     - ⚠️ Performance [2025-10-08](Performance.md#2025-10-08)
 
@@ -104,15 +106,18 @@ Read only, therefore no calculation / formula calls
         - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
     - ✅ Sheet loading
     - ✅ Some Profiling Enahancements 
-        - ⚠️ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
+        - ✅ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
 - ✅ Better `Storage` of the SharedStrings
     - ✅ Use of LazyLoading Class
         - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
 - ✅ More Benchmarks
+    - Now With `FastExcel`
+    - ✅ Some Profiling Enahancements 
+        - 🚀 Big Performance improvements [2025-10-18-pm](Performance.md#2025-10-19-pm)
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [>] Implement Sheet loading of
-    - ✅ Multiple times with locking
+    - ✅ Multiple times (with locking - for separate threading)
     - [ ] Store `definedName` from Local sheets (When opened)
 - [ ] Implement Row extraction 
     - [ ] Allow ColumnHeader addressing (i.e. `ABF`)

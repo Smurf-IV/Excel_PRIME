@@ -1,9 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace ExcelPRIME.Shared;
 
 internal static class Extensions
 {
+
     // https://stackoverflow.com/a/6723764
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static unsafe int IntParseUnsafe(this string value)
@@ -20,4 +22,24 @@ internal static class Extensions
         }
         return result;
     }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+       public static int IntParse(this ReadOnlySpan<char> value)
+       {
+           int result = 0;
+           for (int i = 0; i < value.Length; i++)
+           {
+               ref readonly char local = ref value[i];
+               if (local != '\0')
+               {
+                   result = (10 * result) + (local - 48);
+               }
+               else
+               {
+                   break;
+               }
+           }
+
+           return result;
+       }
 }
