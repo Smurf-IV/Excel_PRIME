@@ -82,7 +82,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         bool hasMultipleTextForCell = false;
         string? cellValueText = null;
         StringBuilder currentStNodeBuilder = new();
-        while (untilIndex >= _currentlyLoaded.Count
+        while (untilIndex > _currentlyLoaded.Count
             && _reader.Read()
             && !_reader.EOF
             )

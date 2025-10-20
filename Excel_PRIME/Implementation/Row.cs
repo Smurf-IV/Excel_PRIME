@@ -95,7 +95,7 @@ internal sealed class Row : IRow
         }
     }
 
-    private async Task GetCellsAsync(CancellationToken ct)
+    internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cells != null)
         {

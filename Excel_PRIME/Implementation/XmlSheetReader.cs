@@ -157,7 +157,7 @@ internal class XmlSheetReader : IXmlSheetReader
         Row nextRow = new Row(_reader, _sharedStrings, SheetDimensions.Width);
         if (cellGetMode > RowCellGet.None)
         {
-            _ = nextRow.GetAllCellsAsync(ct);
+            await nextRow.GetCellsAsync(ct);
         }
 
         //if (nextRow.RowOffset > CurrentRow)
