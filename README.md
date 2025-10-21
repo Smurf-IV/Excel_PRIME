@@ -1,15 +1,17 @@
-﻿# Excel_PRIME
-**Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
+﻿# Excel_PRIME 🌟
+- **Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
+- Without using any external libraries.
+- Optimised for Range extraction.
 
 # What does that mean?
 _Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime.
 
 Lets take each of the above elements and explain:
 
-## Excel
+## Excel 📈
 - Open _Large_ 2007 (Onwards) XLSX file formats (Binary later maybe)
 
-## Performant
+## Performant 🚀
 - Try to be as fast as possible, i.e.
     - Forward only Lazy loading
     - No Attempting to decipher / convert the cell(s) types (Its all text in lx)
@@ -17,27 +19,27 @@ Lets take each of the above elements and explain:
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
 
-## Reader
+## Reader 📋
 Read only, therefore no calculation / formula calls
 
-## Interfaces 
+## Interfaces 🏗️
 - Will use the DotNet core functionality by default
 - But, if your target deployment allows for the use of native performant binaries, then via the use of interfaces these will be pluggable
     - i.e. Using `Zlib.Net` for getting the data streams out of the compressed Excel file faster.
     - A faster / slimmer implementation for xml stream reading (i.e. TurboXml)
 
-## Memory
+## Memory 🌐
 - The reason for this is to handle very large XSLX files (i.e. > 500K rows with > 180 columns per sheet, with multiple sheets of this size)
 - For `ETL` validation scenarios, i.e. make sure that the user modified data that has been transferred has interaction rules applied, before moving onto the `T` and `L` stages
 - Try not to hit / store in the LOH
 - No internal caching of previously loaded sheets / rows.
 
-## Efficiency
+## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
 - Use the OS's `Temp File` caching, so if the memory is _tight_ then the Owner app will not have to worry about OOM exceptions, or having to use Swap Disk speeds.
 - Only unzip the sheet(s) when they are asked for
 
-## Etc.
+## Etc. 🔧
 ### `CancellationToken`s
 - This is to allow the Large files to be _Aborted_
 - Make "Most" of the API's Asynchronous `Task`s
@@ -46,26 +48,26 @@ Read only, therefore no calculation / formula calls
 
 <hr />
 
-# It will **_not_** be:
-## Thread safe
+# It will **_not_** be ❌:
+## Same sheet Thread safe 📊
 - Initially it will **Not** be _same sheet_ thread safe, because the xml reader will be locked to the sheet in use.
-## Cell object type
+## Cell object type 📅
 - Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
 - This could later become an option if the `XmlConvert` classes are efficient (Or via the interface specs)
-## Poco
+## Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## Writer / Modifier
+## Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 <hr />
 
-| Badge   | Area   |
+| Badge 🔄 | Area   |
 |--------------------------- |-------------|
 | [![.NET](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml) | Release build and tests |
 
 <hr />
 
-# Targets
+# Targets 🎯
 ## Phase 0
 - ✅ Setup this github
 - ✅ Create the main project
@@ -87,17 +89,17 @@ Read only, therefore no calculation / formula calls
     - ✅ Deal with Null / Empty cells (Utilise sparse array)
     - ✅ Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
-## Phase Beta - Benchmarks
+## Phase Beta - Benchmarks ⏱️
 - ✅ Benchmarks
     - ✅ Add Other "Excel readers" to the Benchmark project(s)
-    - Now With `Sylvan.Data.Excel`
-    - Now With `XlsxHelper`
+    - 🎉 Now With `Sylvan.Data.Excel`
+    - 🎉 Now With `XlsxHelper`
 - ✅ More UnitTests
     - ⚠️ Performance [2025-10-08](Performance.md#2025-10-08)
 
 <hr />
 
-## Phase 1 - MVP
+## Phase 1 - MVP 🔍
 - [>] Add Non `IAsyncEnumerable`s and benchmark
         - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
     - ⚠️ Still not convinced whether to implement "all the way down"
@@ -150,7 +152,7 @@ Read only, therefore no calculation / formula calls
 - [ ] XLS**B**
 
 
-## Phase 4 - Extension(s)
+## Phase 4 - 💡 Extension(s)
 - [ ] Add option class to allow _Basic_ Cell value type identification
     - [ ] Extract into those types
     - [ ] Deal with `DateOnly` / `TimeOnly` fields

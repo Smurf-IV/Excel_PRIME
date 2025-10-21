@@ -2,7 +2,7 @@
 
 namespace ExcelPRIME;
 
-public interface ICell : IDisposable
+public interface ICell
 {
     /// <summary>
     /// Gets the value as read from the file

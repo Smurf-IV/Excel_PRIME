@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using AwesomeAssertions;
 
-using Newtonsoft.Json.Linq;
-
 using NUnit.Framework;
 
 namespace ExcelPRIME.Tests;

@@ -19,7 +19,7 @@ internal class RowTests
         foreach (string sheetName in workbook.SheetNames())
         {
             using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow row in worksheet!.GetRowDataAsync())
+            await foreach (IRow? row in worksheet!.GetRowDataAsync())
             {
             }
         }

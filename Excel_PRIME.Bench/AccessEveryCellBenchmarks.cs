@@ -116,14 +116,12 @@ public class AccessEveryCellBenchmarks
 
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {
-                    if (cell == null)
+                    cells++;
+                    if (cell != null)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        break;
+                        _ = cell.RawValue;
                     }
-                    _ = cell.RawValue;
-                    cells++;
-                    cell.Dispose();
                 }
                 row.Dispose();
             }
@@ -150,14 +148,12 @@ public class AccessEveryCellBenchmarks
 
                 foreach (ICell? cell in row.GetAllCells())
                 {
-                    if (cell == null)
+                    cells++;
+                    if (cell != null)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        break;
+                        _ = cell.RawValue;
                     }
-                    _ = cell.RawValue;
-                    cells++;
-                    cell.Dispose();
                 }
                 row.Dispose();
             }

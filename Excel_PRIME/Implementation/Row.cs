@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 
 using ExcelPRIME.Shared;
 
@@ -52,6 +48,7 @@ internal sealed class Row : IRow
         {
             if (isDisposing)
             {
+                _cells = null;
             }
 
             _isDisposed = true;

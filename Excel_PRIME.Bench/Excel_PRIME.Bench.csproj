@@ -2,6 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
+		<NeutralLanguage>en</NeutralLanguage>
+		<LangVersion>preview</LangVersion>
 		<OutputType>Exe</OutputType>
 		<Nullable>enable</Nullable>
 		<IsPublishable>False</IsPublishable>

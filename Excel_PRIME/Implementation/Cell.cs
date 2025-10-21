@@ -8,7 +8,6 @@ namespace ExcelPRIME.Implementation;
 
 internal class Cell : ICell
 {
-    private bool _isDisposed;
     /*
     | Method                          | FileName             | Ratio        | Gen0        | Gen1        | Gen2        | Allocated  | Alloc Ratio |
     |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
@@ -268,31 +267,6 @@ internal class Cell : ICell
 
     }
 */
-
-    private void Dispose(bool isDisposing)
-    {
-        if (!_isDisposed)
-        {
-            if (isDisposing)
-            {
-            }
-
-            _isDisposed = true;
-        }
-    }
-
-    ~Cell()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
-    }
 
     /// <InheritDoc />
     public object? RawValue { get; init; }
