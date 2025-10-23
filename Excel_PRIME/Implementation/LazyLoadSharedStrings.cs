@@ -11,6 +11,7 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class LazyLoadSharedStrings : ISharedString
 {
+    private readonly Stream _stream;
     private bool _isDisposed;
     private readonly List<string> _currentlyLoaded;
     private readonly XmlReader _reader;
@@ -18,6 +19,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
 
     public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
+        _stream = stream;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
             CheckCharacters = false,
@@ -70,73 +72,56 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             {
                 LoadUntil(requestIndex);
             }
-            return (requestIndex >= _currentlyLoaded.Count)
-                ? string.Empty  // Something has gone wrong !!
-                : _currentlyLoaded[requestIndex];
+
+            if (requestIndex >= _currentlyLoaded.Count)
+            {
+                // TODO: Throw an exception ?
+                return string.Empty;
+            }
+            else
+            {
+                return _currentlyLoaded[requestIndex];
+            }
         }
     }
 
     private void LoadUntil(int untilIndex)
     {
-        // TODO: If passed te CancellationToke, should it also be Async ?
-        bool hasMultipleTextForCell = false;
-        string? cellValueText = null;
+        // TODO: If passed te CancellationToken, should it also be Async ?
         StringBuilder currentStNodeBuilder = new();
-        while (untilIndex > _currentlyLoaded.Count
-            && _reader.Read()
-            && !_reader.EOF
-            )
+        // ReSharper disable once TooWideLocalVariableScope
+        string cellValueText;
+        while (untilIndex >= _currentlyLoaded.Count
+               && _reader.ReadToFollowing("si")
+               && !_reader.EOF
+              )
         {
-            if (IsSiTextNode(_nodeHierarchy)
-                || IsSiRichTextNode(_nodeHierarchy)
-                )
+            currentStNodeBuilder.Clear();
+            int hasMultipleTextForCell = 0;
+            cellValueText = string.Empty;
+            XmlReader subReader = _reader.ReadSubtree();
+            while (subReader.ReadToFollowing("t"))
             {
-                //there can be multiple `t` tags for each `si` node, in that case combine all.
-                string text = _reader.Value;
-                if (cellValueText != null)
+                if (subReader.IsEmptyElement)
                 {
-                    if (!hasMultipleTextForCell)
-                    {
-                        currentStNodeBuilder.Append(cellValueText);
-                    }
-
-                    hasMultipleTextForCell = true;
-                    currentStNodeBuilder.Append(text);
+                    continue;
                 }
-                cellValueText = text;
-            }
 
-            if (_reader is { IsEmptyElement: false, NodeType: XmlNodeType.Element })
-            {
-                _nodeHierarchy.Push(_reader.Name);
-            }
-
-            if (_reader.NodeType == XmlNodeType.EndElement)
-            {
-                _nodeHierarchy.Pop();
-
-                if (IsSiElementNode(_nodeHierarchy))
+                if (hasMultipleTextForCell++ > 0)
                 {
-                    string? cellText = hasMultipleTextForCell ? currentStNodeBuilder.ToString() : cellValueText;
-                    _currentlyLoaded.Add(cellText!);
-                    hasMultipleTextForCell = false;
-                    cellValueText = null;
-                    currentStNodeBuilder.Clear();
+                    currentStNodeBuilder.Append(cellValueText);
                 }
+
+                cellValueText = subReader.ReadElementContentAsString();
             }
+            if (hasMultipleTextForCell > 1)
+            {   // Add last iteration, and get current combined string
+                currentStNodeBuilder.Append(cellValueText);
+                cellValueText = currentStNodeBuilder.ToString();
+            }
+            _currentlyLoaded.Add(cellValueText);
         }
     }
-
-    private bool IsSiElementNode(Stack<string> nodeHierarchy)
-        => _reader.Name == "si" && nodeHierarchy.Count == 1 && nodeHierarchy.Peek() == "sst";
-
-    private bool IsSiTextNode(Stack<string> nodeHierarchy)
-        => _reader.NodeType is XmlNodeType.Text or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace
-           && nodeHierarchy.Count == 3 && nodeHierarchy.Peek() == "t";
-
-    private bool IsSiRichTextNode(Stack<string> nodeHierarchy)
-        => _reader.NodeType is XmlNodeType.Text or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace
-           && nodeHierarchy.Count == 4 && nodeHierarchy.Peek() == "t";
 
     private void Dispose(bool isDisposing)
     {
@@ -145,6 +130,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             if (isDisposing)
             {
                 _reader.Dispose();
+                _stream.Dispose();
             }
 
             _isDisposed = true;
@@ -163,5 +149,4 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         Dispose(isDisposing: true);
         GC.SuppressFinalize(this);
     }
-
 }

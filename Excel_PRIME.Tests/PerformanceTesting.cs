@@ -13,10 +13,10 @@ namespace ExcelPRIME.Tests;
 internal class PerformanceTesting
 {
     [Test]
-    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 6999996)]
-    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 15146526)]
-    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 6999996)]
-    [TestCase("Data/100mb.xlsx", 8930934)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 7000014)]
+    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 25601276)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 7000014)]
+    [TestCase("Data/100mb.xlsx", 8935680)]
     [Explicit("Lot of data being thrown about !")]
     public async Task A010_AccessEveryCellExcel_Prime(string fileName, int expectedCells)
     {
@@ -26,10 +26,10 @@ internal class PerformanceTesting
     }
 
     [Test]
-    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 6999996)]
-    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 15146526)]
-    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 6999996)]
-    [TestCase("Data/100mb.xlsx", 8930934)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 7000014)]
+    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 25601276)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 7000014)]
+    [TestCase("Data/100mb.xlsx", 8935680)]
     [Explicit("Lot of data being thrown about !")]
     public void A020_AccessEveryCellXlsxHelper(string fileName, int expectedCells)
     {
@@ -39,10 +39,10 @@ internal class PerformanceTesting
     }
 
     [Test]
-    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 6999996)]
-    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 15146526)]
-    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 6999996)]
-    [TestCase("Data/100mb.xlsx", 8930934)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 7000014)]
+    [TestCase("Data/Blank Data 1 Million Rows.xlsx", 25601276)]
+    [TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 7000014)]
+    [TestCase("Data/100mb.xlsx", 8935680)]
     [Explicit("Lot of data being thrown about !")]
     public async Task A030_AccessEveryCellSylvan(string fileName, int expectedCells)
     {
@@ -52,10 +52,10 @@ internal class PerformanceTesting
     }
 
     //[Test]
-    //[TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 6999996)]
-    //[TestCase("Data/Blank Data 1 Million Rows.xlsx", 15146526)]
-    //[TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 6999996)]
-    //[TestCase("Data/100mb.xlsx", 8930934)]
+    //[TestCase("Data/sampledocs-50mb-xlsx-file.xlsx", 7000014)]
+    //[TestCase("Data/Blank Data 1 Million Rows.xlsx", 25601276)]
+    //[TestCase("Data/sampledocs-50mb-xlsx-file-sst.xlsx", 7000014)]
+    //[TestCase("Data/100mb.xlsx", 8935680)]
     //[Explicit("Lot of data being thrown about !")]
     //public void A040_AccessEveryCellFastExcel(string fileName, int expectedCells)
     //{

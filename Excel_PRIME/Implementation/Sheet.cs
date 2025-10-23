@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ExcelPRIME.Shared;
-
 namespace ExcelPRIME.Implementation;
 
 internal sealed class Sheet : ISheet
@@ -96,7 +94,7 @@ internal sealed class Sheet : ISheet
            )
         {
             _sheetReader?.Dispose();
-             _stream.Position = 0;
+            _stream.Position = 0;
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);
         }
@@ -112,8 +110,6 @@ internal sealed class Sheet : ISheet
         {
             if (isDisposing)
             {
-                _sheetReader?.Dispose();
-                _sheetReader = null;
                 _stream.Dispose();
             }
 
