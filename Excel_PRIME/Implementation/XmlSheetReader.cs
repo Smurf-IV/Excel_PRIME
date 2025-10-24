@@ -170,13 +170,7 @@ internal class XmlSheetReader : IXmlSheetReader
         return nextRow;
     }
 
-    public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
-    {
-        return GetNextRowAsync(cellGetMode, ct).GetAwaiter().GetResult();
-    }
+    public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default) => GetNextRowAsync(cellGetMode, ct).GetAwaiter().GetResult();
 
-    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct) => throw new NotImplementedException();
 }

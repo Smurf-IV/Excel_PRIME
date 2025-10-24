@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private ISharedString? _sharedStrings;
     private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
 
+    /// <InheritDoc />
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
     {
         _xmlReaderHelper = xmlReader ?? new XmlReaderHelpers();
@@ -47,8 +49,8 @@ public sealed class Excel_PRIME : IExcel_PRIME
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        _fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
-        return OpenAsync(_fs, fileType, options, ct);
+        FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        return OpenAsync(fs, fileType, options, ct);
     }
 
     /// <InheritDoc />
@@ -109,6 +111,11 @@ public sealed class Excel_PRIME : IExcel_PRIME
             _sharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
                 .ConfigureAwait(false);
         }
+        else
+        {
+            _sharedStrings = new LazyLoadSharedStrings(null!, CancellationToken.None);
+        }
+
     }
 
     private async Task GetSheetNamesAsync(TempFile workbook, CancellationToken ct)
@@ -123,10 +130,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
     public IEnumerable<string> SheetNames() => _sheetNamesWithrId.Keys;
 
     /// <InheritDoc />
-    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
+    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default) => throw new NotImplementedException();
 
     /// <InheritDoc />
     public async Task<ISheet?> GetSheetAsync(string sheetName, CancellationToken ct = default)

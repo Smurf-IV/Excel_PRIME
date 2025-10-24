@@ -25,7 +25,7 @@ public interface IExcel_PRIME : IDisposable
     Task OpenAsync(string fileName, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default);
 
     /// <summary>
-    /// Owns the fileStream, until disposed. Must be Seekable
+    /// _Owns_ the fileStream, until disposed. Must be Seekable.
     /// </summary>
     Task OpenAsync(Stream fileStream, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default);
 

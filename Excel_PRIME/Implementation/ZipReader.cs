@@ -11,11 +11,9 @@ internal sealed class ZipReader : IZipReader
     private bool _isDisposed;
     private ZipArchive? _archive;
 
-    public Task OpenArchiveAsync(Stream fileStream, CancellationToken ct)
-    {
-        return Task.Run(() => _archive = new ZipArchive(fileStream, ZipArchiveMode.Read, true),
+    public Task OpenArchiveAsync(Stream fileStream, CancellationToken ct) =>
+        Task.Run(() => _archive = new ZipArchive(fileStream, ZipArchiveMode.Read, true),
             ct);
-    }
 
     public async Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct)
     {

@@ -20,11 +20,9 @@ internal class Program
     }
     private class MyRule : IColumnHidingRule
     {
-        public bool NeedToHide(IColumn column)
-        {
-            return column.Category == ColumnCategory.Statistics
-                || column.ColumnName == "RatioSD";
-        }
+        public bool NeedToHide(IColumn column) =>
+            column.Category == ColumnCategory.Statistics
+            || column.ColumnName == "RatioSD";
     }
     private class Config : ManualConfig
     {

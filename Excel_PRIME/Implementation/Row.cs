@@ -134,8 +134,5 @@ internal sealed class Row : IRow
     }
 
     /// <InheritDoc />
-    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
 }

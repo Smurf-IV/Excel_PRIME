@@ -5,11 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Diagnosers;
-
-using FastExcel;
 
 using Sylvan.Data.Excel;
 
@@ -72,30 +67,30 @@ public class AccessEveryCellBenchmarks
         return cells;
     }
 
-    [Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellFastExcel()
-    {
-        int cells = 0;
-        string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
-        FileInfo inputFile = new FileInfo(filePath);
+    //[Benchmark]
+    //[MethodImpl(MethodImplOptions.NoOptimization)]
+    //public int AccessEveryCellFastExcel()
+    //{
+    //    int cells = 0;
+    //    string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
+    //    FileInfo inputFile = new FileInfo(filePath);
 
-        using FastExcel.FastExcel excel = new(inputFile, true);
+    //    using FastExcel.FastExcel excel = new(inputFile, true);
 
-        foreach (FastExcel.Worksheet worksheet in excel.Worksheets)
-        {
-            worksheet.Read();
-            foreach (FastExcel.Row row in worksheet.Rows)
-            {
-                foreach (FastExcel.Cell cell in row.Cells)
-                {
-                    _ = cell.Value;
-                    cells++;
-                }
-            }
-        }
-        return cells;
-    }
+    //    foreach (FastExcel.Worksheet worksheet in excel.Worksheets)
+    //    {
+    //        worksheet.Read();
+    //        foreach (FastExcel.Row row in worksheet.Rows)
+    //        {
+    //            foreach (FastExcel.Cell cell in row.Cells)
+    //            {
+    //                _ = cell.Value;
+    //                cells++;
+    //            }
+    //        }
+    //    }
+    //    return cells;
+    //}
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]

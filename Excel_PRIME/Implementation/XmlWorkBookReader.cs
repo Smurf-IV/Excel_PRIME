@@ -27,8 +27,5 @@ internal sealed class XmlWorkBookReader(XDocument _document) : IXmlWorkBookReade
         return Task.FromResult(dict);
     }
 
-    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct) => throw new NotImplementedException();
 }

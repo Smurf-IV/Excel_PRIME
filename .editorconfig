@@ -255,3 +255,6 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1860.severity = none
+
+# The EnumeratorCancellationAttribute applied to parameter 'ct' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+dotnet_diagnostic.CS8424.severity = none

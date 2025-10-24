@@ -15,7 +15,6 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     private bool _isDisposed;
     private readonly List<string> _currentlyLoaded;
     private readonly XmlReader _reader;
-    private readonly Stack<string> _nodeHierarchy = new();
 
     public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
@@ -26,29 +25,28 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
             IgnoreComments = true,
+            NameTable = new SpanAwareNameTable(),
             ValidationType = ValidationType.None,
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
         // advance to the content
-        while (_reader.Read())
-        {
-            if (_reader is { IsEmptyElement: false, NodeType: XmlNodeType.Element })
-            {
-                _nodeHierarchy.Push(_reader.Name);
-            }
-            if (ct.IsCancellationRequested
-                || _reader is { NodeType: XmlNodeType.Element, LocalName: "sst" })
-            {
-                break;
-            }
-        }
+        _reader.ReadToFollowing("sst");
+        //while (_reader.Read())
+        //{
+        //    if (ct.IsCancellationRequested
+        //        || _reader is { NodeType: XmlNodeType.Element, LocalName: "sst" })
+        //    {
+        //        break;
+        //    }
+        //}
 
         string? countStr = _reader.GetAttribute("uniqueCount");
         if (!string.IsNullOrEmpty(countStr)
             && int.TryParse(countStr, out int count)
             && count >= 0)
         {
+            // Just here to make the logic clearer
         }
         else
         {
@@ -71,6 +69,11 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             if (requestIndex >= _currentlyLoaded.Count)
             {
                 LoadUntil(requestIndex);
+                if (_reader.EOF
+                    || _currentlyLoaded.Count == _currentlyLoaded.Capacity)
+                {   // Release resources
+                    _reader.Close();
+                }
             }
 
             if (requestIndex >= _currentlyLoaded.Count)
