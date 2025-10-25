@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace ExcelPRIME;
 
@@ -26,7 +27,9 @@ public interface IXmlReaderHelpers
     /// </summary>
     /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
     /// <param name="sharedStrings"></param>
+    /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct);
+    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings,
+        XmlNameTable sharedNameTable, CancellationToken ct);
 }

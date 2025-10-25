@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -13,27 +12,36 @@ namespace ExcelPRIME.Implementation;
 internal class XmlSheetReader : IXmlSheetReader
 {
     private readonly ISharedString? _sharedStrings;
+    private readonly XmlNameTable _sharedNameTable;
     private readonly XmlReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
+    private readonly string _rowName;
 
-    public XmlSheetReader(Stream stream, ISharedString sharedStrings, CancellationToken ct)
+    public XmlSheetReader(Stream stream, ISharedString sharedStrings, XmlNameTable sharedNameTable, CancellationToken ct)
     {
         _sharedStrings = sharedStrings;
+        _sharedNameTable = sharedNameTable;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
+            DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
+            IgnoreComments = true, // Skip parsing and allocating strings for comments
+            IgnoreWhitespace = true, // Ignore significant whitespace
             CheckCharacters = false,
             CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
-            IgnoreComments = true,
+            NameTable = sharedNameTable,
             ValidationType = ValidationType.None,
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
+        string worksheetRef = _reader.NameTable.Add("worksheet");
         // Step into the worksheet
         while (_reader.Read() && !ct.IsCancellationRequested)
         {
-            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "worksheet" })
+            if (_reader.NodeType == XmlNodeType.Element
+                && Object.ReferenceEquals(_reader.LocalName, worksheetRef)
+                )
             {
                 break;
             }
@@ -43,7 +51,7 @@ internal class XmlSheetReader : IXmlSheetReader
         while (!ct.IsCancellationRequested
                && !foundSheetData
                && _reader.Read()    // Do not read after finding sheetData
-               )
+              )
         {
             if (_reader.NodeType == XmlNodeType.Element)
             {
@@ -56,7 +64,7 @@ internal class XmlSheetReader : IXmlSheetReader
                             {
                                 string[] idx = dim.Split(':');
                                 (int rowExcel, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
-                                _startRow = rowExcel-1;  // Take it back to the array offset
+                                _startRow = rowExcel - 1;  // Take it back to the array offset
                                 // Might be an empty sheet (i.e. only "A1")
                                 if (idx.Length == 1)
                                 {
@@ -91,6 +99,8 @@ internal class XmlSheetReader : IXmlSheetReader
             }
         }
         CurrentRow = 0;
+        // Atomize key names once for fast lookups later.
+        _rowName = _sharedNameTable.Add("row");
     }
 
     private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
@@ -99,7 +109,9 @@ internal class XmlSheetReader : IXmlSheetReader
                && !ct.IsCancellationRequested
                )
         {
-            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "row" })
+            if (_reader.NodeType == XmlNodeType.Element
+                && Object.ReferenceEquals(_reader.LocalName, _rowName)
+                )
             {
                 CurrentRow++;
                 return true;

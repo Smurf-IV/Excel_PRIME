@@ -2,6 +2,18 @@
 
 namespace ExcelPRIME;
 
+public enum CellType
+{
+    Unknown,
+    Numeric,
+    String,
+    SharedString,
+    InlineString,
+    Boolean,
+    Error,
+    Date
+}
+
 public interface ICell
 {
     /// <summary>
@@ -15,7 +27,7 @@ public interface ICell
     /// <summary>
     /// Returns the type as specified in the Excel file attribute if specified, otherwise `string`
     /// </summary>
-    Type? RawExcelType { get; }
+    CellType RawExcelType { get; }
 
     /// <summary>
     /// The Excel column identifier, e.g. `ABY`

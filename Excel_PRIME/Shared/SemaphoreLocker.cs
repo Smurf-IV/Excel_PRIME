@@ -12,6 +12,33 @@ internal class SemaphoreLocker : IDisposable
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private bool _isDisposed;
 
+    public void Lock(Action worker)
+    {
+        bool isTaken = false;
+        try
+        {
+            do
+            {
+                try
+                {
+                }
+                finally
+                {
+                    isTaken =  _semaphore.Wait(TimeSpan.FromMilliseconds(250));
+                }
+            }
+            while (!isTaken);
+            worker();
+        }
+        finally
+        {
+            if (isTaken)
+            {
+                _semaphore.Release();
+            }
+        }
+    }
+
     public async Task LockAsync(Func<Task> worker)
     {
         bool isTaken = false;
@@ -24,7 +51,7 @@ internal class SemaphoreLocker : IDisposable
                 }
                 finally
                 {
-                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
                 }
             }
             while (!isTaken);
@@ -52,7 +79,7 @@ internal class SemaphoreLocker : IDisposable
                 }
                 finally
                 {
-                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
                 }
             }
             while (!isTaken);

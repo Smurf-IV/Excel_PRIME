@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +23,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private readonly Dictionary<int, TempFile> _sheetFiles = new();
     private IReadOnlyDictionary<string, int> _sheetNamesWithrId = new Dictionary<string, int>().AsReadOnly();
     private ISharedString? _sharedStrings;
-    private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
+    private readonly SemaphoreLocker _locker = new();
 
     /// <InheritDoc />
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
@@ -64,7 +62,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
         _fs = fileStream;
         await _zipReader.OpenArchiveAsync(fileStream, ct).ConfigureAwait(false);
         // Check and get the Shared strings
-        await GetSharedStrings(ct).ConfigureAwait(false);
+        await GetSharedStringsAsync(ct).ConfigureAwait(false);
 
         // Now perform the Getting of the base data
         TempFile workbook = new TempFile("workbook.xml");
@@ -92,7 +90,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
 
     }
 
-    private async Task GetSharedStrings(CancellationToken ct)
+    private async Task GetSharedStringsAsync(CancellationToken ct)
     {
         // Check that the shared string actually exists
         TempFile shareStrings = new TempFile("sharedStrings.xml");
@@ -113,7 +111,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
         }
         else
         {
-            _sharedStrings = new LazyLoadSharedStrings(null!, CancellationToken.None);
+            _sharedStrings = new LazyLoadSharedStrings();
         }
 
     }
@@ -177,17 +175,18 @@ public sealed class Excel_PRIME : IExcel_PRIME
                 _baseFiles.Clear();
                 _fs?.Dispose();
                 _fs = null;
+                _locker.Dispose();
             }
             _isDisposed = true;
         }
     }
 
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~Excel_PRIME()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
+    // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    ~Excel_PRIME()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(false);
+    }
 
     public void Dispose()
     {

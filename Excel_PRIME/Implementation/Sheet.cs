@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace ExcelPRIME.Implementation;
 
@@ -12,6 +13,7 @@ internal sealed class Sheet : ISheet
     private bool _isDisposed;
     private readonly IXmlReaderHelpers _xmlReaderHelper;
     private readonly ISharedString _sharedStrings;
+    private readonly XmlNameTable _sharedNameTable;
     private readonly FileStream _stream;
     private IXmlSheetReader? _sheetReader;
 
@@ -26,6 +28,7 @@ internal sealed class Sheet : ISheet
         _stream.Position = 0;
         _xmlReaderHelper = xmlReaderHelper;
         _sharedStrings = sharedStrings;
+        _sharedNameTable = new NameTable();
         Name = name;
         Index = index;
     }
@@ -96,7 +99,7 @@ internal sealed class Sheet : ISheet
             _sheetReader?.Dispose();
             _stream.Position = 0;
 
-            _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, ct).ConfigureAwait(false);
+            _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _sharedStrings, _sharedNameTable, ct).ConfigureAwait(false);
         }
         while (_sheetReader.CurrentRow < startRow)
         {

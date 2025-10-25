@@ -21,20 +21,26 @@ internal sealed class Row : IRow
     {
         _reader = rowElement;
         _sharedStrings = sharedStrings;
+        string rowName = _reader.NameTable.Add("row");
+        string rRef = _reader.NameTable.Add("r");
+        string hiddenName = _reader.NameTable.Add("hidden");
         _maxColumnDimension = maxColumnDimension;
-        if (_reader is { NodeType: XmlNodeType.Element, LocalName: "row" })
+        if (_reader.NodeType == XmlNodeType.Element
+            && Object.ReferenceEquals(_reader.LocalName, rowName)
+            )
         {
             while (_reader.MoveToNextAttribute())
             {
-                switch (_reader.LocalName)
+                // Retrieve the atomized name directly.
+                string currentAttributeName = _reader.LocalName;
+                if (Object.ReferenceEquals(currentAttributeName, rRef))
                 {
-                    case "r":
-                        RowOffset = _reader.Value.IntParseUnsafe();
-                        break;
-                    case "hidden":
-                        // TODO: Do something about this
-                        //_isCurrentRowHidden = ReadBooleanValue(_reader, buffer);
-                        break;
+                    RowOffset = _reader.Value.IntParseUnsafe();
+                }
+                else if (Object.ReferenceEquals(currentAttributeName, hiddenName))
+                {
+                    // TODO: Do something about this
+                    //_isCurrentRowHidden = ReadBooleanValue(_reader, buffer);
                 }
             }
 
@@ -112,12 +118,16 @@ internal sealed class Row : IRow
             }
             currentDepth--;
         }
+
+        string cRef = _reader.NameTable.Add("c");
         while (await _reader.ReadAsync().ConfigureAwait(false)
                && !ct.IsCancellationRequested
                 && _reader.Depth > currentDepth
                )
         {
-            if (_reader is { NodeType: XmlNodeType.Element, LocalName: "c" })
+            if (_reader.NodeType == XmlNodeType.Element
+                && Object.ReferenceEquals(_reader.LocalName, cRef)
+                )
             {
                 Cell cell = await Cell.ConstructCellAsync(_reader, _sharedStrings).ConfigureAwait(false);
                 _cells.Add(cell.ExcelColumnOffset - 1, cell);

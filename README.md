@@ -9,15 +9,22 @@ _Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLSX file formats (Binary later maybe)
+- Open _Large_ 2007 (Onwards) XLSX file formats (Binary later, _maybe_)
 
 ## Performant 🚀
-- Try to be as fast as possible, i.e.
+- _Try_ **to be** as fast as possible, i.e.
     - Forward only Lazy loading
-    - No Attempting to decipher / convert the cell(s) types (Its all text in lx)
-    - No attempting to create /use datatables with headers etc.
+    - Only "Quick" decipher / convert of the cell(s) types to ease GC pressure
+    - No attempt at "creating / using" datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
+### Q & A's
+- Q: There are others that are faster
+- A: Agreed, but then 
+    - they do not have range extraction.
+    - Or use the OS's _TempFile System_ to store massive sheets
+    - Or allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+
 
 ## Reader 📋
 Read only, therefore no calculation / formula calls
@@ -27,22 +34,35 @@ Read only, therefore no calculation / formula calls
 - But, if your target deployment allows for the use of native performant binaries, then via the use of interfaces these will be pluggable
     - i.e. Using `Zlib.Net` for getting the data streams out of the compressed Excel file faster.
     - A faster / slimmer implementation for xml stream reading (i.e. TurboXml)
+### Q & A's
+- Q: Why?
+- A: As mentioned above, this is to allow a developer to replace with external nugets that might perform better XML speed etc.
 
 ## Memory 🌐
 - The reason for this is to handle very large XSLX files (i.e. > 500K rows with > 180 columns per sheet, with multiple sheets of this size)
 - For `ETL` validation scenarios, i.e. make sure that the user modified data that has been transferred has interaction rules applied, before moving onto the `T` and `L` stages
 - Try not to hit / store in the LOH
 - No internal caching of previously loaded sheets / rows.
+### Q & A's
+- Q: It appears that this uses more memory than other implementations
+- A: Currently yes, but it is being optimised for `Range Extraction, 
+    - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
+    - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
 
 ## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
 - Use the OS's `Temp File` caching, so if the memory is _tight_ then the Owner app will not have to worry about OOM exceptions, or having to use Swap Disk speeds.
 - Only unzip the sheet(s) when they are asked for
+- Only load the shared strings upto the current request number
+### Q & A's
+- Q: 
+- A:
+
 
 ## Etc. 🔧
 ### `CancellationToken`s
 - This is to allow the Large files to be _Aborted_
-- Make "Most" of the API's Asynchronous `Task`s
+- Make "Most" of the "Net Cores'" API's Asynchronous `Task`s
 ### IDisposable
 - Got to tidy up those `Temp File`s, and release the `File Stream`
 
@@ -50,7 +70,7 @@ Read only, therefore no calculation / formula calls
 
 # It will **_not_** be ❌:
 ## Same sheet Thread safe 📊
-- Initially it will **Not** be _same sheet_ thread safe, because the xml reader will be locked to the sheet in use.
+- It will **Not** be _same sheet_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
 ## Cell object type 📅
 - Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
 - This could later become an option if the `XmlConvert` classes are efficient (Or via the interface specs)
@@ -82,11 +102,11 @@ Read only, therefore no calculation / formula calls
     - ✅ Sheet Names
     - ✅ Shared Strings
 - ✅ Implement Sheet loading (unzip and be ready for use)
-    - ✅ Use `XDocument`
+    - ✅ Use `XDocument` as POC only
 - ✅ Implement Row extraction 
     - ✅ Skip
     - ✅ Delayed read - until a cell is actually needed
-    - ✅ Deal with Null / Empty cells (Utilise sparse array)
+    - ✅ Deal with Null / Empty cells (Utilise sparse array?)
     - ✅ Keep last used offset (i.e. no need to reload sheet if the next range API `startRow` call is later)
 
 ## Phase Beta - Benchmarks ⏱️
@@ -100,26 +120,29 @@ Read only, therefore no calculation / formula calls
 <hr />
 
 ## Phase 1 - MVP 🔍
-- [>] Add Non `IAsyncEnumerable`s and benchmark
-        - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
+- [x] Add Non `IAsyncEnumerable`s and benchmark
+     - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
     - ⚠️ Still not convinced whether to implement "all the way down"
 - ✅ Implement `XmlReader.Create` for
-    - [x] Loading sharedStrings
+    - ✅ Loading sharedStrings
         - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
     - ✅ Sheet loading
     - ✅ Some Profiling Enahancements 
         - ✅ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
-- ✅ Better `Storage` of the SharedStrings
-    - ✅ Use of LazyLoading Class
-        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
 - ✅ More Benchmarks
     - Now With `FastExcel`
     - ✅ Some Profiling Enahancements 
         - 🚀 Big Performance improvements [2025-10-19-pm](Performance.md#2025-10-19-pm)
+- ✅ Better `Storage` of the SharedStrings
+    - ✅ Use of LazyLoading Class
+        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
+    - ✅ Use of Derived `XmlNamedTable` implementations
+    - ✅ Locking for separate sheet thread reading
+        - ⚠️ Performance [2025-10-25](Performance.md##2025-10-25)
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
-- [>] Implement Sheet loading of
-    - ✅ Multiple times (with locking - for separate threading)
+- [ ] Implement Sheet loading of
+    - [ ] Multiple times (with locking)
     - [ ] Store `definedName` from Local sheets (When opened)
 - [ ] Implement Row extraction 
     - [ ] Allow ColumnHeader addressing (i.e. `ABF`)

@@ -78,12 +78,18 @@ public class RowCellTests
 
         r.Should().Be(workSheet1Content.Length);
 
-        string?[][] workSheet2Content = new string?[][]
+        object?[][] workSheet2Content = new object?[][]
         {
-            ["123", "2022", "12"], ["123.749273492379", "Mar – 2022", "12.79879"],
-            ["123.749273492379", "44621", "1232.1"], ["12313.123123123", "18 mar 22", "123"], ["13", "200"],
-            ["0.00129", "200.90909"], ["999.999999", "8980"], ["999.999999", "0.508333333333333"], [null, "23.3"],
-            [null, "1"], [null, "2"], [null, "2"], [null, "-1"], [null, "0"], [null, "0.5"], [null, "0.25"]
+            [123, 2022, 12],
+            [123.749273492379, "Mar – 2022", 12.79879],
+            [123.749273492379, 44621, 1232.1],
+            [12313.123123123, "18 mar 22", 123],
+            [13, 200],
+            [0.00129, 200.90909],
+            [999.999999, 8980],
+            [999.999999, 0.508333333333333],
+            [null, 23.3],
+            [null, 1], [null, 2], [null, 2], [null, -1], [null, 0], [null, 0.5], [null, 0.25]
         };
         using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting");
         worksheet2!.Name.Should().Be("number & date formatting");

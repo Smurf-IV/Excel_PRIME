@@ -11,35 +11,57 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class LazyLoadSharedStrings : ISharedString
 {
-    private readonly Stream _stream;
-    private bool _isDisposed;
-    private readonly List<string> _currentlyLoaded;
+    private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
+    private readonly Stream? _stream;
     private readonly XmlReader _reader;
+    private readonly List<string> _currentlyLoaded;
+    private bool _isDisposed;
+    ConcurrentXmlNameTable? _prefilledCopyOnWriteNameTable;
+    private readonly string _siRef;
+    private readonly string _tRef;
+    private readonly StringBuilder _currentStNodeBuilder = new();
+
+    public LazyLoadSharedStrings()
+    {
+        _currentlyLoaded = new List<string>(0);
+        _stream = null;
+        _reader = XmlReader.Create(new StringReader(" "), new XmlReaderSettings
+        {
+            CheckCharacters = false,
+            CloseInput = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            IgnoreComments = true,
+            ValidationType = ValidationType.None,
+            ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None
+        });
+        _siRef = string.Empty;
+        _tRef = string.Empty;
+
+    }
 
     public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
         _stream = stream;
+        _prefilledCopyOnWriteNameTable = new ConcurrentXmlNameTable(
+        ["sst", "si", "t", "r", "rPr", "b", "sz", "mc", "color", "rFont", "family", "charset",
+                "xml", "xmlns", string.Empty, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+                "version", "encoding", "standalone", "count", "uniqueCount", "val", "rgb", "space", "i"]
+             );
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
+            DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
+            IgnoreComments = true, // Skip parsing and allocating strings for comments
+            IgnoreWhitespace = true, // Ignore significant whitespace
             CheckCharacters = false,
             CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
-            IgnoreComments = true,
-            NameTable = new SpanAwareNameTable(),
+            NameTable = _prefilledCopyOnWriteNameTable,
             ValidationType = ValidationType.None,
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
         // advance to the content
         _reader.ReadToFollowing("sst");
-        //while (_reader.Read())
-        //{
-        //    if (ct.IsCancellationRequested
-        //        || _reader is { NodeType: XmlNodeType.Element, LocalName: "sst" })
-        //    {
-        //        break;
-        //    }
-        //}
 
         string? countStr = _reader.GetAttribute("uniqueCount");
         if (!string.IsNullOrEmpty(countStr)
@@ -54,26 +76,35 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
 
         _currentlyLoaded = new List<string>(count);
+        _siRef = _reader.NameTable.Add("si");
+        _tRef = _reader.NameTable.Add("t");
     }
 
-    public string? this[string xmlIndex] // TODO: Should this be refactored to take a Cancellation Token
+    // TODO: Should this be refactored to take a Cancellation Token
+    public string? this[int requestIndex]
     {
         get
         {
-            if (string.IsNullOrEmpty(xmlIndex))
+            if (requestIndex < 0)
             {
+                // TODO: Throw an exception ?
                 return null;
             }
-            int requestIndex = xmlIndex.IntParseUnsafe();
 
+            // Many sheets may be attempting to get shared strings
             if (requestIndex >= _currentlyLoaded.Count)
             {
-                LoadUntil(requestIndex);
-                if (_reader.EOF
-                    || _currentlyLoaded.Count == _currentlyLoaded.Capacity)
-                {   // Release resources
-                    _reader.Close();
-                }
+                _locker.Lock(() =>
+                {
+                    LoadUntil(requestIndex); // <- the "requestIndex >= _currentlyLoaded.Count" is also done internally, so no need to check again after locking
+                    if (_reader.EOF
+                        || _currentlyLoaded.Count == _currentlyLoaded.Capacity)
+                    {
+                        // Release resources
+                        _reader.Close();
+                        _prefilledCopyOnWriteNameTable!.Clear();
+                    }
+                });
             }
 
             if (requestIndex >= _currentlyLoaded.Count)
@@ -88,41 +119,62 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
     }
 
+    // TODO: Should this be refactored to take a Cancellation Token
+    public string? this[string xmlIndex] => string.IsNullOrEmpty(xmlIndex) ? null : this[xmlIndex.IntParseUnsafe()];
+
     private void LoadUntil(int untilIndex)
     {
         // TODO: If passed te CancellationToken, should it also be Async ?
-        StringBuilder currentStNodeBuilder = new();
         // ReSharper disable once TooWideLocalVariableScope
         string cellValueText;
         while (untilIndex >= _currentlyLoaded.Count
-               && _reader.ReadToFollowing("si")
+               && _reader.Read()
                && !_reader.EOF
               )
         {
-            currentStNodeBuilder.Clear();
-            int hasMultipleTextForCell = 0;
-            cellValueText = string.Empty;
-            XmlReader subReader = _reader.ReadSubtree();
-            while (subReader.ReadToFollowing("t"))
+            if (_reader.NodeType == XmlNodeType.Element)
             {
-                if (subReader.IsEmptyElement)
+                // Use the pre-atomized string for lightning-fast comparison
+                if (Object.ReferenceEquals(_reader.LocalName, _siRef))
                 {
-                    continue;
-                }
+                    _currentStNodeBuilder.Clear();
+                    int hasMultipleTextForCell = 0;
+                    cellValueText = string.Empty;
+                    XmlReader subReader = _reader.ReadSubtree();
+                    while (subReader.Read()
+                           && !subReader.EOF
+                          )
+                    {
+                        if (subReader.NodeType == XmlNodeType.Element)
+                        {
+                            // Use the pre-atomized string for lightning-fast comparison
+                            if (Object.ReferenceEquals(subReader.LocalName, _tRef))
+                            {
+                                if (subReader.IsEmptyElement)
+                                {
+                                    continue;
+                                }
 
-                if (hasMultipleTextForCell++ > 0)
-                {
-                    currentStNodeBuilder.Append(cellValueText);
-                }
+                                if (hasMultipleTextForCell++ > 0)
+                                {
+                                    _currentStNodeBuilder.Append(cellValueText);
+                                }
 
-                cellValueText = subReader.ReadElementContentAsString();
+                                cellValueText = subReader.ReadElementContentAsString();
+                            }
+                        }
+                    }
+
+                    if (hasMultipleTextForCell > 1)
+                    {
+                        // Add last iteration, and get current combined string
+                        _currentStNodeBuilder.Append(cellValueText);
+                        cellValueText = _currentStNodeBuilder.ToString();
+                    }
+
+                    _currentlyLoaded.Add(cellValueText);
+                }
             }
-            if (hasMultipleTextForCell > 1)
-            {   // Add last iteration, and get current combined string
-                currentStNodeBuilder.Append(cellValueText);
-                cellValueText = currentStNodeBuilder.ToString();
-            }
-            _currentlyLoaded.Add(cellValueText);
         }
     }
 
@@ -133,7 +185,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             if (isDisposing)
             {
                 _reader.Dispose();
-                _stream.Dispose();
+                _stream?.Dispose();
             }
 
             _isDisposed = true;

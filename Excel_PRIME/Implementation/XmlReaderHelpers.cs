@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 
@@ -24,9 +25,9 @@ internal sealed class XmlReaderHelpers : IXmlReaderHelpers
     }
 
     /// <InheritDoc />
-    public Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, CancellationToken ct)
+    public Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        IXmlSheetReader xmlSheetReader = new XmlSheetReader(stream, sharedStrings, ct);
+        IXmlSheetReader xmlSheetReader = new XmlSheetReader(stream, sharedStrings, sharedNameTable, ct);
         return Task.FromResult(xmlSheetReader);
     }
 }
