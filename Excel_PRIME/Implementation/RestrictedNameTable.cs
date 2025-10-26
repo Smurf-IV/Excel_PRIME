@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Buffers;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Xml;
 
 namespace ExcelPRIME.Implementation;
 
-sealed class SharedStringsRestrictedNameTable : NameTable
+// ReSharper disable InconsistentNaming on "private const string"s
+internal sealed class SharedStringsRestrictedNameTable : NameTable
 {
     private const string tAtom = "t";
     private const string siAtom = "si";
@@ -14,6 +14,7 @@ sealed class SharedStringsRestrictedNameTable : NameTable
 
     public SharedStringsRestrictedNameTable()
     {
+        // TODO: Check if adding these on construction gives a benefit.
         //["sst", "si", "t", "r", "rPr", "b", "sz", "mc", "color", "rFont", "family", "charset",
         //"xml", "xmlns", string.Empty, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
         //"version", "encoding", "standalone", "count", "uniqueCount", "val", "rgb", "space", "i"]
@@ -27,6 +28,7 @@ sealed class SharedStringsRestrictedNameTable : NameTable
 
     public override string? Get(string value) => Get(value.AsSpan());
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
     {
         switch (value.Length)
@@ -50,7 +52,7 @@ sealed class SharedStringsRestrictedNameTable : NameTable
     }
 }
 
-sealed class SheetRestrictedNameTable : NameTable
+internal sealed class SheetRestrictedNameTable : NameTable
 {
     private const string cAtom = "c";
     private const string rAtom = "r";
@@ -61,8 +63,6 @@ sealed class SheetRestrictedNameTable : NameTable
     private const string rowAtom = "row";
     private const string colAtom = "col";
     private const string refAtom = "ref";
-    //private const string minAtom = "min";
-    //private const string maxAtom = "max";
     private const string hiddenAtom = "hidden";
     private const string dimensionAtom = "dimension";
     private const string sheetDataAtom = "sheetData";
@@ -76,6 +76,7 @@ sealed class SheetRestrictedNameTable : NameTable
 
     public override string? Get(string value) => Get(value.AsSpan());
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
     {
         switch (value.Length)
@@ -96,40 +97,19 @@ sealed class SheetRestrictedNameTable : NameTable
                 if (value.SequenceEqual(isAtom)) return isAtom;
                 break;
             case 3:
-                switch (value)
-                {
-                    case rowAtom:
-                        return rowAtom;
-                    case colAtom:
-                        return colAtom;
-                    case refAtom:
-                        return refAtom;
-                }
-
-                //if (value.SequenceEqual(minAtom)) return minAtom;
-                //if (value.SequenceEqual(maxAtom)) return maxAtom;
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (value.SequenceEqual(rowAtom)) return rowAtom;
+                if (value.SequenceEqual(colAtom)) return colAtom;
+                if (value.SequenceEqual(refAtom)) return refAtom;
                 break;
-            //case 4:
-            //    if (value.SequenceEqual("cols")) return "cols";
-            //    break;
-            //case 5:
-            //    if (value.SequenceEqual("spans")) return "spans";
-            //    break;
             case 6:
                 if (value.SequenceEqual(hiddenAtom)) return hiddenAtom;
                 break;
             case 9:
-                switch (value)
-                {
-                    case dimensionAtom:
-                        return dimensionAtom;
-                    case sheetDataAtom:
-                        return sheetDataAtom;
-                    case worksheetAtom:
-                        return worksheetAtom;
-                }
-
-                //if (value.SequenceEqual("dyDescent")) return "dyDescent";
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (value.SequenceEqual(dimensionAtom)) return dimensionAtom;
+                if (value.SequenceEqual(sheetDataAtom)) return sheetDataAtom;
+                if (value.SequenceEqual(worksheetAtom)) return worksheetAtom;
                 break;
         }
         return null;

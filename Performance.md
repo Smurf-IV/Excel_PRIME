@@ -287,21 +287,21 @@ And then slightly different versions of the following dependent on date:
 | Method                          | FileName             | Ratio        | Gen0        | Gen1        | Gen2        | Allocated  | Alloc Ratio |
 |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
 | **AccessEveryCellSylvan**           | **Data/100mb.xlsx**      |     **baseline** |  **42000.0000** |  **40000.0000** |   **5000.0000** |  **334.79 MB** |            **** |
-| AccessEveryCellXlsxHelper       | Data/100mb.xlsx      | 4.29x slower | 424000.0000 |   5000.0000 |   2000.0000 | 3380.58 MB | 10.10x more |
-| AccessEveryCellAsyncExcel_Prime | Data/100mb.xlsx      | 1.92x slower | 518000.0000 |  53000.0000 |   6000.0000 |  4093.7 MB | 12.23x more |
-| AccessEveryCellExcel_Prime      | Data/100mb.xlsx      | 1.99x slower | 508000.0000 |  54000.0000 |   6000.0000 | 4016.84 MB | 12.00x more |
+| AccessEveryCellXlsxHelper       | Data/100mb.xlsx      | 4.38x slower | 424000.0000 |   5000.0000 |   2000.0000 | 3380.58 MB | 10.10x more |
+| AccessEveryCellAsyncExcel_Prime | Data/100mb.xlsx      | 1.91x slower | 518000.0000 |  53000.0000 |   6000.0000 | 4093.55 MB | 12.23x more |
+| AccessEveryCellExcel_Prime      | Data/100mb.xlsx      | 1.96x slower | 508000.0000 |  54000.0000 |   6000.0000 | 4016.82 MB | 12.00x more |
 |                                 |                      |              |             |             |             |            |             |
-| **AccessEveryCellSylvan**           | **Data/(...).xlsx [35]** |     **baseline** | **386000.0000** | **370000.0000** | **369000.0000** | **2696.76 MB** |            **** |
+| **AccessEveryCellSylvan**           | **Data/(...).xlsx [35]** |     **baseline** | **392000.0000** | **376000.0000** | **375000.0000** | **2696.77 MB** |            **** |
 | AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] | 1.05x slower | 218000.0000 |   1000.0000 |           - | 1739.24 MB |  1.55x less |
-| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 1.63x slower | 509000.0000 |   2000.0000 |   1000.0000 | 4065.38 MB |  1.51x more |
-| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 1.69x slower | 501000.0000 |   2000.0000 |   1000.0000 |  3995.1 MB |  1.48x more |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 1.58x slower | 509000.0000 |   2000.0000 |   1000.0000 | 4065.25 MB |  1.51x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 1.68x slower | 501000.0000 |   2000.0000 |   1000.0000 | 3995.09 MB |  1.48x more |
 |                                 |                      |              |             |             |             |            |             |
 | **AccessEveryCellSylvan**           | **Data/(...).xlsx [39]** |     **baseline** |  **13000.0000** |           **-** |           **-** |  **106.77 MB** |            **** |
-| AccessEveryCellXlsxHelper       | Data/(...).xlsx [39] | 1.01x slower | 100000.0000 |           - |           - |  799.73 MB |  7.49x more |
-| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [39] | 1.58x slower | 237000.0000 |   1000.0000 |           - | 1891.61 MB | 17.72x more |
-| AccessEveryCellExcel_Prime      | Data/(...).xlsx [39] | 1.74x slower | 233000.0000 |   1000.0000 |           - | 1857.26 MB | 17.39x more |
+| AccessEveryCellXlsxHelper       | Data/(...).xlsx [39] | 1.07x slower | 100000.0000 |           - |           - |  799.73 MB |  7.49x more |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [39] | 1.62x slower | 237000.0000 |   1000.0000 |           - | 1891.62 MB | 17.72x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [39] | 1.73x slower | 233000.0000 |   1000.0000 |           - | 1857.23 MB | 17.39x more |
 |                                 |                      |              |             |             |             |            |             |
 | **AccessEveryCellSylvan**           | **Data/(...).xlsx [35]** |     **baseline** |  **13000.0000** |           **-** |           **-** |  **104.75 MB** |            **** |
-| AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] | 1.11x slower |  93000.0000 |           - |           - |  742.13 MB |  7.08x more |
-| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 1.68x slower | 244000.0000 |   1000.0000 |           - | 1950.32 MB | 18.62x more |
-| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 1.73x slower | 240000.0000 |   1000.0000 |           - | 1915.93 MB | 18.29x more |
+| AccessEveryCellXlsxHelper       | Data/(...).xlsx [35] | 1.10x slower |  93000.0000 |           - |           - |  742.13 MB |  7.08x more |
+| AccessEveryCellAsyncExcel_Prime | Data/(...).xlsx [35] | 1.64x slower | 244000.0000 |   1000.0000 |           - | 1950.32 MB | 18.62x more |
+| AccessEveryCellExcel_Prime      | Data/(...).xlsx [35] | 1.71x slower | 240000.0000 |   1000.0000 |           - | 1915.94 MB | 18.29x more |
