@@ -139,6 +139,8 @@ Read only, therefore no calculation / formula calls
     - ✅ Use of Derived `XmlNamedTable` implementations
     - ✅ Locking for separate sheet thread reading
         - ⚠️ Performance [2025-10-25](Performance.md##2025-10-25)
+    - ✅ Restricted storage (i.e. do not return things that are not relevant)
+      - 🚀 Big Performance improvements [2025-10-26](Performance.md#2025-10-26)
 - [ ] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of

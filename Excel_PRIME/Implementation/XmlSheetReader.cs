@@ -47,55 +47,59 @@ internal class XmlSheetReader : IXmlSheetReader
             }
         }
 
+        string dimensionRef = _reader.NameTable.Add("dimension");
+        string colsRef = _reader.NameTable.Add("cols");
+        string sheetDataRef = _reader.NameTable.Add("sheetData");
+
         var foundSheetData = false;
         while (!ct.IsCancellationRequested
-               && !foundSheetData
-               && _reader.Read()    // Do not read after finding sheetData
+               && !foundSheetData   // Do not read after finding sheetData
+               && _reader.Read()
               )
         {
-            if (_reader.NodeType == XmlNodeType.Element)
+            if (_reader.NodeType != XmlNodeType.Element)
             {
-                switch (_reader.LocalName)
+                continue;
+            }
+
+            string readerLocalName = _reader.LocalName;
+
+            if (Object.ReferenceEquals(readerLocalName, dimensionRef))
+            {
+                string? dim = _reader.GetAttribute("ref");
+                if (dim != null)
                 {
-                    case "dimension":
-                        {
-                            string? dim = _reader.GetAttribute("ref");
-                            if (dim != null)
-                            {
-                                string[] idx = dim.Split(':');
-                                (int rowExcel, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
-                                _startRow = rowExcel - 1;  // Take it back to the array offset
-                                // Might be an empty sheet (i.e. only "A1")
-                                if (idx.Length == 1)
-                                {
-                                    SheetDimensions = new ValueTuple<int, int>(1, 1);
-                                }
-                                else
-                                {
-                                    (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
+                    string[] idx = dim.Split(':');
+                    (int rowExcel, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
+                    _startRow = rowExcel - 1; // Take it back to the array offset
+                    // Might be an empty sheet (i.e. only "A1")
+                    if (idx.Length == 1)
+                    {
+                        SheetDimensions = new ValueTuple<int, int>(1, 1);
+                    }
+                    else
+                    {
+                        (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
 
-                                    SheetDimensions = new ValueTuple<int, int>(rowMax, colMax);
-                                }
-                            }
-                            else
-                            {
-                                SheetDimensions = new ValueTuple<int, int>(0, 0);
-                            }
-                        }
-                        break;
-
-                    case "cols":
-                        if (_reader.IsEmptyElement)
-                        {
-                            // TODO: Need to understand when and how this is used
-                            continue;
-                        }
-                        break;
-
-                    case "sheetData":
-                        foundSheetData = true;
-                        break;
+                        SheetDimensions = new ValueTuple<int, int>(rowMax, colMax);
+                    }
                 }
+                else
+                {
+                    SheetDimensions = new ValueTuple<int, int>(0, 0);
+                }
+            }
+            else if (Object.ReferenceEquals(readerLocalName, colsRef))
+            {
+                if (_reader.IsEmptyElement)
+                {
+                    // TODO: Need to understand when and how this is used
+                    continue;
+                }
+            }
+            else if (Object.ReferenceEquals(readerLocalName, sheetDataRef))
+            {
+                foundSheetData = true;
             }
         }
         CurrentRow = 0;

@@ -16,7 +16,6 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     private readonly XmlReader _reader;
     private readonly List<string> _currentlyLoaded;
     private bool _isDisposed;
-    ConcurrentXmlNameTable? _prefilledCopyOnWriteNameTable;
     private readonly string _siRef;
     private readonly string _tRef;
     private readonly StringBuilder _currentStNodeBuilder = new();
@@ -42,11 +41,6 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
         _stream = stream;
-        _prefilledCopyOnWriteNameTable = new ConcurrentXmlNameTable(
-        ["sst", "si", "t", "r", "rPr", "b", "sz", "mc", "color", "rFont", "family", "charset",
-                "xml", "xmlns", string.Empty, "http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
-                "version", "encoding", "standalone", "count", "uniqueCount", "val", "rgb", "space", "i"]
-             );
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
@@ -55,7 +49,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             CheckCharacters = false,
             CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
-            NameTable = _prefilledCopyOnWriteNameTable,
+            NameTable = new SharedStringsRestrictedNameTable(),
             ValidationType = ValidationType.None,
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
@@ -96,13 +90,14 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             {
                 _locker.Lock(() =>
                 {
-                    LoadUntil(requestIndex); // <- the "requestIndex >= _currentlyLoaded.Count" is also done internally, so no need to check again after locking
+                    // Use additional offset to reduce locking intensity
+                    LoadUntil(requestIndex+16);
+                    // The "requestIndex >= _currentlyLoaded.Count" is also done internally, so no need to check again after locking
                     if (_reader.EOF
                         || _currentlyLoaded.Count == _currentlyLoaded.Capacity)
                     {
                         // Release resources
                         _reader.Close();
-                        _prefilledCopyOnWriteNameTable!.Clear();
                     }
                 });
             }

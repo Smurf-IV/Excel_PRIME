@@ -28,7 +28,7 @@ internal sealed class Sheet : ISheet
         _stream.Position = 0;
         _xmlReaderHelper = xmlReaderHelper;
         _sharedStrings = sharedStrings;
-        _sharedNameTable = new NameTable();
+        _sharedNameTable = new SheetRestrictedNameTable();
         Name = name;
         Index = index;
     }
