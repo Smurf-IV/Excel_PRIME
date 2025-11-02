@@ -11,16 +11,17 @@ namespace ExcelPRIME.Implementation;
 
 internal class XmlSheetReader : IXmlSheetReader
 {
-    private readonly ISharedString? _sharedStrings;
+    private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
     private readonly XmlReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
-    private readonly string _rowName;
+    private readonly string _rowRefAtom;
+    private readonly ReaderAtoms _readerAtoms;
 
-    public XmlSheetReader(Stream stream, ISharedString sharedStrings, XmlNameTable sharedNameTable, CancellationToken ct)
+    public XmlSheetReader(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        _sharedStrings = sharedStrings;
+        _instanceContext = instanceContext;
         _sharedNameTable = sharedNameTable;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
@@ -35,21 +36,21 @@ internal class XmlSheetReader : IXmlSheetReader
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
-        string worksheetRef = _reader.NameTable.Add("worksheet");
+        string worksheetRefAtom = _reader.NameTable.Add("worksheet");
         // Step into the worksheet
         while (_reader.Read() && !ct.IsCancellationRequested)
         {
             if (_reader.NodeType == XmlNodeType.Element
-                && Object.ReferenceEquals(_reader.LocalName, worksheetRef)
+                && Object.ReferenceEquals(_reader.LocalName, worksheetRefAtom)
                 )
             {
                 break;
             }
         }
 
-        string dimensionRef = _reader.NameTable.Add("dimension");
-        string colsRef = _reader.NameTable.Add("cols");
-        string sheetDataRef = _reader.NameTable.Add("sheetData");
+        string dimensionRefAtom = _reader.NameTable.Add("dimension");
+        string colsRefAtom = _reader.NameTable.Add("cols");
+        string sheetDataRefAtom = _reader.NameTable.Add("sheetData");
 
         var foundSheetData = false;
         while (!ct.IsCancellationRequested
@@ -64,7 +65,7 @@ internal class XmlSheetReader : IXmlSheetReader
 
             string readerLocalName = _reader.LocalName;
 
-            if (Object.ReferenceEquals(readerLocalName, dimensionRef))
+            if (Object.ReferenceEquals(readerLocalName, dimensionRefAtom))
             {
                 string? dim = _reader.GetAttribute("ref");
                 if (dim != null)
@@ -89,7 +90,7 @@ internal class XmlSheetReader : IXmlSheetReader
                     SheetDimensions = new ValueTuple<int, int>(0, 0);
                 }
             }
-            else if (Object.ReferenceEquals(readerLocalName, colsRef))
+            else if (Object.ReferenceEquals(readerLocalName, colsRefAtom))
             {
                 if (_reader.IsEmptyElement)
                 {
@@ -97,14 +98,15 @@ internal class XmlSheetReader : IXmlSheetReader
                     continue;
                 }
             }
-            else if (Object.ReferenceEquals(readerLocalName, sheetDataRef))
+            else if (Object.ReferenceEquals(readerLocalName, sheetDataRefAtom))
             {
                 foundSheetData = true;
             }
         }
         CurrentRow = 0;
         // Atomize key names once for fast lookups later.
-        _rowName = _sharedNameTable.Add("row");
+        _rowRefAtom = _sharedNameTable.Add("row");
+        _readerAtoms = new ReaderAtoms(_reader);
     }
 
     private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
@@ -114,7 +116,7 @@ internal class XmlSheetReader : IXmlSheetReader
                )
         {
             if (_reader.NodeType == XmlNodeType.Element
-                && Object.ReferenceEquals(_reader.LocalName, _rowName)
+                && Object.ReferenceEquals(_reader.LocalName, _rowRefAtom)
                 )
             {
                 CurrentRow++;
@@ -135,7 +137,6 @@ internal class XmlSheetReader : IXmlSheetReader
             if (isDisposing)
             {
                 _reader.Dispose();
-                _sharedStrings?.Dispose();
             }
 
             _isDisposed = true;
@@ -170,7 +171,7 @@ internal class XmlSheetReader : IXmlSheetReader
         {
             return null;
         }
-        Row nextRow = new Row(_reader, _sharedStrings, SheetDimensions.Width);
+        Row nextRow = new Row(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
         if (cellGetMode > RowCellGet.None)
         {
             await nextRow.GetCellsAsync(ct);

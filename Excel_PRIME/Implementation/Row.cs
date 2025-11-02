@@ -12,32 +12,31 @@ namespace ExcelPRIME.Implementation;
 internal sealed class Row : IRow
 {
     private readonly XmlReader _reader;
-    private readonly ISharedString _sharedStrings;
-    private readonly int _maxColumnDimension;
+    private readonly InstanceContext _instanceContext;
+    private readonly int _maxExcelColumnDimension;
     private bool _isDisposed;
     private Dictionary<int, Cell>? _cells;
+    private readonly ReaderAtoms _readerAtoms;
 
-    public Row(XmlReader rowElement, ISharedString sharedStrings, int maxColumnDimension)
+    public Row(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
     {
         _reader = rowElement;
-        _sharedStrings = sharedStrings;
-        string rowName = _reader.NameTable.Add("row");
-        string rRef = _reader.NameTable.Add("r");
-        string hiddenName = _reader.NameTable.Add("hidden");
-        _maxColumnDimension = maxColumnDimension;
+        _instanceContext = instanceContext;
+        _maxExcelColumnDimension = maxColumnDimension;
+        _readerAtoms = readerAtoms;
         if (_reader.NodeType == XmlNodeType.Element
-            && Object.ReferenceEquals(_reader.LocalName, rowName)
-            )
+            && Object.ReferenceEquals(_reader.LocalName, readerAtoms.rowRefAtom)
+           )
         {
             while (_reader.MoveToNextAttribute())
             {
                 // Retrieve the atomized name directly.
                 string currentAttributeName = _reader.LocalName;
-                if (Object.ReferenceEquals(currentAttributeName, rRef))
+                if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
                 {
                     RowOffset = _reader.Value.IntParseUnsafe();
                 }
-                else if (Object.ReferenceEquals(currentAttributeName, hiddenName))
+                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.hiddenRefAtom))
                 {
                     // TODO: Do something about this
                     //_isCurrentRowHidden = ReadBooleanValue(_reader, buffer);
@@ -81,7 +80,7 @@ internal sealed class Row : IRow
     public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
-        for (int i = 0; i < _maxColumnDimension; i++)
+        for (int i = 1; i <= _maxExcelColumnDimension; i++)
         {
             _cells.TryGetValue(i, out Cell? found);
             yield return found;
@@ -91,7 +90,7 @@ internal sealed class Row : IRow
     public IEnumerable<ICell?> GetAllCells(CancellationToken ct = default)
     {
         GetCellsAsync(ct).GetAwaiter().GetResult();
-        for (int i = 0; i < _maxColumnDimension; i++)
+        for (int i = 1; i <= _maxExcelColumnDimension; i++)
         {
             _cells.TryGetValue(i, out Cell? found);
             yield return found;
@@ -119,18 +118,17 @@ internal sealed class Row : IRow
             currentDepth--;
         }
 
-        string cRef = _reader.NameTable.Add("c");
         while (await _reader.ReadAsync().ConfigureAwait(false)
                && !ct.IsCancellationRequested
                 && _reader.Depth > currentDepth
                )
         {
             if (_reader.NodeType == XmlNodeType.Element
-                && Object.ReferenceEquals(_reader.LocalName, cRef)
+                && Object.ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
                 )
             {
-                Cell cell = await Cell.ConstructCellAsync(_reader, _sharedStrings).ConfigureAwait(false);
-                _cells.Add(cell.ExcelColumnOffset - 1, cell);
+                Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms).ConfigureAwait(false);
+                _cells.Add(cell.ExcelColumnOffset, cell);
             }
         }
     }
@@ -139,7 +137,7 @@ internal sealed class Row : IRow
     public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
-        _cells.TryGetValue(excelColumnIndex - 1, out Cell? found);
+        _cells.TryGetValue(excelColumnIndex, out Cell? found);
         return found;
     }
 

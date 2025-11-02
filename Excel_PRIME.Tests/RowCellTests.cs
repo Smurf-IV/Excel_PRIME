@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 using AwesomeAssertions;
 
+using Microsoft.Extensions.Options;
+
 using NUnit.Framework;
 
 namespace ExcelPRIME.Tests;
@@ -43,7 +45,7 @@ public class RowCellTests
     public async Task A020_StyleAndFormattedFile(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number} );
 
         string[][] workSheet1Content = new string[][]
         {

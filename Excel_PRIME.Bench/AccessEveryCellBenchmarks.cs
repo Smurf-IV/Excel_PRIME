@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -37,11 +35,12 @@ public class AccessEveryCellBenchmarks
             {
                 for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
-                    _ = reader.GetExcelValue(ordinal);
-                    cells++;
+                    if (!string.IsNullOrEmpty(reader.GetExcelValue(ordinal).ToString()))
+                        cells++;
                 }
             }
         } while (await reader.NextResultAsync().ConfigureAwait(true));
+
         return cells;
     }
 
@@ -58,8 +57,8 @@ public class AccessEveryCellBenchmarks
             {
                 foreach (XlsxHelper.Cell cell in row.Cells)
                 {
-                    _ = cell.CellValue;
-                    cells++;
+                    if (!string.IsNullOrEmpty(cell.CellValue?.ToString()))
+                        cells++;
                 }
             }
         }
@@ -111,12 +110,9 @@ public class AccessEveryCellBenchmarks
 
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {
-                    cells++;
-                    if (cell != null)
-                    {
-                        // Because this returns upto the dimension of the sheet width
-                        _ = cell.RawValue;
-                    }
+                    // Because this returns upto the dimension of the sheet width
+                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        cells++;
                 }
                 row.Dispose();
             }
@@ -143,12 +139,8 @@ public class AccessEveryCellBenchmarks
 
                 foreach (ICell? cell in row.GetAllCells())
                 {
-                    cells++;
-                    if (cell != null)
-                    {
-                        // Because this returns upto the dimension of the sheet width
-                        _ = cell.RawValue;
-                    }
+                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        cells++;
                 }
                 row.Dispose();
             }

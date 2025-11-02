@@ -7,7 +7,7 @@ namespace ExcelPRIME;
 
 public interface IXmlWorkBookReader : IDisposable
 {
-    Task<IReadOnlyDictionary<string, int>> GetSheetNamesAsync(CancellationToken ct);
+    IAsyncEnumerable<KeyValuePair<string, int>> GetSheetNamesAsync(CancellationToken ct);
 
     Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct);
 }

@@ -16,8 +16,8 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     private readonly XmlReader _reader;
     private readonly List<string> _currentlyLoaded;
     private bool _isDisposed;
-    private readonly string _siRef;
-    private readonly string _tRef;
+    private readonly string _siRefAtom;
+    private readonly string _tRefAtom;
     private readonly StringBuilder _currentStNodeBuilder = new();
 
     public LazyLoadSharedStrings()
@@ -33,9 +33,8 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             ValidationType = ValidationType.None,
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None
         });
-        _siRef = string.Empty;
-        _tRef = string.Empty;
-
+        _siRefAtom = string.Empty;
+        _tRefAtom = string.Empty;
     }
 
     public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
@@ -55,9 +54,11 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             Async = true // TBD
         });
         // advance to the content
-        _reader.ReadToFollowing("sst");
+        string sstRefAtom = _reader.NameTable.Add("sst");
+        _reader.ReadToFollowing(sstRefAtom);
 
-        string? countStr = _reader.GetAttribute("uniqueCount");
+        string uniqueCountRefAtom = _reader.NameTable.Add("uniqueCount");
+        string? countStr = _reader.GetAttribute(uniqueCountRefAtom);
         if (!string.IsNullOrEmpty(countStr)
             && int.TryParse(countStr, out int count)
             && count >= 0)
@@ -70,8 +71,8 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
 
         _currentlyLoaded = new List<string>(count);
-        _siRef = _reader.NameTable.Add("si");
-        _tRef = _reader.NameTable.Add("t");
+        _siRefAtom = _reader.NameTable.Add("si");
+        _tRefAtom = _reader.NameTable.Add("t");
     }
 
     // TODO: Should this be refactored to take a Cancellation Token
@@ -130,7 +131,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             if (_reader.NodeType == XmlNodeType.Element)
             {
                 // Use the pre-atomized string for lightning-fast comparison
-                if (Object.ReferenceEquals(_reader.LocalName, _siRef))
+                if (Object.ReferenceEquals(_reader.LocalName, _siRefAtom))
                 {
                     _currentStNodeBuilder.Clear();
                     int hasMultipleTextForCell = 0;
@@ -143,7 +144,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
                         if (subReader.NodeType == XmlNodeType.Element)
                         {
                             // Use the pre-atomized string for lightning-fast comparison
-                            if (Object.ReferenceEquals(subReader.LocalName, _tRef))
+                            if (Object.ReferenceEquals(subReader.LocalName, _tRefAtom))
                             {
                                 if (subReader.IsEmptyElement)
                                 {

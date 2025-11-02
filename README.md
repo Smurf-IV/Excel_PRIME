@@ -32,7 +32,7 @@ Read only, therefore no calculation / formula calls
 ## Interfaces 🏗️
 - Will use the DotNet core functionality by default
 - But, if your target deployment allows for the use of native performant binaries, then via the use of interfaces these will be pluggable
-    - i.e. Using `Zlib.Net` for getting the data streams out of the compressed Excel file faster.
+    - i.e. Using `Zlib.Net` for getting the data streams out of the compressed Excel file faster. (Or `SharpZipLib` / `PowerPlayZipper`)
     - A faster / slimmer implementation for xml stream reading (i.e. TurboXml)
 ### Q & A's
 - Q: Why?
@@ -45,9 +45,10 @@ Read only, therefore no calculation / formula calls
 - No internal caching of previously loaded sheets / rows.
 ### Q & A's
 - Q: It appears that this uses more memory than other implementations
-- A: Currently yes, but it is being optimised for `Range Extraction, 
+- A: Currently yes, but it is being optimised for `Range Extraction`, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
     - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
 
 ## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
@@ -64,16 +65,13 @@ Read only, therefore no calculation / formula calls
 - This is to allow the Large files to be _Aborted_
 - Make "Most" of the "Net Cores'" API's Asynchronous `Task`s
 ### IDisposable
-- Got to tidy up those `Temp File`s, and release the `File Stream`
+- Got to tidy up those `Temp File`s, and release the `FileStream`'s
 
 <hr />
 
 # It will **_not_** be ❌:
 ## Same sheet Thread safe 📊
 - It will **Not** be _same sheet_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
-## Cell object type 📅
-- Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
-- This could later become an option if the `XmlConvert` classes are efficient (Or via the interface specs)
 ## Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
 ## Writer / Modifier 📚
@@ -141,7 +139,11 @@ Read only, therefore no calculation / formula calls
         - ⚠️ Performance [2025-10-25](Performance.md##2025-10-25)
     - ✅ Restricted storage (i.e. do not return things that are not relevant)
       - 🚀 Big Performance improvements [2025-10-26](Performance.md#2025-10-26)
-- [ ] Read `definedName`s (Ranges)
+- [>] Cell object type 📅
+      - 🚀 Big Performance improvements [2025-11-01](Performance.md#2025-11-01)
+    - [ ] Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
+    - [ ] Investigate if the `XmlConvert` classes are efficient (Or via the interface specs)
+- [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
     - [ ] Multiple times (with locking)

@@ -20,16 +20,16 @@ public interface IXmlReaderHelpers
     /// </summary>
     /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
     /// <param name="ct"></param>
-    Task<IXmlWorkBookReader?> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct);
+    Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct);
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
-    /// <param name="sharedStrings"></param>
+    /// <param name="instanceContext"></param>
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings,
+    Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 }

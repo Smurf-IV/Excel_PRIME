@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-using AwesomeAssertions;
-
-using ExcelPRIME.Bench;
-
-using Microsoft.VisualStudio.OLE.Interop;
+using JetBrains.dotMemoryUnit;
 
 using NUnit.Framework;
 
@@ -17,8 +10,32 @@ using NUnit.Framework;
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+internal class DotMemoryUnit : IDisposable
+{
+    public static IDisposable Support => new DotMemoryUnit();
+
+    private DotMemoryUnit()
+    {
+        DotMemoryUnitController.TestStart();
+    }
+
+    public void Dispose() => DotMemoryUnitController.TestEnd();
+}
+
+[ExcludeFromCodeCoverage]
+[NonParallelizable]
 internal class BugTesting
 {
+    [Test]
+    [Explicit("Run DotMemory")]
+    [DotMemoryUnit(CollectAllocations = true, FailIfRunWithoutSupport=true, Directory = @".\DotMemory")]
+
+    public void Bug_000_SharedStrings_DotMemory()
+    {
+        using IDisposable dms = DotMemoryUnit.Support;
+        Bug_001_SharedStrings().GetAwaiter().GetResult();
+    }
+
     [Test]
     public async Task Bug_001_SharedStrings()
     {

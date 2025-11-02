@@ -2,9 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Xml;
 
+// ReSharper disable InconsistentNaming on "private const string"s
 namespace ExcelPRIME.Implementation;
 
-// ReSharper disable InconsistentNaming on "private const string"s
 internal sealed class SharedStringsRestrictedNameTable : NameTable
 {
     private const string tAtom = "t";
@@ -110,6 +110,64 @@ internal sealed class SheetRestrictedNameTable : NameTable
                 if (value.SequenceEqual(dimensionAtom)) return dimensionAtom;
                 if (value.SequenceEqual(sheetDataAtom)) return sheetDataAtom;
                 if (value.SequenceEqual(worksheetAtom)) return worksheetAtom;
+                break;
+        }
+        return null;
+    }
+}
+
+internal sealed class WorkBookRestrictedNameTable : NameTable
+{
+    private const string idAtom = "id";
+    private const string nameAtom = "name";
+    private const string sheetAtom = "sheet";
+    private const string sheetsAtom = "sheets";
+    private const string xmlns_rAtom = "xmlns:r";
+    private const string sheetIdAtom = "sheetId";
+    private const string workbookAtom = "workbook";
+    private const string definedNameAtom = "definedName";
+    private const string definedNamesAtom = "definedNames";
+
+    public override string Add(char[] key, int start, int len) => Get(key.AsSpan(start, len)) ?? base.Add(key, start, len);
+
+    public override string Add(string key) => Get(key.AsSpan()) ?? base.Add(key);
+
+    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len));
+
+    public override string? Get(string value) => Get(value.AsSpan());
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+    private static string? Get(ReadOnlySpan<char> value)
+    {
+        switch (value.Length)
+        {
+            case 0:
+                return string.Empty;
+            case 2:
+                if (value.SequenceEqual(idAtom)) return idAtom;
+                break;
+            case 4:
+                if (value.SequenceEqual(nameAtom)) return nameAtom;
+                break;
+            case 5:
+                if (value.SequenceEqual(sheetAtom)) return sheetAtom;
+                break;
+            case 6:
+                if (value.SequenceEqual(sheetsAtom)) return sheetsAtom;
+                break;
+            case 7:
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (value.SequenceEqual(xmlns_rAtom)) return xmlns_rAtom;
+                if (value.SequenceEqual(sheetIdAtom)) return sheetIdAtom;
+                break;
+            case 8:
+                if (value.SequenceEqual(workbookAtom)) return workbookAtom;
+                break;
+            case 11:
+                if (value.SequenceEqual(definedNameAtom)) return definedNameAtom;
+                break;
+            case 12:
+                if (value.SequenceEqual(definedNamesAtom)) return definedNamesAtom;
                 break;
         }
         return null;

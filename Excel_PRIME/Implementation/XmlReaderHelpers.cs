@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 
 
 namespace ExcelPRIME.Implementation;
@@ -18,16 +17,16 @@ internal sealed class XmlReaderHelpers : IXmlReaderHelpers
 
 
     /// <InheritDoc />
-    public async Task<IXmlWorkBookReader?> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct)
+    public Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct)
     {
-        XDocument? document = await XDocument.LoadAsync(stream, LoadOptions.None, ct).ConfigureAwait(false);
-        return new XmlWorkBookReader(document);
+        IXmlWorkBookReader xmlWorkBookReader = new XmlWorkBookReader(stream, ct);
+        return Task.FromResult(xmlWorkBookReader);
     }
 
     /// <InheritDoc />
-    public Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, ISharedString sharedStrings, XmlNameTable sharedNameTable, CancellationToken ct)
+    public Task<IXmlSheetReader> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        IXmlSheetReader xmlSheetReader = new XmlSheetReader(stream, sharedStrings, sharedNameTable, ct);
+        IXmlSheetReader xmlSheetReader = new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
         return Task.FromResult(xmlSheetReader);
     }
 }

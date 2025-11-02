@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Numerics;
@@ -11,16 +12,13 @@ using ExcelPRIME.Shared;
 
 namespace ExcelPRIME.Implementation;
 
+[DebuggerDisplay("{RawValue.ToString(),raw}")]
 internal class Cell : ICell
 {
     private const int BufferSize = 64;
 
-    public static async Task<Cell> ConstructCellAsync(XmlReader reader, ISharedString sharedStrings)
+    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext, ReaderAtoms readerAtoms)
     {
-        string rRef = reader.NameTable.Add("r");
-        string tRef = reader.NameTable.Add("t");
-        string vRef = reader.NameTable.Add("v");
-        string sRef = reader.NameTable.Add("s");
         string address = string.Empty;
         CellType type = CellType.Unknown;
         object? value = null;
@@ -38,16 +36,16 @@ internal class Cell : ICell
             {
                 // Retrieve the atomized name directly.
                 string currentAttributeName = reader.LocalName;
-                if (Object.ReferenceEquals(currentAttributeName, rRef))
+                if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
                 {
                     address = reader.Value;
                 }
-                else if (Object.ReferenceEquals(currentAttributeName, tRef))
+                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
                 {
                     ReadValue();
                     type = GetCellType(buffer, len);
                 }
-                else if (Object.ReferenceEquals(currentAttributeName, sRef))
+                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
                 {
                     // TODO: the style, therefore converting into time only etc.
                     //ReadValue();
@@ -57,7 +55,7 @@ internal class Cell : ICell
 
             if (await reader.ReadAsync().ConfigureAwait(false)
                 && !reader.IsEmptyElement
-                && Object.ReferenceEquals(reader.LocalName, vRef)
+                && Object.ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
                )
             {
                 // Move to data
@@ -70,14 +68,14 @@ internal class Cell : ICell
                         break;
                     case CellType.Numeric:
                         ReadValue();
-                        value = TryParseOrder(buffer.AsSpan(0, len));
+                        value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
                         break;
                     case CellType.String:
                         value = reader.ReadString();
                         break;
                     case CellType.SharedString:
                         ReadValue();
-                        value = sharedStrings[buffer.AsSpan(0, len).IntParse()];
+                        value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
                         break;
                     case CellType.InlineString:
                         value = reader.ReadString();
@@ -96,6 +94,10 @@ internal class Cell : ICell
                                 CultureInfo.InvariantCulture, out double dateTimeValue))
                         {
                             value = DateTime.FromOADate(dateTimeValue);
+                        }
+                        else if (DateTime.TryParse(buffer, out DateTime result))
+                        {
+                            value = result;
                         }
                         else
                         {
@@ -125,37 +127,67 @@ internal class Cell : ICell
         };
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static object? TryParseOrder(ReadOnlySpan<char> asSpan)
+    //[MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static object? TryParseOrder(CellConversion optionsCellConversionType, ReadOnlySpan<char> asSpan)
     {
         if (asSpan.Length == 0)
         {
             return null;
         }
 
+        return optionsCellConversionType switch
+        {
+            CellConversion.None => new ReadOnlyMemory<char>(asSpan.ToArray()),
+            CellConversion.Number => PerformNumberLiteralConversion(asSpan),
+            CellConversion.NumberAndDates => // TODO
+                PerformNumberLiteralConversion(asSpan),
+            CellConversion.FromStyles => // TODO
+                PerformNumberLiteralConversion(asSpan),
+            _ => new ReadOnlyMemory<char>(asSpan.ToArray())
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static object PerformNumberLiteralConversion(ReadOnlySpan<char> asSpan)
+    {
         bool containsDecimal = asSpan.Contains('.');
-        if (!containsDecimal
-            && asSpan.Length < 11
+        if (containsDecimal)
+        {
+            //float
+            // ±1.5 x 10−45 to ±3.4 x 1038 	~6-9 digits 	4 bytes
+            return PerformSimpleConversion(asSpan);
+        }
+
+        // ReSharper disable once ConvertIfStatementToSwitchStatement
+        if (asSpan.Length < 12
             && int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
-            )
-        {   // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer
+           )
+        {
+            // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer
             return resultI;
         }
-        if (!containsDecimal
-            && asSpan.Length > 9
+
+        if (asSpan.Length < 20
             && long.TryParse(asSpan, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out long resultL))
-        {   // -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 	Signed 64-bit integer
+        {
+            // -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 	Signed 64-bit integer
             return resultL;
         }
-        if (!containsDecimal
-            && BigInteger.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out BigInteger resultS))
-        {
-            return resultS;
-        }
-        //float
-        // ±1.5 x 10−45 to ±3.4 x 1038 	~6-9 digits 	4 bytes
 
+        if (asSpan.Length > 18
+            && BigInteger.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out BigInteger resultBI))
+        {
+            return resultBI;
+        }
+
+        return PerformSimpleConversion(asSpan);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static object PerformSimpleConversion(ReadOnlySpan<char> asSpan)
+    {
         if (decimal.TryParse(asSpan, NumberStyles.Currency,
                 CultureInfo.InvariantCulture, out decimal resultM))
         {   // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
@@ -166,45 +198,40 @@ internal class Cell : ICell
         {   //  	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
             return resultD;
         }
-
         return new string(asSpan);
     }
 
 
     /// <InheritDoc />
-    public object? RawValue { get; init; }
+    public object? RawValue { get; private init; }
 
     /// <InheritDoc />
-    public CellType RawExcelType { get; init; }
+    public CellType RawExcelType { get; private init; }
 
     /// <InheritDoc />
-    public ReadOnlyMemory<char> ColumnLetters { get; init; }
+    public ReadOnlyMemory<char> ColumnLetters { get; private init; }
 
     /// <InheritDoc />
-    public int ExcelColumnOffset { get; init; }
+    public int ExcelColumnOffset { get; private init; }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static CellType GetCellType(char[] b, int l)
     {
-        switch (b[0])
+        if (l == 0)
         {
-            case 'b':
-                return CellType.Boolean;
-            case 'e':
-                return CellType.Error;
-            case 's':
-                return l == 1 ? CellType.SharedString : CellType.String;
-            case 'i':
-                return CellType.InlineString;
-            case 'd':
-                return CellType.Date;
-            case 'n':
-                return CellType.Numeric;
-            default:
-                // TODO:
-                throw new InvalidDataException();
+            // Default type is Numeric and some Excel do not write this
+            return CellType.Numeric;
         }
+
+        return b[0] switch
+        {
+            'b' => CellType.Boolean,
+            'e' => CellType.Error,
+            's' => l == 1 ? CellType.SharedString : CellType.String,
+            'i' => CellType.InlineString,
+            'd' => CellType.Date,
+            'n' => CellType.Numeric,
+            _ => throw new InvalidDataException()
+        };
     }
-
 }
-
