@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -97,6 +98,8 @@ internal sealed class Row : IRow
         }
     }
 
+    private const int bufferSize = 64;
+
     internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cells != null)
@@ -117,19 +120,26 @@ internal sealed class Row : IRow
             }
             currentDepth--;
         }
-
-        while (await _reader.ReadAsync().ConfigureAwait(false)
-               && !ct.IsCancellationRequested
-                && _reader.Depth > currentDepth
-               )
+        char[] buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+        try
         {
-            if (_reader.NodeType == XmlNodeType.Element
-                && Object.ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
-                )
+            while (await _reader.ReadAsync().ConfigureAwait(false)
+                   && !ct.IsCancellationRequested
+                    && _reader.Depth > currentDepth
+                   )
             {
-                Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms).ConfigureAwait(false);
-                _cells.Add(cell.ExcelColumnOffset, cell);
+                if (_reader.NodeType == XmlNodeType.Element
+                    && Object.ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
+                    )
+                {
+                    Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer).ConfigureAwait(false);
+                    _cells.Add(cell.ExcelColumnOffset, cell);
+                }
             }
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(buffer);
         }
     }
 

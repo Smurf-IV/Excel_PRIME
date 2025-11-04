@@ -15,108 +15,104 @@ namespace ExcelPRIME.Implementation;
 [DebuggerDisplay("{RawValue.ToString(),raw}")]
 internal class Cell : ICell
 {
-    private const int BufferSize = 64;
-
-    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext, ReaderAtoms readerAtoms)
+    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext, ReaderAtoms readerAtoms, char[] buffer)
     {
-        string address = string.Empty;
         CellType type = CellType.Unknown;
         object? value = null;
-        char[] buffer = ArrayPool<char>.Shared.Rent(BufferSize);
-        try
+        int col = -1;
+        char[] colName = [];
+        int bufferSize = buffer.Length;
+        int len;
+
+        void ReadValue()
         {
-            int len;
+            len = reader.ReadValueChunk(buffer, 0, bufferSize);
+        }
 
-            void ReadValue()
+        int expectedAttributes = 2;
+        while (reader.MoveToNextAttribute() && expectedAttributes > 0)
+        {
+            // Retrieve the atomized name directly.
+            string currentAttributeName = reader.LocalName;
+            if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
-                len = reader.ReadValueChunk(buffer, 0, BufferSize);
+                ReadValue();
+                (int _, col, colName) = new ReadOnlySpan<char>(buffer, 0, len).GetRowColNumbers();
+                expectedAttributes--;
             }
-
-            while (reader.MoveToNextAttribute())
+            else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
             {
-                // Retrieve the atomized name directly.
-                string currentAttributeName = reader.LocalName;
-                if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
-                {
-                    address = reader.Value;
-                }
-                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
-                {
-                    ReadValue();
-                    type = GetCellType(buffer, len);
-                }
-                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
-                {
-                    // TODO: the style, therefore converting into time only etc.
-                    //ReadValue();
-                    //style = GetStyleOffset(buffer, len);
-                }
+                ReadValue();
+                type = GetCellType(buffer, len);
+                expectedAttributes--;
             }
-
-            if (await reader.ReadAsync().ConfigureAwait(false)
-                && !reader.IsEmptyElement
-                && Object.ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
-               )
+            else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
             {
-                // Move to data
-                await reader.ReadAsync().ConfigureAwait(false);
-
-                switch (type)
-                {
-                    case CellType.Unknown:
-                        value = reader.ReadString();
-                        break;
-                    case CellType.Numeric:
-                        ReadValue();
-                        value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
-                        break;
-                    case CellType.String:
-                        value = reader.ReadString();
-                        break;
-                    case CellType.SharedString:
-                        ReadValue();
-                        value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
-                        break;
-                    case CellType.InlineString:
-                        value = reader.ReadString();
-                        break;
-                    case CellType.Boolean:
-                        ReadValue();
-                        value = buffer[0] == '0';
-                        break;
-                    case CellType.Error:
-                        // TODO: Decrypt the error
-                        value = reader.ReadString();
-                        break;
-                    case CellType.Date:
-                        ReadValue();
-                        if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
-                                CultureInfo.InvariantCulture, out double dateTimeValue))
-                        {
-                            value = DateTime.FromOADate(dateTimeValue);
-                        }
-                        else if (DateTime.TryParse(buffer, out DateTime result))
-                        {
-                            value = result;
-                        }
-                        else
-                        {
-                            value = new string(buffer.AsSpan(0, len));
-                        }
-
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(((int)type).ToString(CultureInfo.InvariantCulture));
-                }
+                // TODO: the style, therefore converting into time only etc.
+                //ReadValue();
+                //style = GetStyleOffset(buffer, len);
             }
         }
-        finally
+
+        if (await reader.ReadAsync().ConfigureAwait(false)
+            && !reader.IsEmptyElement
+            && Object.ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
+           )
         {
-            ArrayPool<char>.Shared.Return(buffer);
+            // Move to data
+            await reader.ReadAsync().ConfigureAwait(false);
+
+            switch (type)
+            {
+                case CellType.Unknown:
+                case CellType.Formula:
+                case CellType.InlineString:
+                    value = reader.ReadString();
+                    break;
+
+                case CellType.Numeric:
+                    ReadValue();
+                    value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
+                    break;
+
+                case CellType.SharedString:
+                    ReadValue();
+                    value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
+                    break;
+
+                case CellType.Boolean:
+                    ReadValue();
+                    value = buffer[0] != '0';
+                    break;
+
+                case CellType.Error:
+                    // TODO: Decrypt the error
+                    value = reader.ReadString();
+                    break;
+
+                case CellType.Date:
+                    ReadValue();
+                    if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
+                            CultureInfo.InvariantCulture, out double dateTimeValue))
+                    {
+                        value = DateTime.FromOADate(dateTimeValue);
+                    }
+                    else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
+                    {
+                        value = result;
+                    }
+                    else
+                    {
+                        value = new string(buffer.AsSpan(0, len));
+                    }
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(((int)type).ToString(CultureInfo.InvariantCulture));
+            }
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        (int _, int col, ReadOnlyMemory<char> colName) = address.GetRowColNumbers();
         return new Cell
         {
             ColumnLetters = colName,
@@ -209,7 +205,7 @@ internal class Cell : ICell
     public CellType RawExcelType { get; private init; }
 
     /// <InheritDoc />
-    public ReadOnlyMemory<char> ColumnLetters { get; private init; }
+    public char[] ColumnLetters { get; private init; } = null!;
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }
@@ -227,8 +223,8 @@ internal class Cell : ICell
         {
             'b' => CellType.Boolean,
             'e' => CellType.Error,
-            's' => l == 1 ? CellType.SharedString : CellType.String,
-            'i' => CellType.InlineString,
+            's' => l == 1 ? CellType.SharedString : /*"str"*/CellType.Formula,
+            'i' => /*"inlineStr"*/CellType.InlineString,
             'd' => CellType.Date,
             'n' => CellType.Numeric,
             _ => throw new InvalidDataException()

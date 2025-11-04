@@ -142,6 +142,7 @@ Read only, therefore no calculation / formula calls
 - [>] Cell object type 📅
       - 🚀 Big Performance improvements [2025-11-01](Performance.md#2025-11-01)
     - [ ] Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
+      - 🚀 Big Performance improvements [2025-11-04](Performance.md#2025-11-04)
     - [ ] Investigate if the `XmlConvert` classes are efficient (Or via the interface specs)
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global

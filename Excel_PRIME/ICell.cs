@@ -6,7 +6,7 @@ public enum CellType
 {
     Unknown,
     Numeric,
-    String,
+    Formula,
     SharedString,
     InlineString,
     Boolean,
@@ -32,7 +32,7 @@ public interface ICell
     /// <summary>
     /// The Excel column identifier, e.g. `ABY`
     /// </summary>
-    ReadOnlyMemory<char> ColumnLetters { get; }
+    char[] ColumnLetters { get; }
 
     /// <summary>
     /// Excel 1 Based

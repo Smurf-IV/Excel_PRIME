@@ -1,8 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
+
+using Microsoft.Extensions.Options;
 
 using Sylvan.Data.Excel;
 
@@ -144,9 +147,74 @@ public class AccessEveryCellBenchmarks
                 }
                 row.Dispose();
             }
+            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
+            //GC.WaitForFullGCComplete(100);
         }
 
         return cells;
     }
+
+    [Benchmark]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public async Task<int> SimpleCellAsyncExcel_Prime()
+    {
+        int cells = 0;
+        using IExcel_PRIME workbook = new Excel_PRIME();
+        await workbook.OpenAsync(FileName, options: new Options { CellConversionType = CellConversion.Simple}).ConfigureAwait(true);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            await foreach (IRow? row in worksheet!.GetRowDataAsync())
+            {
+                if (row == null)
+                {   // Because this returns upto the dimension of the sheet Height
+                    break;
+                }
+
+                await foreach (ICell? cell in row.GetAllCellsAsync())
+                {
+                    // Because this returns upto the dimension of the sheet width
+                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        cells++;
+                }
+                row.Dispose();
+            }
+            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
+            //GC.WaitForFullGCComplete(100);
+        }
+        return cells;
+    }
+
+    [Benchmark]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public async Task<int> NumberCellAsyncExcel_Prime()
+    {
+        int cells = 0;
+        using IExcel_PRIME workbook = new Excel_PRIME();
+        await workbook.OpenAsync(FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            await foreach (IRow? row in worksheet!.GetRowDataAsync())
+            {
+                if (row == null)
+                {   // Because this returns upto the dimension of the sheet Height
+                    break;
+                }
+
+                await foreach (ICell? cell in row.GetAllCellsAsync())
+                {
+                    // Because this returns upto the dimension of the sheet width
+                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        cells++;
+                }
+                row.Dispose();
+            }
+            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
+            //GC.WaitForFullGCComplete(100);
+        }
+        return cells;
+    }
+
 }
 
