@@ -32,6 +32,12 @@ internal sealed class ZipReader : IZipReader
         return true;
     }
 
+    public Stream? GetEntry(string entryName)
+    {
+        ZipArchiveEntry? entry = _archive!.GetEntry(entryName);
+        return entry?.Open();
+    }
+
     private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)

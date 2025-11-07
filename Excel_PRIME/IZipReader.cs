@@ -20,4 +20,5 @@ public interface IZipReader : IDisposable
     /// <returns>true if exists</returns>
     Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct);
 
+    Stream? GetEntry(string entryName);
 }

@@ -1,17 +1,18 @@
-﻿using System;
+﻿namespace ExcelPRIME;
 
-namespace ExcelPRIME;
-
+/// <summary>
+/// The type of cell as indicated by the Excel schema (Not interpreted)
+/// </summary>
 public enum CellType
 {
     Unknown,
     Numeric,
     Formula,
-    SharedString,
-    InlineString,
-    Boolean,
-    Error,
-    Date
+    SharedString,   // string placed in the shared table
+    InlineString,   // Probably a RichText string
+    Boolean,    // 0 or 1 converted to `bool`
+    Error,      // Excel error TODO interpret this please.
+    Date        // ISO 8601 Format
 }
 
 public interface ICell
@@ -25,7 +26,7 @@ public interface ICell
     object? RawValue { get; }
 
     /// <summary>
-    /// Returns the type as specified in the Excel file attribute if specified, otherwise `string`
+    /// Returns the type as specified in the Excel file attribute
     /// </summary>
     CellType RawExcelType { get; }
 

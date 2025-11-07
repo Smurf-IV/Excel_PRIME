@@ -17,7 +17,7 @@ internal sealed class XmlReaderHelpers : IXmlReaderHelpers
 
 
     /// <InheritDoc />
-    public Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct)
+    public Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream? stream, CancellationToken ct)
     {
         IXmlWorkBookReader xmlWorkBookReader = new XmlWorkBookReader(stream, ct);
         return Task.FromResult(xmlWorkBookReader);

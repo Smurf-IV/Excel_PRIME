@@ -52,7 +52,7 @@ internal class LoadingTests
 
     [Test]
     [TestCase("Data/missingworkbook.xlsx")]
-    //[TestCase("Data/missingworkbookrelatioship.xlsx")] This can be loaded by "LibreOffice Calc" ??
+    //[TestCase("Data/missingworkbookrelatioship.xlsx")] This can be loaded by "LibreOffice Calc" !!
     public async Task A030_InvalidXlsx(string fileName)
     {
         Func<Task> sutMethod = async () =>
@@ -60,7 +60,7 @@ internal class LoadingTests
             using IExcel_PRIME workbook = new Excel_PRIME();
             await workbook.OpenAsync(fileName);
         };
-        await sutMethod.Should().ThrowAsync<XmlException> ();
+        await sutMethod.Should().ThrowAsync<ArgumentNullException> ();
     }
 
     [Test]

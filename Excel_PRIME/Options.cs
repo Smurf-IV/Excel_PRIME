@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace ExcelPRIME;
 
@@ -16,15 +15,14 @@ public enum FileType
 
 public enum CellConversion
 {
-    [Obsolete("Do not use")] 
+    [Obsolete("Do not use")]
     Unknown = 0,
-    None,   // default  - Fastest option, Will leave the value in an IMemory<char> object (unless it is already a string)
-    Simple, // Will convert to double / bool / date dependent on defined ExcelCell type
-    Number, // Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double
+    None,   // default  - Normally the Fastest option, Will leave the value in an IMemory<char> object (unless it is already a string)
+    Number, // Sometimes the Faster option, But always smaller memory, Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double
     [Obsolete("Not Implemented yet!")]
-    NumberAndDates, // AS number and will also "Have a go" at detecting dates type (DateTime, DateOnly, TimeOnly)
+    NumberAndDates, // As number and will also "Have a go" at detecting dates type (DateTime, DateOnly, TimeOnly, TimeSpan)
     [Obsolete("Not Implemented yet!")]
-    FromStyles // As  Dates, and also take into account the number of decimal places etc from the style
+    ForceStyles // As  Dates, and also takes into account the number of decimal places etc. from the style when converting / formatting
 }
 
 public record Options
@@ -33,4 +31,13 @@ public record Options
     /// In the future this may be set, to allow the Open Xml cell type to be used in the return object
     /// </summary>
     public CellConversion CellConversionType { get; init; } = CellConversion.None;
+
+    /// <summary>
+    /// If you are only reading the sheets once, then _do_not_ use the OS TempFile
+    /// </summary>
+    /// <remarks>
+    /// `false`: Useful if going to use this again, and sheets are big, or Multiple sheets are opening, and multithreaded
+    /// `true`: Default, Use the internal rented buffer from the zipArchive
+    /// </remarks>
+    public bool UseSheetsOnlyOnce { get; init; } = true;
 }

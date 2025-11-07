@@ -1,11 +1,8 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
-
-using Microsoft.Extensions.Options;
 
 using Sylvan.Data.Excel;
 
@@ -17,11 +14,12 @@ namespace ExcelPRIME.Bench;
 [ExcludeFromCodeCoverage]
 public class AccessEveryCellBenchmarks
 {
+    private const string RootFolder = @"Data\";
     [Params(
-        "Data/Blank Data 1 Million Rows.xlsx",
-        "Data/sampledocs-50mb-xlsx-file.xlsx",
-        "Data/sampledocs-50mb-xlsx-file-sst.xlsx",
-        "Data/100mb.xlsx"
+        "Blank Data 1 Million Rows.xlsx",
+        "sampledocs-50mb-xlsx-file.xlsx",
+        "sampledocs-50mb-xlsx-file-sst.xlsx",
+        "100mb.xlsx"
     )]
     public string FileName { get; set; }
 
@@ -30,8 +28,8 @@ public class AccessEveryCellBenchmarks
     public async Task<int> AccessEveryCellSylvan()
     {
         int cells = 0;
-        using ExcelDataReader reader = ExcelDataReader.Create(FileName);
-        //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(FileName).ConfigureAwait(true);
+        using ExcelDataReader reader = ExcelDataReader.Create(RootFolder + FileName);
+        //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(RootFolder + FileName).ConfigureAwait(true);
         do
         {
             while (await reader.ReadAsync().ConfigureAwait(true))
@@ -52,7 +50,7 @@ public class AccessEveryCellBenchmarks
     public int AccessEveryCellXlsxHelper()
     {
         int cells = 0;
-        Workbook workbook = XlsxReader.OpenWorkbook(FileName);
+        Workbook workbook = XlsxReader.OpenWorkbook(RootFolder + FileName);
         foreach (XlsxHelper.Worksheet worksheet in workbook.Worksheets)
         {
             using WorksheetReader worksheetReader = worksheet.WorksheetReader;
@@ -74,7 +72,7 @@ public class AccessEveryCellBenchmarks
     //public int AccessEveryCellFastExcel()
     //{
     //    int cells = 0;
-    //    string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
+    //    string filePath = Path.Combine(Environment.CurrentDirectory, RootFolder + FileName);
     //    FileInfo inputFile = new FileInfo(filePath);
 
     //    using FastExcel.FastExcel excel = new(inputFile, true);
@@ -100,7 +98,7 @@ public class AccessEveryCellBenchmarks
     {
         int cells = 0;
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(FileName).ConfigureAwait(true);
+        await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
             using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
@@ -129,7 +127,7 @@ public class AccessEveryCellBenchmarks
     {
         int cells = 0;
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(FileName).ConfigureAwait(true);
+        await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
             using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
@@ -147,41 +145,8 @@ public class AccessEveryCellBenchmarks
                 }
                 row.Dispose();
             }
-            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
-            //GC.WaitForFullGCComplete(100);
         }
 
-        return cells;
-    }
-
-    [Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> SimpleCellAsyncExcel_Prime()
-    {
-        int cells = 0;
-        using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(FileName, options: new Options { CellConversionType = CellConversion.Simple}).ConfigureAwait(true);
-        foreach (string sheetName in workbook.SheetNames())
-        {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync())
-            {
-                if (row == null)
-                {   // Because this returns upto the dimension of the sheet Height
-                    break;
-                }
-
-                await foreach (ICell? cell in row.GetAllCellsAsync())
-                {
-                    // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
-                        cells++;
-                }
-                row.Dispose();
-            }
-            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
-            //GC.WaitForFullGCComplete(100);
-        }
         return cells;
     }
 
@@ -191,7 +156,7 @@ public class AccessEveryCellBenchmarks
     {
         int cells = 0;
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
+        await workbook.OpenAsync(RootFolder + FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
             using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
@@ -210,8 +175,6 @@ public class AccessEveryCellBenchmarks
                 }
                 row.Dispose();
             }
-            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, true);
-            //GC.WaitForFullGCComplete(100);
         }
         return cells;
     }

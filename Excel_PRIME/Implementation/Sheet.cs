@@ -14,7 +14,7 @@ internal sealed class Sheet : ISheet
     private readonly IXmlReaderHelpers _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
-    private readonly FileStream _stream;
+    private readonly Stream _stream;
     private IXmlSheetReader? _sheetReader;
 
     /// <summary>
@@ -22,10 +22,9 @@ internal sealed class Sheet : ISheet
     /// </summary>
     internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
 
-    internal Sheet(FileStream stream, IXmlReaderHelpers xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IXmlReaderHelpers xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
         _stream = stream;
-        _stream.Position = 0;
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
@@ -95,9 +94,21 @@ internal sealed class Sheet : ISheet
         if (_sheetReader == null
             || _sheetReader.CurrentRow > startRow
            )
-        {
-            _sheetReader?.Dispose();
-            _stream.Position = 0;
+        { 
+            if (_sheetReader != null)
+            {
+                _sheetReader.Dispose();
+                if (!_stream.CanSeek)
+                {
+                    // TODO: Not pretty, need to sort this to allow multi open, when using Zip stream!
+                    throw new NotSupportedException(
+                        "Please open sheet with `OverrideOptionsAndUseSheetOnlyOnce = false`; Or, do not attempt to go backwards with an existing sheet instance");
+                }
+                else
+                {
+                    _stream.Position = 0;
+                }
+            }
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _instanceContext, _sharedNameTable, ct).ConfigureAwait(false);
         }

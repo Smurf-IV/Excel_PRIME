@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -137,7 +136,7 @@ internal class Cell : ICell
             CellConversion.Number => PerformNumberLiteralConversion(asSpan),
             CellConversion.NumberAndDates => // TODO
                 PerformNumberLiteralConversion(asSpan),
-            CellConversion.FromStyles => // TODO
+            CellConversion.ForceStyles => // TODO
                 PerformNumberLiteralConversion(asSpan),
             _ => new ReadOnlyMemory<char>(asSpan.ToArray())
         };
@@ -149,9 +148,9 @@ internal class Cell : ICell
         bool containsDecimal = asSpan.Contains('.');
         if (containsDecimal)
         {
-            //float
+            // double
             // ±1.5 x 10−45 to ±3.4 x 1038 	~6-9 digits 	4 bytes
-            return PerformSimpleConversion(asSpan);
+            return PerformDoubleConversion(asSpan);
         }
 
         // ReSharper disable once ConvertIfStatementToSwitchStatement
@@ -178,11 +177,11 @@ internal class Cell : ICell
             return resultBI;
         }
 
-        return PerformSimpleConversion(asSpan);
+        return PerformDoubleConversion(asSpan);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static object PerformSimpleConversion(ReadOnlySpan<char> asSpan)
+    private static object PerformDoubleConversion(ReadOnlySpan<char> asSpan)
     {
         if (decimal.TryParse(asSpan, NumberStyles.Currency,
                 CultureInfo.InvariantCulture, out decimal resultM))

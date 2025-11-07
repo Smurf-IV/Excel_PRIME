@@ -20,7 +20,7 @@ public interface IXmlReaderHelpers
     /// </summary>
     /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
     /// <param name="ct"></param>
-    Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream stream, CancellationToken ct);
+    Task<IXmlWorkBookReader> CreateWorkBookReaderAsync(Stream? stream, CancellationToken ct);
 
     /// <summary>
     /// 

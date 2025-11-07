@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace ExcelPRIME;
 
+using TernaryBool = bool?;
+
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
 public interface IExcel_PRIME : IDisposable
@@ -37,7 +39,13 @@ public interface IExcel_PRIME : IDisposable
     /// <summary>
     /// Switch functionality to a new sheet
     /// </summary>
-    Task<ISheet?> GetSheetAsync(string sheetName, CancellationToken ct = default);
+    /// <remarks>
+    /// `OverrideOptionsAndUseSheetOnlyOnce` indicates that:
+    /// - `null`:  use the Options value (Default)
+    /// - `false`: override and use the OS Temp File (Useful if going to open this again, and it's big)
+    /// - `true`:  override and use internal zip rented buffer
+    /// </remarks>
+    Task<ISheet?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default);
 
     /// <summary>
     /// From the `definedName`s in the xlsx, use the name to return the range data

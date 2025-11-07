@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using ExcelPRIME.Implementation;
 using ExcelPRIME.Shared;
 
+using TernaryBool = bool?;
+
 
 namespace ExcelPRIME;
 
@@ -61,10 +63,8 @@ public sealed class Excel_PRIME : IExcel_PRIME
             throw new EndOfStreamException("'fileStream' _must_ be seekable!");
         }
 
-        if (options != null)
-        {
-            _instanceContext.Options = options;
-        }
+        options ??= new Options();
+        _instanceContext.Options = options;
 
         _fs = fileStream;
         await _zipReader.OpenArchiveAsync(fileStream, ct).ConfigureAwait(false);
@@ -72,14 +72,8 @@ public sealed class Excel_PRIME : IExcel_PRIME
         await GetSharedStringsAsync(ct).ConfigureAwait(false);
 
         // Now perform the Getting of the base data
-        TempFile workbook = new TempFile("workbook.xml");
-        _baseFiles["xl/workbook.xml"] = workbook;
-        using (FileStream targetStream = workbook.OpenForAsyncWrite())
-        {
-            await _zipReader.CopyToAsync("xl/workbook.xml", targetStream, ct).ConfigureAwait(false);
-        }
-
-        await GetSheetNamesAsync(workbook, ct).ConfigureAwait(false);
+        Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
+        await GetSheetNamesAsync(workBookStream, ct).ConfigureAwait(false);
 
         //TempFile workbook_rels = new TempFile("workbook.xml.rels");
         //_baseFiles["xl/_rels/workbook.xml.rels"] = workbook_rels;
@@ -100,20 +94,11 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private async Task GetSharedStringsAsync(CancellationToken ct)
     {
         // Check that the shared string actually exists
-        TempFile shareStrings = new TempFile("sharedStrings.xml");
-        _baseFiles["xl/sharedStrings.xml"] = shareStrings;
-        bool exists;
-        using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
-        {
-            exists = await _zipReader.CopyToAsync("xl/sharedStrings.xml", targetStream, ct).ConfigureAwait(false);
-        }
+        Stream? sharedStringsStream = _zipReader.GetEntry("xl/sharedStrings.xml");
 
-        if (exists)
+        if (sharedStringsStream != null)
         {
-#pragma warning disable CA2000 // <param name="stream">This _is_ owned by the `ISharedString`</param>
-            FileStream fileStream = shareStrings.OpenForAsyncRead();
-#pragma warning restore CA2000
-            _instanceContext.SharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
+            _instanceContext.SharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(sharedStringsStream, ct)
                 .ConfigureAwait(false);
         }
         else
@@ -122,10 +107,9 @@ public sealed class Excel_PRIME : IExcel_PRIME
         }
     }
 
-    private async Task GetSheetNamesAsync(TempFile workbook, CancellationToken ct)
+    private async Task GetSheetNamesAsync(Stream? workBookStream, CancellationToken ct)
     {
-        FileStream fileStream = workbook.OpenForAsyncRead();
-        using IXmlWorkBookReader wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(fileStream, ct)
+        using IXmlWorkBookReader wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(workBookStream, ct)
             .ConfigureAwait(false);
         _sheetNamesToOffsetSheetId = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
     }
@@ -137,7 +121,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
     public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default) => throw new NotImplementedException();
 
     /// <InheritDoc />
-    public async Task<ISheet?> GetSheetAsync(string sheetName, CancellationToken ct = default)
+    public Task<ISheet?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
         // Find Id
         if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
@@ -145,21 +129,24 @@ public sealed class Excel_PRIME : IExcel_PRIME
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
 
-        TempFile sheetFile = await _locker.LockAsync(async () =>
-        {
-            if (!_sheetFiles.TryGetValue(offsetSheetId, out TempFile? sheetFile))
-            {
-                sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
-                _sheetFiles[offsetSheetId] = sheetFile;
-                using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                string sheetFileName = Sheet.GetFileName(offsetSheetId);
-                await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
-            }
-            return sheetFile;
-        }).ConfigureAwait(false);
+        //TempFile sheetFile = await _locker.LockAsync(async () =>
+        //{
+        //    if (!_sheetFiles.TryGetValue(offsetSheetId, out TempFile? sheetFile))
+        //    {
+        //        sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
+        //        _sheetFiles[offsetSheetId] = sheetFile;
+        //        using FileStream targetStream = sheetFile.OpenForAsyncWrite();
+        //        string sheetFileName = Sheet.GetFileName(offsetSheetId);
+        //        await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
+        //    }
+        //    return sheetFile;
+        //}).ConfigureAwait(false);
 
-        FileStream stream = sheetFile.OpenForAsyncRead(true);
-        return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
+        //FileStream stream = sheetFile.OpenForAsyncRead(true);
+        string sheetFileName = Sheet.GetFileName(offsetSheetId);
+        Stream? stream = _zipReader.GetEntry(sheetFileName);
+        ISheet? sheetAsync = new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
+        return Task.FromResult(sheetAsync);
     }
 
     private void Dispose(bool isDisposing)

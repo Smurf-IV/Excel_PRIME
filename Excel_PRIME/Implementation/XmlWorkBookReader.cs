@@ -16,7 +16,7 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
     private readonly string _nameRefAtom;
     private readonly string _sheetRefAtom;
 
-    public XmlWorkBookReader(Stream stream, CancellationToken ct)
+    public XmlWorkBookReader(Stream? stream, CancellationToken ct)
     {
         _stream = stream;
         _reader = XmlReader.Create(stream, new XmlReaderSettings

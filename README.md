@@ -139,16 +139,18 @@ Read only, therefore no calculation / formula calls
         - ⚠️ Performance [2025-10-25](Performance.md##2025-10-25)
     - ✅ Restricted storage (i.e. do not return things that are not relevant)
       - 🚀 Big Performance improvements [2025-10-26](Performance.md#2025-10-26)
-- [>] Cell object type 📅
+- ✅ Cell object type 📅
       - 🚀 Big Performance improvements [2025-11-01](Performance.md#2025-11-01)
-    - [ ] Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
+    - ✅ Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
       - 🚀 Big Performance improvements [2025-11-04](Performance.md#2025-11-04)
-    - [ ] Investigate if the `XmlConvert` classes are efficient (Or via the interface specs)
+- [>] Use internal `ZipEntry` rented buffer
+    - [>] Add and explain usage in options
+      - 🚀 Big Performance improvements  [2025-11-07](Performance.md#2025-11-07)
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
     - [ ] Multiple times (with locking)
-    - [ ] Store `definedName` from Local sheets (When opened)
+    - [ ] Store `definedName` from Local sheets (When opened, if applicable [Check spec])
 - [ ] Implement Row extraction 
     - [ ] Allow ColumnHeader addressing (i.e. `ABF`)
 - [ ] Implement RangeExtraction
@@ -159,6 +161,8 @@ Read only, therefore no calculation / formula calls
 ## Phase 2 - Multi project deployments (Nuget)
 - [ ] More Benchmarks
     - [ ] Add even more "Excel readers" to the Benchmark project(s)
+- [ ] Cell object type 📅
+    - [ ] Investigate if the `XmlConvert` classes are efficient (Or via the interface specs)
 - [ ] Indicate that things may be `Hidden`
     - [ ] Sheet
     - [ ] Row
