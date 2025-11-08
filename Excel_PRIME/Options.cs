@@ -18,7 +18,7 @@ public enum CellConversion
     [Obsolete("Do not use")]
     Unknown = 0,
     None,   // default  - Normally the Fastest option, Will leave the value in an IMemory<char> object (unless it is already a string)
-    Number, // Sometimes the Faster option, But always smaller memory, Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double
+    Number, // Sometimes the Faster option, And Sometimes smaller memory, Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double
     [Obsolete("Not Implemented yet!")]
     NumberAndDates, // As number and will also "Have a go" at detecting dates type (DateTime, DateOnly, TimeOnly, TimeSpan)
     [Obsolete("Not Implemented yet!")]

@@ -35,7 +35,7 @@ internal sealed class Row : IRow
                 string currentAttributeName = _reader.LocalName;
                 if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
                 {
-                    RowOffset = _reader.Value.IntParseUnsafe();
+                    RowOffset = _reader.Value.IntParse();
                 }
                 else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.hiddenRefAtom))
                 {

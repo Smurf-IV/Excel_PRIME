@@ -26,19 +26,19 @@ public record DefinedRange
         if (splitRange.Length > 1)
         {
             string[] startRef = splitRange[0].Split('$');
-            ColumnStart = startRef[1].IntParseUnsafe();
+            ColumnStart = startRef[1].IntParse();
             string[] endRef = splitRange[1].Split('$');
-            ColumnEnd = endRef[1].IntParseUnsafe();
+            ColumnEnd = endRef[1].IntParse();
             if (splitRange[0].Count(c => c == '$') > 1)
             {
-                RowStart = startRef[2].IntParseUnsafe();
-                RowEnd = endRef[2].IntParseUnsafe();
+                RowStart = startRef[2].IntParse();
+                RowEnd = endRef[2].IntParse();
             }
         }
         else
         {
-            ColumnStart = ColumnEnd = range.Split('$')[1].IntParseUnsafe();
-            RowEnd = RowStart = range.Split('$')[2].IntParseUnsafe();
+            ColumnStart = ColumnEnd = range.Split('$')[1].IntParse();
+            RowEnd = RowStart = range.Split('$')[2].IntParse();
         }
     }
 

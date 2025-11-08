@@ -5,41 +5,73 @@ namespace ExcelPRIME.Shared;
 
 internal static class Extensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int IntParse(this string value) => value.AsSpan().IntParse();
 
-    // https://stackoverflow.com/a/6723764
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static unsafe int IntParseUnsafe(this string value)
+    public static int IntParse(this ReadOnlySpan<char> value)
     {
         int result = 0;
-        fixed (char* v = value)
+        int i = 0;
+        // outside the for loop to allow bounds-check once
+        int valueLength = value.Length - (value.Length % 4);
+        for (; i < valueLength; i += 4)
         {
-            char* str = v;
-            while (*str != '\0')
+            ref readonly char local = ref value[i];
+            if (local != '\0')
             {
-                result = 10 * result + (*str - 48);
-                str++;
+                result = (10 * result) + (local - 48);
+            }
+            else
+            {
+                i = value.Length;
+                break;
+            }
+            local = ref value[i + 1];
+            if (local != '\0')
+            {
+                result = (10 * result) + (local - 48);
+            }
+            else
+            {
+                i = value.Length;
+                break;
+            }
+            local = ref value[i + 2];
+            if (local != '\0')
+            {
+                result = (10 * result) + (local - 48);
+            }
+            else
+            {
+                i = value.Length;
+                break;
+            }
+            local = ref value[i + 3];
+            if (local != '\0')
+            {
+                result = (10 * result) + (local - 48);
+            }
+            else
+            {
+                i = value.Length;
+                break;
             }
         }
+        // Do the rest
+        for (; i < value.Length; i++)
+        {
+            ref readonly char local = ref value[i];
+            if (local != '\0')
+            {
+                result = (10 * result) + (local - 48);
+            }
+            else
+            {
+                break;
+            }
+        }
+
         return result;
     }
-
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-       public static int IntParse(this ReadOnlySpan<char> value)
-       {
-           int result = 0;
-           for (int i = 0; i < value.Length; i++)
-           {
-               ref readonly char local = ref value[i];
-               if (local != '\0')
-               {
-                   result = (10 * result) + (local - 48);
-               }
-               else
-               {
-                   break;
-               }
-           }
-
-           return result;
-       }
 }

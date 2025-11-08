@@ -116,7 +116,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     }
 
     // TODO: Should this be refactored to take a Cancellation Token
-    public string? this[string xmlIndex] => string.IsNullOrEmpty(xmlIndex) ? null : this[xmlIndex.IntParseUnsafe()];
+    public string? this[string xmlIndex] => string.IsNullOrEmpty(xmlIndex) ? null : this[xmlIndex.IntParse()];
 
     private void LoadUntil(int untilIndex)
     {

@@ -143,9 +143,11 @@ Read only, therefore no calculation / formula calls
       - 🚀 Big Performance improvements [2025-11-01](Performance.md#2025-11-01)
     - ✅ Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
       - 🚀 Big Performance improvements [2025-11-04](Performance.md#2025-11-04)
-- [>] Use internal `ZipEntry` rented buffer
-    - [>] Add and explain usage in options
+- ✅ Use internal `ZipEntry` rented buffer
+    - ✅ Add and explain usage in options
       - 🚀 Big Performance improvements  [2025-11-07](Performance.md#2025-11-07)
+- ✅ Investigation into the smallest function ;-)
+      - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
