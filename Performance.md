@@ -1,30 +1,27 @@
 <!--TOC-->
-    - [Windows 11](#windows-11)
-  - [JIT x86-64-v](#jit-x86-64-v)
-  - [loaded
-```
-| Me](#loaded-me)
-    - [| Data/100m](#-data100m)
-  - [KB |      1](#kb-1)
+    - [/2024Update](#2024update)
+  - [2025-10-08](#2025-10-08)
+  - [| FileName](#-filename)
+    - [06.9 us | 5](#06.9-us-5)
+  - [ylvan      |](#ylvan-)
     - [|](#)
-  - [lsx [35] |](#lsx-35-)
-    - [6.5 us |](#6.5-us-)
-  - [.43 us |](#.43-us-)
-    - [12,574.4 us |  1.00 |](#12574.4-us-1.00-)
-    - [[39] |     2,96](#39-296)
-- [75 |    23.4375 |](#75-23.4375-)
-  - [|   476.97 KB |       0.051](#-476.97-kb-0.051)
-  - [0.00 |](#0.00-)
+  - [4.38 us |](#4.38-us-)
+    - [3 us |    1](#3-us-1)
+  - [|    0.03](#-0.03)
+    - [1125.0000 |  1109.3750](#1125.0000-1109.3750)
+    - [8 us |    222.1](#8-us-222.1)
+- [476.97 KB |       0.051 |](#476.97-kb-0.051-)
+  - [| LoadWithXlsxHelper  | Data](#-loadwithxlsxhelper-data)
+  - [8 |](#8-)
   - [|](#)
-- [|       1.0](#-1.0)
-  - [|
-| Load](#-load)
-  - [0 |    0.01 |](#0-0.01-)
-  - [| StdDev       | Ratio](#-stddev-ratio)
-  - [--------:|---------](#-)
-  - [|         |              |](#-)
-  - [36.06 ms |](#36.06-ms-)
-  - [933 ms |     7.68x slower |](#933-ms-7.68x-slower-)
+- [l_Prime | Da](#l_prime-da)
+  - [/(...).xls](#....xls)
+  - [5.6250 |](#5.6250-)
+  - [| RatioSD | Gen0](#-ratiosd-gen0)
+  - [---:|-------------:](#-)
+  - [s |     70.94 ms |     3.888 ms |         base](#s-70.94-ms-3.888-ms-base)
+  - [](#)
+  - [|              |](#-)
 <!--/TOC-->
 
 # Intro
@@ -444,27 +441,27 @@ And then slightly different versions of the following dependent on date:
 | Method                          | FileName             | Ratio        | Gen0        | Gen1        | Gen2        | Allocated  | Alloc Ratio |
 |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
 | AccessEveryCellSylvan           | 100mb.xlsx           |     baseline |  43000.0000 |  41000.0000 |   5000.0000 |  338.72 MB |             |
-| AccessEveryCellXlsxHelper       | 100mb.xlsx           | 4.13x slower | 424000.0000 |   5000.0000 |   2000.0000 | 3380.59 MB |  9.98x more |
-| AccessEveryCellAsyncExcel_Prime | 100mb.xlsx           | 1.60x slower | 507000.0000 |  55000.0000 |   6000.0000 | 4012.66 MB | 11.85x more |
-| AccessEveryCellExcel_Prime      | 100mb.xlsx           | 1.55x slower | 498000.0000 |  55000.0000 |   6000.0000 | 3936.13 MB | 11.62x more |
-| NumberCellAsyncExcel_Prime      | 100mb.xlsx           | 1.60x slower | 507000.0000 |  55000.0000 |   6000.0000 | 4012.67 MB | 11.85x more |
+| AccessEveryCellXlsxHelper       | 100mb.xlsx           | 4.05x slower | 424000.0000 |   5000.0000 |   2000.0000 | 3380.59 MB |  9.98x more |
+| AccessEveryCellAsyncExcel_Prime | 100mb.xlsx           | 1.58x slower | 507000.0000 |  55000.0000 |   6000.0000 | 4012.67 MB | 11.85x more |
+| AccessEveryCellExcel_Prime      | 100mb.xlsx           | 1.53x slower | 498000.0000 |  55000.0000 |   6000.0000 | 3936.15 MB | 11.62x more |
+| NumberCellAsyncExcel_Prime      | 100mb.xlsx           | 1.57x slower | 504000.0000 |  52000.0000 |   3000.0000 | 4012.66 MB | 11.85x more |
 |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
-| AccessEveryCellSylvan           | Blank(...).xlsx [30] |     baseline | 413000.0000 | 375000.0000 | 374000.0000 | 2875.48 MB |             |
-| AccessEveryCellXlsxHelper       | Blank(...).xlsx [30] | 1.07x faster | 218000.0000 |   1000.0000 |           - | 1739.24 MB |  1.65x less |
-| AccessEveryCellAsyncExcel_Prime | Blank(...).xlsx [30] | 1.19x slower | 524000.0000 |   1000.0000 |           - |    4187 MB |  1.46x more |
-| AccessEveryCellExcel_Prime      | Blank(...).xlsx [30] | 1.14x slower | 516000.0000 |   1000.0000 |           - | 4117.17 MB |  1.43x more |
+| AccessEveryCellSylvan           | Blank(...).xlsx [30] |     baseline | 399000.0000 | 361000.0000 | 360000.0000 | 2875.46 MB |             |
+| AccessEveryCellXlsxHelper       | Blank(...).xlsx [30] | 1.05x faster | 218000.0000 |   1000.0000 |           - | 1739.24 MB |  1.65x less |
+| AccessEveryCellAsyncExcel_Prime | Blank(...).xlsx [30] | 1.22x slower | 524000.0000 |   1000.0000 |           - |    4187 MB |  1.46x more |
+| AccessEveryCellExcel_Prime      | Blank(...).xlsx [30] | 1.16x slower | 516000.0000 |   1000.0000 |           - | 4117.18 MB |  1.43x more |
 | NumberCellAsyncExcel_Prime      | Blank(...).xlsx [30] | 1.23x slower | 501000.0000 |   1000.0000 |           - | 4001.28 MB |  1.39x more |
 |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
 | AccessEveryCellSylvan           | sampl(...).xlsx [34] |     baseline |  33000.0000 |           - |           - |  265.67 MB |             |
-| AccessEveryCellXlsxHelper       | sampl(...).xlsx [34] | 1.07x faster | 100000.0000 |           - |           - |  799.73 MB |  3.01x more |
-| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [34] | 1.15x slower | 270000.0000 |   1000.0000 |           - | 2160.73 MB |  8.13x more |
-| AccessEveryCellExcel_Prime      | sampl(...).xlsx [34] | 1.11x slower | 266000.0000 |   1000.0000 |           - | 2126.51 MB |  8.00x more |
-| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [34] | 1.26x slower | 246000.0000 |   1000.0000 |           - | 1965.85 MB |  7.40x more |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [34] | 1.12x faster | 100000.0000 |           - |           - |  799.73 MB |  3.01x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [34] | 1.12x slower | 270000.0000 |   1000.0000 |           - | 2160.73 MB |  8.13x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [34] | 1.10x slower | 266000.0000 |   1000.0000 |           - |  2126.5 MB |  8.00x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [34] | 1.21x slower | 246000.0000 |   1000.0000 |           - | 1965.84 MB |  7.40x more |
 |-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
 | AccessEveryCellSylvan           | sampl(...).xlsx [30] |     baseline |  36000.0000 |           - |           - |  294.17 MB |             |
-| AccessEveryCellXlsxHelper       | sampl(...).xlsx [30] | 1.09x faster |  93000.0000 |           - |           - |  742.13 MB |  2.52x more |
-| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.24x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
-| AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.20x slower | 234000.0000 |   1000.0000 |           - | 1871.71 MB |  6.36x more |
-| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.27x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [30] | 1.08x faster |  93000.0000 |           - |           - |  742.13 MB |  2.52x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.27x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.23x slower | 234000.0000 |   1000.0000 |           - | 1871.72 MB |  6.36x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.25x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
 ```
 <hr />

@@ -14,7 +14,7 @@ internal static class Extensions
         int result = 0;
         int i = 0;
         // outside the for loop to allow bounds-check once
-        int valueLength = value.Length - (value.Length % 4);
+        int valueLength = value.Length - (value.Length & 3);
         for (; i < valueLength; i += 4)
         {
             ref readonly char local = ref value[i];

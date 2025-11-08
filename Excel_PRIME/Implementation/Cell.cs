@@ -155,11 +155,19 @@ internal class Cell : ICell
 
         // ReSharper disable once ConvertIfStatementToSwitchStatement
         if (asSpan.Length < 12
-            && int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
+            //&& int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
            )
         {
             // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer
-            return resultI;
+            if (asSpan[0] != '-')
+            {
+                return asSpan.IntParse();
+            }
+
+            if (int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI))
+            {
+                return resultI;
+            }
         }
 
         if (asSpan.Length < 20
@@ -210,7 +218,7 @@ internal class Cell : ICell
     public int ExcelColumnOffset { get; private init; }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static CellType GetCellType(char[] b, int l)
+    private static CellType GetCellType(in char[] b, int l)
     {
         if (l == 0)
         {
