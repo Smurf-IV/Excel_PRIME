@@ -1,27 +1,27 @@
 <!--TOC-->
-    - [/2024Update](#2024update)
-  - [2025-10-08](#2025-10-08)
-  - [| FileName](#-filename)
-    - [06.9 us | 5](#06.9-us-5)
-  - [ylvan      |](#ylvan-)
+  - [CPU, 16 logi](#cpu-16-logi)
+  - [t versions of the](#t-versions-of-the)
+    - [-----------](#-)
+  - [----:|------](#-)
+    - [| LoadWit](#-loadwit)
+  - [| Data/(...).xl](#-data....xl)
     - [|](#)
-  - [4.38 us |](#4.38-us-)
-    - [3 us |    1](#3-us-1)
-  - [|    0.03](#-0.03)
-    - [1125.0000 |  1109.3750](#1125.0000-1109.3750)
-    - [8 us |    222.1](#8-us-222.1)
-- [476.97 KB |       0.051 |](#476.97-kb-0.051-)
-  - [| LoadWithXlsxHelper  | Data](#-loadwithxlsxhelper-data)
-  - [8 |](#8-)
   - [|](#)
-- [l_Prime | Da](#l_prime-da)
-  - [/(...).xls](#....xls)
-  - [5.6250 |](#5.6250-)
-  - [| RatioSD | Gen0](#-ratiosd-gen0)
-  - [---:|-------------:](#-)
-  - [s |     70.94 ms |     3.888 ms |         base](#s-70.94-ms-3.888-ms-base)
-  - [](#)
-  - [|              |](#-)
+    - [|](#)
+    - [ata/(...).xlsx](#ata....xlsx)
+- [.03 |   1125.0000 |  1109](#.03-1125.0000-1109)
+  - [750 |         - |     9352 K](#750-9352-k)
+  - [us |  0.2](#us-0.2)
+  - [0.051 |
+| LoadWithXls](#0.051-loadwithxls)
+- [|](#)
+  - [|](#)
+  - [586.3 us | 1.0](#586.3-us-1.0)
+  - [essed the first cell of the r](#essed-the-first-cell-of-the-r)
+  - [| Gen1         |](#-gen1-)
+  - [|                      |              |](#-)
+  - [MB |  70.](#mb-70.)
+  - [eryCellExcel_Prime      | Da](#erycellexcel_prime-da)
 <!--/TOC-->
 
 # Intro
@@ -63,6 +63,7 @@ And then slightly different versions of the following dependent on date:
 # 2025-10-13
 - This set of tests "Only" accessed the first cell of the returned rows
 - Therefore did not really excercise the retrieval of the `SharedStrings`, etc.
+
 ```
 | Method                          | FileName             | Mean         | Error        | StdDev       | Ratio            | RatioSD | Gen0         | Gen1         | Gen2       | Allocated   | Alloc Ratio  |
 |-------------------------------- |--------------------- |-------------:|-------------:|-------------:|-----------------:|--------:|-------------:|-------------:|-----------:|------------:|-------------:|
@@ -463,5 +464,37 @@ And then slightly different versions of the following dependent on date:
 | AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.27x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
 | AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.23x slower | 234000.0000 |   1000.0000 |           - | 1871.72 MB |  6.36x more |
 | NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.25x slower | 238000.0000 |   1000.0000 |           - | 1905.91 MB |  6.48x more |
+```
+<hr />
+
+# 2025-11-12
+- Optimise for `CellConversion.None`
+
+```
+| Method                          | FileName             | Ratio        | Gen0        | Gen1        | Gen2        | Allocated  | Alloc Ratio |
+|-------------------------------- |--------------------- |-------------:|------------:|------------:|------------:|-----------:|------------:|
+| AccessEveryCellSylvan           | 100mb.xlsx           |     baseline |  43000.0000 |  41000.0000 |   5000.0000 |  338.72 MB |             |
+| AccessEveryCellXlsxHelper       | 100mb.xlsx           | 4.08x slower | 424000.0000 |   5000.0000 |   2000.0000 | 3380.58 MB |  9.98x more |
+| AccessEveryCellAsyncExcel_Prime | 100mb.xlsx           | 1.60x slower | 521000.0000 |  53000.0000 |   6000.0000 | 4123.51 MB | 12.17x more |
+| AccessEveryCellExcel_Prime      | 100mb.xlsx           | 1.54x slower | 512000.0000 |  54000.0000 |   6000.0000 |  4046.9 MB | 11.95x more |
+| NumberCellAsyncExcel_Prime      | 100mb.xlsx           | 1.58x slower | 521000.0000 |  53000.0000 |   6000.0000 |  4123.5 MB | 12.17x more |
+|                                 |                      |              |             |             |             |            |             |
+| AccessEveryCellSylvan           | Blank(...).xlsx [30] |     baseline | 392000.0000 | 354000.0000 | 353000.0000 | 2875.49 MB |             |
+| AccessEveryCellXlsxHelper       | Blank(...).xlsx [30] | 1.02x faster | 218000.0000 |   1000.0000 |           - | 1739.24 MB |  1.65x less |
+| AccessEveryCellAsyncExcel_Prime | Blank(...).xlsx [30] | 1.20x slower | 501000.0000 |   1000.0000 |           - | 4002.64 MB |  1.39x more |
+| AccessEveryCellExcel_Prime      | Blank(...).xlsx [30] | 1.15x slower | 493000.0000 |   1000.0000 |           - | 3932.82 MB |  1.37x more |
+| NumberCellAsyncExcel_Prime      | Blank(...).xlsx [30] | 1.25x slower | 514000.0000 |   1000.0000 |           - | 4102.53 MB |  1.43x more |
+|                                 |                      |              |             |             |             |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [34] |     baseline |  33000.0000 |           - |           - |  265.67 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [34] | 1.09x faster | 100000.0000 |           - |           - |  799.73 MB |  3.01x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [34] | 1.09x slower | 237000.0000 |           - |           - | 1894.17 MB |  7.13x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [34] | 1.07x slower | 233000.0000 |   1000.0000 |           - | 1859.94 MB |  7.00x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [34] | 1.24x slower | 252000.0000 |   1000.0000 |           - | 2015.43 MB |  7.59x more |
+|                                 |                      |              |             |             |             |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [30] |     baseline |  36000.0000 |           - |           - |  294.17 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [30] | 1.09x faster |  93000.0000 |           - |           - |  742.13 MB |  2.52x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.16x slower | 240000.0000 |   1000.0000 |           - | 1917.02 MB |  6.52x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.10x slower | 236000.0000 |   1000.0000 |           - | 1882.83 MB |  6.40x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.28x slower | 245000.0000 |   1000.0000 |           - | 1955.51 MB |  6.65x more |
 ```
 <hr />

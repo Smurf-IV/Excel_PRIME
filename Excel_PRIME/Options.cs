@@ -17,10 +17,10 @@ public enum CellConversion
 {
     [Obsolete("Do not use")]
     Unknown = 0,
-    None,   // default  - Normally the Fastest option, Will leave the value in an IMemory<char> object (unless it is already a string)
-    Number, // Sometimes the Faster option, And Sometimes smaller memory, Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double
+    None,   // default  - Normally the Fastest option, Will leave the value as a string.
+    Number, // Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double. Dates will be converted from ISO 8601.
     [Obsolete("Not Implemented yet!")]
-    NumberAndDates, // As number and will also "Have a go" at detecting dates type (DateTime, DateOnly, TimeOnly, TimeSpan)
+    NumberAndDates, // As number and will also "Have a go" at detecting the date type (DateTime, DateOnly, TimeOnly, TimeSpan)
     [Obsolete("Not Implemented yet!")]
     ForceStyles // As  Dates, and also takes into account the number of decimal places etc. from the style when converting / formatting
 }

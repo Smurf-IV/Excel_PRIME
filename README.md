@@ -148,6 +148,7 @@ Read only, therefore no calculation / formula calls
       - 🚀 Big Performance improvements  [2025-11-07](Performance.md#2025-11-07)
 - ✅ Investigation into the smallest function ;-)
       - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
+      - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of

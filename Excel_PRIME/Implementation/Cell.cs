@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -14,7 +15,8 @@ namespace ExcelPRIME.Implementation;
 [DebuggerDisplay("{RawValue.ToString(),raw}")]
 internal class Cell : ICell
 {
-    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext, ReaderAtoms readerAtoms, char[] buffer)
+    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
+        ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
         CellType type = CellType.Unknown;
         object? value = null;
@@ -60,54 +62,68 @@ internal class Cell : ICell
         {
             // Move to data
             await reader.ReadAsync().ConfigureAwait(false);
-
-            switch (type)
+            if (instanceContext.Options.CellConversionType == CellConversion.None)
             {
-                case CellType.Unknown:
-                case CellType.Formula:
-                case CellType.InlineString:
-                    value = reader.ReadString();
-                    break;
-
-                case CellType.Numeric:
-                    ReadValue();
-                    value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
-                    break;
-
-                case CellType.SharedString:
+                if (type == CellType.SharedString)
+                {
                     ReadValue();
                     value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
-                    break;
+                }
+                else
+                {
+                    value = ReadString(reader, valueBuilder);
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case CellType.Unknown:
+                    case CellType.Formula:
+                    case CellType.InlineString:
+                        value = ReadString(reader, valueBuilder);
+                        break;
 
-                case CellType.Boolean:
-                    ReadValue();
-                    value = buffer[0] != '0';
-                    break;
+                    case CellType.Numeric:
+                        ReadValue();
+                        value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
+                        break;
 
-                case CellType.Error:
-                    // TODO: Decrypt the error
-                    value = reader.ReadString();
-                    break;
+                    case CellType.SharedString:
+                        ReadValue();
+                        value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
+                        break;
 
-                case CellType.Date:
-                    ReadValue();
-                    if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
-                            CultureInfo.InvariantCulture, out double dateTimeValue))
-                    {
-                        value = DateTime.FromOADate(dateTimeValue);
-                    }
-                    else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
-                    {
-                        value = result;
-                    }
-                    else
-                    {
-                        value = new string(buffer.AsSpan(0, len));
-                    }
-                    break;
+                    case CellType.Boolean:
+                        ReadValue();
+                        value = buffer[0] != '0';
+                        break;
 
-                default:
-                    throw new ArgumentOutOfRangeException(((int)type).ToString(CultureInfo.InvariantCulture));
+                    case CellType.Error:
+                        // TODO: Decrypt the error
+                        value = ReadString(reader, valueBuilder);
+                        break;
+
+                    case CellType.Date:
+                        ReadValue();
+                        if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
+                                CultureInfo.InvariantCulture, out double dateTimeValue))
+                        {
+                            value = DateTime.FromOADate(dateTimeValue);
+                        }
+                        else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
+                        {
+                            value = result;
+                        }
+                        else
+                        {
+                            value = new string(buffer.AsSpan(0, len));
+                        }
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(((int)type).ToString(CultureInfo.InvariantCulture));
+                }
             }
         }
         // If this goes boom, then something is seriously wrong,
@@ -122,7 +138,102 @@ internal class Cell : ICell
         };
     }
 
-    //[MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    #region Borrowed and some finessing from XMLReader source
+    private static string ReadString(XmlReader reader, StringBuilder valueBuilder)
+    {
+        if (reader.ReadState != ReadState.Interactive)
+        {
+            return string.Empty;
+        }
+        XmlReader subReader = reader;
+
+        if (subReader.NodeType == XmlNodeType.Element)
+        {
+            if (subReader.IsEmptyElement)
+            {
+                return string.Empty;
+            }
+
+            subReader = reader.ReadSubtree();
+            if (subReader.Read())
+            {
+                if (reader.NodeType == XmlNodeType.EndElement)
+                {
+                    return string.Empty;
+                }
+            }
+        }
+        string result = string.Empty;
+        int hasMultipleTextForCell = 0;
+        while (IsTextualNode(reader.NodeType))
+        {
+            if (hasMultipleTextForCell++ > 0)
+            {
+                valueBuilder.Append(result);
+            }
+            result = reader.Value;
+            if (!subReader.Read())
+            {
+                break;
+            }
+        }
+        if (hasMultipleTextForCell > 1)
+        {
+            // Add last iteration, and get current combined string
+            valueBuilder.Append(result);
+            result = valueBuilder.ToString();
+        }
+        return result;
+    }
+
+    private const uint IsTextualNodeBitmap = 0x6018; // 00 0110 0000 0001 1000
+                                                     // 0 None,
+                                                     // 0 Element,
+                                                     // 0 Attribute,
+                                                     // 1 Text,
+                                                     // 1 CDATA,
+                                                     // 0 EntityReference,
+                                                     // 0 Entity,
+                                                     // 0 ProcessingInstruction,
+                                                     // 0 Comment,
+                                                     // 0 Document,
+                                                     // 0 DocumentType,
+                                                     // 0 DocumentFragment,
+                                                     // 0 Notation,
+                                                     // 1 Whitespace,
+                                                     // 1 SignificantWhitespace,
+                                                     // 0 EndElement,
+                                                     // 0 EndEntity,
+                                                     // 0 XmlDeclaration
+
+    private static bool IsTextualNode(XmlNodeType nodeType)
+    {
+#if DEBUG
+            // This code verifies IsTextualNodeBitmap mapping of XmlNodeType to a bool specifying
+            // whether the node is 'textual' = Text, CDATA, Whitespace or SignificantWhitespace.
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.None)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Element)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Attribute)));
+            Debug.Assert(0 != (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Text)));
+            Debug.Assert(0 != (IsTextualNodeBitmap & (1 << (int)XmlNodeType.CDATA)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.EntityReference)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Entity)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.ProcessingInstruction)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Comment)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Document)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.DocumentType)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.DocumentFragment)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Notation)));
+            Debug.Assert(0 != (IsTextualNodeBitmap & (1 << (int)XmlNodeType.Whitespace)));
+            Debug.Assert(0 != (IsTextualNodeBitmap & (1 << (int)XmlNodeType.SignificantWhitespace)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.EndElement)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.EndEntity)));
+            Debug.Assert(0 == (IsTextualNodeBitmap & (1 << (int)XmlNodeType.XmlDeclaration)));
+#endif
+        return 0 != (IsTextualNodeBitmap & (1 << (int)nodeType));
+    }
+    #endregion
+
     private static object? TryParseOrder(CellConversion optionsCellConversionType, ReadOnlySpan<char> asSpan)
     {
         if (asSpan.Length == 0)
@@ -155,7 +266,7 @@ internal class Cell : ICell
 
         // ReSharper disable once ConvertIfStatementToSwitchStatement
         if (asSpan.Length < 12
-            //&& int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
+           //&& int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
            )
         {
             // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer

@@ -133,7 +133,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
                 // Use the pre-atomized string for lightning-fast comparison
                 if (Object.ReferenceEquals(_reader.LocalName, _siRefAtom))
                 {
-                    _currentStNodeBuilder.Clear();
+                    _currentStNodeBuilder.Length = 0;
                     int hasMultipleTextForCell = 0;
                     cellValueText = string.Empty;
                     XmlReader subReader = _reader.ReadSubtree();

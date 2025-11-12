@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -121,6 +122,8 @@ internal sealed class Row : IRow
             currentDepth--;
         }
         char[] buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+        StringBuilder valueBuilder = new();
+
         try
         {
             while (await _reader.ReadAsync().ConfigureAwait(false)
@@ -132,8 +135,9 @@ internal sealed class Row : IRow
                     && Object.ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
                     )
                 {
-                    Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer).ConfigureAwait(false);
+                    Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer, valueBuilder).ConfigureAwait(false);
                     _cells.Add(cell.ExcelColumnOffset, cell);
+                    valueBuilder.Length = 0;;
                 }
             }
         }
