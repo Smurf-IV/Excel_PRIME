@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<NeutralLanguage>en</NeutralLanguage>
@@ -11,7 +11,49 @@
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 		<IsPublishable>True</IsPublishable>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<RootNamespace>ExcelPRIME</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<PackageId>Excel_PRIME</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/acraven/blog-nuget-workflow-github-actions</RepositoryUrl>
+		<Copyright></Copyright>
+		<RepositoryUrl>https://github.com/Smurf-IV/Excel_PRIME</RepositoryUrl>
+		<PackageTags>csharp;xml;zip;excel;netcore;reader</PackageTags>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
+		<Authors>Smurf-IV</Authors>
+		<Deterministic>False</Deterministic>
+		<VersionPrefix>0.0</VersionPrefix>
+		<VersionSuffix>$([System.DateTime]::UtcNow.ToString(yyMMdd))</VersionSuffix>
+		<PackageReleaseNotes>Include README.md.</PackageReleaseNotes>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../README.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
+		<PropertyGroup>
+			<PackageDescription>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../RELEASE-NOTES"))</PackageDescription>
+		</PropertyGroup>
+	</Target>
 </Project>

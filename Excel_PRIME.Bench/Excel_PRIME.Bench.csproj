@@ -8,6 +8,7 @@
 		<Nullable>enable</Nullable>
 		<IsPublishable>False</IsPublishable>
 		<IsPackable>false</IsPackable>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<RootNamespace>ExcelPRIME.Bench</RootNamespace>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	</PropertyGroup>
