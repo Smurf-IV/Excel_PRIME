@@ -33,8 +33,7 @@
 		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
-		<VersionPrefix>0.0</VersionPrefix>
-		<VersionSuffix>$([System.DateTime]::UtcNow.ToString(yyMMdd))</VersionSuffix>
+		<VersionPrefix>0.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.DayOfYear)</VersionPrefix>
 		<PackageReleaseNotes>Include README.md.</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 
