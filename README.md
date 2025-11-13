@@ -2,6 +2,7 @@
 - **Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
 - Without using any external libraries.
 - Optimised for Range extraction.
+- ![Excel.png](./Excel.png)
 
 # What does that mean?
 _Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime.
