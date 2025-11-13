@@ -25,7 +25,7 @@ jobs:
 
     - name: Extract release notes
       run: |
-        git log --pretty=format:'%d %s' ${GITHUB_REF} | perl -pe 's| \(.*tag: v(\d+.\d+.\d+(-preview\d{3})?)(, .*?)*\)|\n## \1\n|g' > " D:/a/Excel_PRIME/Excel_PRIME/RELEASE-NOTES.txt"
+        git log --pretty=format:'%d %s' ${GITHUB_REF} | perl -pe 's| \(.*tag: v(\d+.\d+.\d+(-preview\d{3})?)(, .*?)*\)|\n## \1\n|g' > "D:/a/Excel_PRIME/Excel_PRIME/RELEASE-NOTES.txt"
         
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
