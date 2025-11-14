@@ -24,8 +24,7 @@
 	<PropertyGroup>
 		<PackageId>Excel_PRIME</PackageId>
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/acraven/blog-nuget-workflow-github-actions</RepositoryUrl>
-		<Copyright></Copyright>
+		<Copyright>© Smurf-IV</Copyright>
 		<RepositoryUrl>https://github.com/Smurf-IV/Excel_PRIME</RepositoryUrl>
 		<PackageTags>csharp;xml;zip;excel;netcore;reader</PackageTags>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -34,13 +33,13 @@
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
 		<VersionPrefix>0.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.DayOfYear)</VersionPrefix>
-		<PackageReleaseNotes>Include README.md.</PackageReleaseNotes>
+		<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-
+		<PackageIcon>../Excel.ico</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReadmeFile>../README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
