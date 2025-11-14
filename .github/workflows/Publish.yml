@@ -13,6 +13,9 @@ jobs:
   build:
 
     runs-on: windows-latest
+    permissions: write-all
+      # packages: write
+      # contents: read
 
     steps:
     - uses: actions/checkout@v4
@@ -54,9 +57,9 @@ jobs:
     #   run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
 
     - name: PushGithub
-      run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate
+      run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
       env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: PushNuget
       run: dotnet nuget push **/*.nupkg --source https://int.nugettest.org --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
