@@ -18,13 +18,13 @@ public class RowCellTests
     public async Task A010_ReadCells(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow row in worksheet!.GetRowDataAsync())
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
+            await foreach (IRow row in worksheet!.GetRowDataAsync()!.ConfigureAwait(false))
             {
-                await foreach (ICell? cell in row.GetAllCellsAsync())
+                await foreach (ICell? cell in row.GetAllCellsAsync().ConfigureAwait(false))
                 {
                     if (cell == null)
                     {
@@ -43,7 +43,7 @@ public class RowCellTests
     public async Task A020_StyleAndFormattedFile(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number} );
+        await workbook.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number} ).ConfigureAwait(false);
 
         string[][] workSheet1Content = new string[][]
         {
@@ -55,13 +55,13 @@ public class RowCellTests
             ["करो हाथों को ऊपर कस आवी गयो", "કેમ છો "]
         };
         workbook.SheetNames().Should().NotBeEmpty();
-        using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First());
+        using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
         worksheet1!.Name.Should().Be("text styling");
         int r = 0;
-        await foreach (IRow? row in worksheet1.GetRowDataAsync())
+        await foreach (IRow? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync())
+            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
             {
                 if (cell == null) // Because this returns upto the dimension of the sheet width
                 {
@@ -91,13 +91,13 @@ public class RowCellTests
             [null, 23.3],
             [null, 1], [null, 2], [null, 2], [null, -1], [null, 0], [null, 0.5], [null, 0.25]
         };
-        using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting");
+        using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet2!.Name.Should().Be("number & date formatting");
         r = 0;
-        await foreach (IRow? row in worksheet2.GetRowDataAsync())
+        await foreach (IRow? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync())
+            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
             {
                 if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                 {
@@ -120,7 +120,7 @@ public class RowCellTests
     public async Task A021_ParallelStyleAndFormattedFile(string fileName)
     {
         using IExcel_PRIME workbook1 = new Excel_PRIME();
-        await workbook1.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number });
+        await workbook1.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(false);
 
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
         return;
@@ -136,13 +136,13 @@ public class RowCellTests
                 ["“", "<html>", "<script></script>", "<?xml ?> "], ["multi format", "\"", " text  ", " t", "t "],
                 ["करो हाथों को ऊपर कस आवी गयो", "કેમ છો "]
             };
-            using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First());
+            using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
             worksheet1!.Name.Should().Be("text styling");
             int r = 0;
-            await foreach (IRow? row in worksheet1.GetRowDataAsync())
+            await foreach (IRow? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync())
+                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
                 {
                     if (cell == null) // Because this returns upto the dimension of the sheet width
                     {
@@ -170,13 +170,13 @@ public class RowCellTests
                 [999.999999, 0.508333333333333], [null, 23.3], [null, 1], [null, 2], [null, 2], [null, -1],
                 [null, 0], [null, 0.5], [null, 0.25]
             };
-            using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting");
+            using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
             worksheet2!.Name.Should().Be("number & date formatting");
             int r = 0;
-            await foreach (IRow? row in worksheet2.GetRowDataAsync())
+            await foreach (IRow? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync())
+                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
                 {
                     if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                     {
@@ -201,32 +201,32 @@ public class RowCellTests
     public async Task A030_ValuesTypesOfCells(string fileName)
     {
         using Excel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
-        ISheet? valSheet = await workbook.GetSheetAsync("Values");
-        IRow? row = valSheet.GetRowData(0, RowCellGet.PreGet).First();
-        ICell? cell = await row.GetCellAsync(1);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
+        ISheet valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false)!;
+        IRow row = valSheet.GetRowData(0, RowCellGet.PreGet).First()!;
+        ICell? cell = await row.GetCellAsync(1).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<int>().And.Be(1);
-        cell = await row.GetCellAsync(2);
+        cell = await row.GetCellAsync(2).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<double>().And.Be(2.3);
-        cell = await row.GetCellAsync(2);
+        cell = await row.GetCellAsync(2).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<string>().And.Be("abc");
-        cell = await row.GetCellAsync(3);
+        cell = await row.GetCellAsync(3).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<bool>().And.Be(true);
-        cell = await row.GetCellAsync(4);
+        cell = await row.GetCellAsync(4).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<bool>().And.Be(false);
-        cell = await row.GetCellAsync(5);
+        cell = await row.GetCellAsync(5).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
-        cell = await row.GetCellAsync(6);
+        cell = await row.GetCellAsync(6).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
-        cell = await row.GetCellAsync(7);
+        cell = await row.GetCellAsync(7).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
-        cell = await row.GetCellAsync(8);
+        cell = await row.GetCellAsync(8).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
-        cell = await row.GetCellAsync(9);
+        cell = await row.GetCellAsync(9).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
-        cell = await row.GetCellAsync(10);
+        cell = await row.GetCellAsync(10).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
-        cell = await row.GetCellAsync(11);
+        cell = await row.GetCellAsync(11).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
     }
 }

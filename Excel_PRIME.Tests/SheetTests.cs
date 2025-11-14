@@ -17,7 +17,7 @@ internal class SheetTests
     public async Task A010_StepThroughEmptyXlsx(string fileName, int expected)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().HaveCount(expected);
     }
 
@@ -29,13 +29,13 @@ internal class SheetTests
     public async Task A020_GetsWorkSheets(string fileName, string[] worksheetNames)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().HaveCount(worksheetNames.Length);
         int i = 0;
         foreach (string worksheetName in workbook.SheetNames())
         {
             worksheetName.Should().Be(worksheetNames[i]);
-            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName).ConfigureAwait(false);
             worksheet!.Name.Should().Be(worksheetNames[i]);
 
             i++;
@@ -48,10 +48,10 @@ internal class SheetTests
     {
         using (IExcel_PRIME workbook = new Excel_PRIME())
         {
-            await workbook.OpenAsync(fileName);
+            await workbook.OpenAsync(fileName).ConfigureAwait(false);
             foreach (string worksheetName in workbook.SheetNames())
             {
-                using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+                using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName).ConfigureAwait(false);
                 //read lock is held
                 Func<FileStream> sutMethod = () => File.Open(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
                 sutMethod.Should().Throw<IOException>();
@@ -66,16 +66,16 @@ internal class SheetTests
     public async Task A040_ReOpenWorkSheets(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         foreach (string worksheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName).ConfigureAwait(false);
         }
 
         // Now make sure that the sheet source files have not been disposed etc.
         foreach (string worksheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName);
+            using ISheet? worksheet = await workbook.GetSheetAsync(worksheetName).ConfigureAwait(false);
         }
     }
 }

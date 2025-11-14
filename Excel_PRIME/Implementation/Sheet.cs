@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-using ExcelPRIME.Shared;
-
 namespace ExcelPRIME.Implementation;
 
 internal sealed class Sheet : ISheet

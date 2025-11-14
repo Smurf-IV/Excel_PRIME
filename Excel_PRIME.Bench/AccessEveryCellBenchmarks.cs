@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
 
-using Microsoft.Extensions.Options;
-
 using Sylvan.Data.Excel;
 
 using XlsxHelper;
@@ -25,7 +23,7 @@ public class AccessEveryCellBenchmarks
         "sampledocs-50mb-xlsx-file-sst.xlsx",
         "100mb.xlsx"
     )]
-    public string FileName { get; set; }
+    public string FileName { get; init; }
 
     [Benchmark(Baseline = true)]
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -183,19 +181,25 @@ public class AccessEveryCellBenchmarks
         return cells;
     }
 
-    [Benchmark]
+    //[Benchmark]
+    // Between 5 -> 10% slower than running through in ForwardOnlyMode*2.
+    // Not bad considering it is using the HDD for the passes ;-)
+    // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
+    // Memory is between 80% and 110% more
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public async Task<int> ParallelEveryCellAsyncExcel_PrimeTwice()
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(RootFolder + FileName, options: new Options{ AccessExcelFileInForwardOnlyMode = false}).ConfigureAwait(true);
-        
+        await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
+
+        ParallelOptions parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Environment.ProcessorCount - 1,
+            CancellationToken = CancellationToken.None
+        };
         int cells = 0;
         await Parallel.ForEachAsync(workbook.SheetNames(),
-            new ParallelOptions
-            {
-                MaxDegreeOfParallelism = Environment.ProcessorCount - 1, CancellationToken = CancellationToken.None
-            },
+            parallelOptions,
             async (sheetName, ct) =>
             {
                 using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
@@ -219,14 +223,10 @@ public class AccessEveryCellBenchmarks
                     row.Dispose();
                 }
             });
-        
+
         cells = 0;
         await Parallel.ForEachAsync(workbook.SheetNames(),
-            new ParallelOptions
-            {
-                MaxDegreeOfParallelism = Environment.ProcessorCount - 1,
-                CancellationToken = CancellationToken.None
-            },
+            parallelOptions,
             async (sheetName, ct) =>
             {
                 using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);

@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
-using System.Xml;
 
 using AwesomeAssertions;
 
@@ -20,11 +19,11 @@ internal class LoadingTests
         Func<Task> sutMethod = async () =>
         {
             using IExcel_PRIME workbook = new Excel_PRIME();
-            await workbook.OpenAsync(fileName);
+            await workbook.OpenAsync(fileName).ConfigureAwait(false);
         };
 
         await sutMethod.Should().ThrowAsync<FileNotFoundException>()
-            .WithMessage("Could not find file *");
+            .WithMessage("Could not find file *").ConfigureAwait(false);
     }
 
     [Test]
@@ -33,7 +32,7 @@ internal class LoadingTests
     public async Task A010_EmptyXlsx(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().NotBeEmpty();
     }
 
@@ -44,10 +43,10 @@ internal class LoadingTests
         Func<Task> sutMethod = async () =>
         {
             using IExcel_PRIME workbook = new Excel_PRIME();
-            await workbook.OpenAsync(fileName);
+            await workbook.OpenAsync(fileName).ConfigureAwait(false);
         };
 
-        await sutMethod.Should().ThrowAsync<InvalidDataException>();
+        await sutMethod.Should().ThrowAsync<InvalidDataException>().ConfigureAwait(false);
     }
 
     [Test]
@@ -58,9 +57,9 @@ internal class LoadingTests
         Func<Task> sutMethod = async () =>
         {
             using IExcel_PRIME workbook = new Excel_PRIME();
-            await workbook.OpenAsync(fileName);
+            await workbook.OpenAsync(fileName).ConfigureAwait(false);
         };
-        await sutMethod.Should().ThrowAsync<ArgumentNullException> ();
+        await sutMethod.Should().ThrowAsync<ArgumentNullException> ().ConfigureAwait(false);
     }
 
     [Test]
@@ -69,7 +68,7 @@ internal class LoadingTests
     {
         using (IExcel_PRIME workbook = new Excel_PRIME())
         {
-            await workbook.OpenAsync(fileName);
+            await workbook.OpenAsync(fileName).ConfigureAwait(false);
             //read lock is held
             Assert.Throws<IOException>(() => File.Open(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read));
         }

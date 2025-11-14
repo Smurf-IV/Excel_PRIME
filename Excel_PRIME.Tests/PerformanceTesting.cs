@@ -21,7 +21,7 @@ internal class PerformanceTesting
     public async Task A010_AccessEveryCellExcel_Prime(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new AccessEveryCellBenchmarks { FileName = fileName };
-        int cells = await aecB.AccessEveryCellExcel_Prime();
+        int cells = await aecB.AccessEveryCellExcel_Prime().ConfigureAwait(false);
         cells.Should().Be(expectedCells);
     }
 
@@ -47,7 +47,7 @@ internal class PerformanceTesting
     public async Task A030_AccessEveryCellSylvan(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new AccessEveryCellBenchmarks { FileName = fileName };
-        int cells = await aecB.AccessEveryCellSylvan();
+        int cells = await aecB.AccessEveryCellSylvan().ConfigureAwait(false);
         cells.Should().BeGreaterThan(expectedCells);
     }
 
@@ -73,7 +73,7 @@ internal class PerformanceTesting
     public async Task A040_ParallelEveryCellAsyncExcel_PrimeTwice(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new AccessEveryCellBenchmarks { FileName = fileName };
-        int cells = await aecB.ParallelEveryCellAsyncExcel_PrimeTwice();
+        int cells = await aecB.ParallelEveryCellAsyncExcel_PrimeTwice().ConfigureAwait(false);
         cells.Should().Be(expectedCells);
     }
 }

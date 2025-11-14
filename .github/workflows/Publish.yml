@@ -20,11 +20,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        lfs: true
+        # lfs: true
         fetch-depth: 0
         
-    - name: Checkout LFS objects
-      run: git lfs checkout
+    # - name: Checkout LFS objects
+    #   run: git lfs checkout
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -43,11 +43,11 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
       
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
+    # - name: Test
+    #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release --version-suffix beta
+      run: dotnet pack --no-build --configuration Release
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}

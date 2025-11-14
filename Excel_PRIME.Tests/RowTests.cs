@@ -14,12 +14,12 @@ internal class RowTests
     public async Task A010_EmptyXlsx(string fileName)
     {
         using IExcel_PRIME workbook = new Excel_PRIME();
-        await workbook.OpenAsync(fileName);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().NotBeEmpty();
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync())
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
+            await foreach (IRow? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
             }
         }

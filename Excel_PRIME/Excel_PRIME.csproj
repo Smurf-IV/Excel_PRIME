@@ -13,7 +13,7 @@
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 		<IsPublishable>True</IsPublishable>
-		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<RootNamespace>ExcelPRIME</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>../Excel.ico</ApplicationIcon>
@@ -36,24 +36,29 @@
 		<PackageProjectUrl>https://github.com/Smurf-IV/Excel_PRIME</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Smurf-IV/Excel_PRIME</RepositoryUrl>
 		<PackageTags>csharp;xml;zip;excel;netcore;reader</PackageTags>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
 		<VersionPrefix>0.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.DayOfYear)</VersionPrefix>
+		<VersionSuffix>beta</VersionSuffix>
 		<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageIcon>../Excel.png</PackageIcon>
+		<PackageIcon>Excel.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<PackageReadmeFile>../README.md</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../README.md">
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\Excel.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>

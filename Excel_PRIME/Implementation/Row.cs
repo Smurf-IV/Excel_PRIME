@@ -17,7 +17,7 @@ internal sealed class Row : IRow
     private readonly InstanceContext _instanceContext;
     private readonly int _maxExcelColumnDimension;
     private bool _isDisposed;
-    private Dictionary<int, Cell>? _cells;
+    private Dictionary<int, Cell> _cells = new ();
     private readonly ReaderAtoms _readerAtoms;
 
     public Row(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
@@ -55,7 +55,7 @@ internal sealed class Row : IRow
         {
             if (isDisposing)
             {
-                _cells = null;
+                _cells = null!;
             }
 
             _isDisposed = true;
@@ -103,11 +103,6 @@ internal sealed class Row : IRow
 
     internal async Task GetCellsAsync(CancellationToken ct)
     {
-        if (_cells != null)
-        {
-            return;
-        }
-        _cells = new Dictionary<int, Cell>();
         if (_reader.IsEmptyElement)
         {
             return;

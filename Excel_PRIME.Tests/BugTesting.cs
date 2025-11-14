@@ -45,7 +45,7 @@ internal class BugTesting
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             foreach (IRow? row in worksheet!.GetRowData())
             {
                 if (row == null)

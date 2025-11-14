@@ -7,11 +7,20 @@ namespace ExcelPRIME;
 /// </summary>
 public enum FileType
 {
+    /// <summary>
+    /// Do not use
+    /// </summary>
     [Obsolete("Do not use")]
     Unknown = 0,
 
+    /// <summary>
+    /// Current support
+    /// </summary>
     Xlsx = 1,
 
+    /// <summary>
+    /// Do not use = Yet ;-)
+    /// </summary>
     [Obsolete("Do not use = Yet ;-)")]
     Xlsb
 }
@@ -21,6 +30,9 @@ public enum FileType
 /// </summary>
 public enum CellConversion
 {
+    /// <summary>
+    /// Do not use
+    /// </summary>
     [Obsolete("Do not use")]
     Unknown = 0,
 
