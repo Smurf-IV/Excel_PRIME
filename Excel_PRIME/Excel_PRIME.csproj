@@ -4,6 +4,8 @@
 		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<IsTrimmable>True</IsTrimmable>
+		<WarningLevel>8</WarningLevel>
 		<NeutralLanguage>en</NeutralLanguage>
 		<LangVersion>preview</LangVersion>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -48,28 +50,6 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PackageReadmeFile>../README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
-	  <IsTrimmable>True</IsTrimmable>
-	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0|AnyCPU'">
-	  <IsTrimmable>True</IsTrimmable>
-	  <WarningLevel>8</WarningLevel>
-	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
-	  <IsTrimmable>True</IsTrimmable>
-	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0|AnyCPU'">
-	  <IsTrimmable>True</IsTrimmable>
-	  <WarningLevel>8</WarningLevel>
-	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<ItemGroup>
