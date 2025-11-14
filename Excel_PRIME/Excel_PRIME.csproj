@@ -35,7 +35,7 @@
 		<VersionPrefix>0.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.DayOfYear)</VersionPrefix>
 		<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageIcon>../Excel.ico</PackageIcon>
+		<PackageIcon>../Excel.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
