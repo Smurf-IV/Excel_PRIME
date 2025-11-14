@@ -120,7 +120,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
 
     private void LoadUntil(int untilIndex)
     {
-        // TODO: If passed te CancellationToken, should it also be Async ?
+        // TODO: If passed the CancellationToken, should it also be Async ?
         // ReSharper disable once TooWideLocalVariableScope
         string cellValueText;
         while (untilIndex >= _currentlyLoaded.Count

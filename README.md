@@ -10,7 +10,7 @@ _Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLSX file formats (Binary later, _maybe_)
+- Open _Large_ 2007 (Onwards) XLS**X** file formats (Binary later, _maybe_)
 
 ## Performant 🚀
 - _Try_ **to be** as fast as possible, i.e.
@@ -23,12 +23,12 @@ Lets take each of the above elements and explain:
 - Q: There are others that are faster
 - A: Agreed, but then 
     - they do not have range extraction.
-    - Or use the OS's _TempFile System_ to store massive sheets
-    - Or allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
+    - Or allow multiple sheets to be read at the same time (because others use global memory to represent the current row)
 
 
 ## Reader 📋
-Read only, therefore no calculation / formula calls
+Read only, therefore no calculations or updates to formula calls
 
 ## Interfaces 🏗️
 - Will use the DotNet core functionality by default
@@ -72,7 +72,10 @@ Read only, therefore no calculation / formula calls
 
 # It will **_not_** be ❌:
 ## Same sheet Thread safe 📊
-- It will **Not** be _same sheet_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
+- It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
+    - but you **_can_** Open the sheet more than once, and have different threads running over it,
+    - And you **_can_** have Parallel threads access the Excel file
+    - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
 ## Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
 ## Writer / Modifier 📚
@@ -150,6 +153,11 @@ Read only, therefore no calculation / formula calls
 - ✅ Investigation into the smallest function ;-)
       - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
       - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
+- ✅ Parallel Sheet Access
+- [>] Nuget
+    - [>] Beta 1 etc
+
+## Phase 2 - Release as Nuget
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of
@@ -162,7 +170,7 @@ Read only, therefore no calculation / formula calls
     - [ ] Per Sheet rangeNames
     - [ ] User defined
 
-## Phase 2 - Multi project deployments (Nuget)
+## Phase 3 - Multi project deployments
 - [ ] More Benchmarks
     - [ ] Add even more "Excel readers" to the Benchmark project(s)
 - [ ] Cell object type 📅
@@ -184,7 +192,7 @@ Read only, therefore no calculation / formula calls
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
 - [ ] Implement Interface for other Libs (Xml / Zip)
 
-## Phase 3
+## Phase 4
 - [ ] XLS**B**
 
 

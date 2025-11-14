@@ -1,5 +1,6 @@
 # 2025-11-14
-- Attmepting `beta` nuget
+- Parallel Sheet Access
+- Attempting `beta` nuget deployment
 
 # 2025-11-12
 - Optimise for `CellConversion.None`

@@ -1,8 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
+
+using Microsoft.Extensions.Options;
 
 using Sylvan.Data.Excel;
 
@@ -178,6 +182,77 @@ public class AccessEveryCellBenchmarks
         }
         return cells;
     }
+
+    [Benchmark]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public async Task<int> ParallelEveryCellAsyncExcel_PrimeTwice()
+    {
+        using IExcel_PRIME workbook = new Excel_PRIME();
+        await workbook.OpenAsync(RootFolder + FileName, options: new Options{ AccessExcelFileInForwardOnlyMode = false}).ConfigureAwait(true);
+        
+        int cells = 0;
+        await Parallel.ForEachAsync(workbook.SheetNames(),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount - 1, CancellationToken = CancellationToken.None
+            },
+            async (sheetName, ct) =>
+            {
+                using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
+                await foreach (IRow? row in worksheet!.GetRowDataAsync(ct: ct))
+                {
+                    if (row == null)
+                    {
+                        // Because this returns upto the dimension of the sheet Height
+                        break;
+                    }
+
+                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    {
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        {
+                            Interlocked.Increment(ref cells);
+                        }
+                    }
+
+                    row.Dispose();
+                }
+            });
+        
+        cells = 0;
+        await Parallel.ForEachAsync(workbook.SheetNames(),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount - 1,
+                CancellationToken = CancellationToken.None
+            },
+            async (sheetName, ct) =>
+            {
+                using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
+                await foreach (IRow? row in worksheet!.GetRowDataAsync(ct: ct))
+                {
+                    if (row == null)
+                    {
+                        // Because this returns upto the dimension of the sheet Height
+                        break;
+                    }
+
+                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    {
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        {
+                            Interlocked.Increment(ref cells);
+                        }
+                    }
+
+                    row.Dispose();
+                }
+            });
+        return cells;
+    }
+
 
 }
 

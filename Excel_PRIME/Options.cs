@@ -36,8 +36,8 @@ public record Options
     /// If you are only reading the sheets once, then _do_not_ use the OS TempFile
     /// </summary>
     /// <remarks>
-    /// `false`: Useful if going to use this again, and sheets are big, or Multiple sheets are opening, and multithreaded
-    /// `true`: Default, Use the internal rented buffer from the zipArchive
+    /// `false`: Useful if going to use this again, and sheets are big, Or Multiple sheets are opening, Or multithreaded
+    /// `true`: Default, Use the internal rented buffer from the zipArchive; Therefore single threaded access to Excel file.
     /// </remarks>
-    public bool UseSheetsOnlyOnce { get; init; } = true;
+    public bool AccessExcelFileInForwardOnlyMode { get; init; } = true;
 }
