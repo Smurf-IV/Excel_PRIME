@@ -26,23 +26,19 @@ jobs:
     - name: Checkout LFS objects
       run: git lfs checkout
 
-    - name: Extract release notes
-      run: |
-        git log --pretty=format:'%d %s' ${GITHUB_REF} | perl -pe 's| \(.*tag: v(\d+.\d+.\d+(-preview\d{3})?)(, .*?)*\)|\n## \1\n|g' > "D:/a/Excel_PRIME/Excel_PRIME/RELEASE-NOTES.txt"
-        
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
         # Authenticates packages to push to GPR
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
-        
+      # env:
+      #   NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+
     - name: Restore dependencies
       run: dotnet restore
-      env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
+      # env:
+      #   NUGET_AUTH_TOKEN: ${{ github.token }}
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
@@ -53,14 +49,11 @@ jobs:
     - name: Pack
       run: dotnet pack --no-build --configuration Release --version-suffix beta1
 
-    # - name: PushNuget
-    #   run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
-
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: PushNuget
-      run: dotnet nuget push **/*.nupkg --source https://int.nugettest.org --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
 

@@ -8,6 +8,7 @@
     <File Path="LICENSE" />
     <File Path="Performance.md" />
     <File Path="README.md" />
+    <File Path="Release_Notes.md" />
   </Folder>
   <Folder Name="/Z_SolutionItems/.github/" />
   <Folder Name="/Z_SolutionItems/.github/ISSUE_TEMPLATE/">
