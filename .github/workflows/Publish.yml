@@ -32,13 +32,13 @@ jobs:
         dotnet-version: 8.0.x
         # Authenticates packages to push to GPR
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      # env:
-      #   NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Restore dependencies
       run: dotnet restore
-      # env:
-      #   NUGET_AUTH_TOKEN: ${{ github.token }}
+      env:
+        NUGET_AUTH_TOKEN: ${{ github.token }}
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
