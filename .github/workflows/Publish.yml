@@ -50,10 +50,13 @@ jobs:
     - name: Pack
       run: dotnet pack --no-build --configuration Release --version-suffix beta1
       
+    - name: Setup Nuget
+      run: dotnet nuget setApiKey ${{ secrets.Excel_PRIME_Publish }}
+
     - name: PushNuget
       run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
       
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate
       env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
+        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
