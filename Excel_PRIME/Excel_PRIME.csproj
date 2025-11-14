@@ -16,15 +16,21 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Content Include="../Excel.ico" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 
 	<PropertyGroup>
-		<PackageId>Excel_PRIME</PackageId>
+		<Title>Excel_PRIME</Title>
+		<PackageId>Excel-PRIME</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<Copyright>© Smurf-IV</Copyright>
+		<PackageProjectUrl>https://github.com/Smurf-IV/Excel_PRIME</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Smurf-IV/Excel_PRIME</RepositoryUrl>
 		<PackageTags>csharp;xml;zip;excel;netcore;reader</PackageTags>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -40,6 +46,30 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PackageReadmeFile>../README.md</PackageReadmeFile>
+		<ApplicationIcon>Excel.ico</ApplicationIcon>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+	  <IsTrimmable>True</IsTrimmable>
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0|AnyCPU'">
+	  <IsTrimmable>True</IsTrimmable>
+	  <WarningLevel>8</WarningLevel>
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+	  <IsTrimmable>True</IsTrimmable>
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0|AnyCPU'">
+	  <IsTrimmable>True</IsTrimmable>
+	  <WarningLevel>8</WarningLevel>
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -49,9 +79,9 @@
 		</None>
 	</ItemGroup>
 
-	<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
+	<!--<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
 		<PropertyGroup>
-			<PackageDescription>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageDescription>
+			<PackageDescription>$([System.IO.File]::ReadAllText("../Release_Notes.md"))</PackageDescription>
 		</PropertyGroup>
-	</Target>
+	</Target>-->
 </Project>
