@@ -154,10 +154,11 @@ Read only, therefore no calculations or updates to formula calls
       - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
       - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
 - ✅ Parallel Sheet Access
-- [>] Nuget
-    - [>] Beta 1 etc
+- ✅ Nuget
+    - ✅ Beta etc.
 
-## Phase 2 - Release as Nuget
+## Phase 2 - Release as Nuget V1.yyMM.dd
+- ✅ Nuget
 - [>] Read `definedName`s (Ranges)
     - [ ] Store from global
 - [ ] Implement Sheet loading of

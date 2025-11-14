@@ -1,8 +1,8 @@
 # 2025-11-14
 - Parallel Sheet Access
-- Attempting `beta` nuget deployment
 - ApplicationIcon
 - Remove some warnings
+- Nuget deployment V1
 
 
 # 2025-11-12
