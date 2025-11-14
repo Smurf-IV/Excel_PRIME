@@ -5,6 +5,9 @@ using System.Xml;
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// Allow other implementations of Xml readers
+/// </summary>
 public interface IXmlReaderHelpers
 {
     /// <summary>

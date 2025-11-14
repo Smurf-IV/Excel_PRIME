@@ -14,6 +14,7 @@
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<RootNamespace>ExcelPRIME</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ApplicationIcon>../Excel.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -46,7 +47,6 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PackageReadmeFile>../README.md</PackageReadmeFile>
-		<ApplicationIcon>Excel.ico</ApplicationIcon>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 

@@ -2,6 +2,9 @@
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// Specify the type of stream being opened / used
+/// </summary>
 public enum FileType
 {
     [Obsolete("Do not use")]
@@ -13,18 +16,40 @@ public enum FileType
     Xlsb
 }
 
+/// <summary>
+/// Specify how the internals will deal and expose the Cell type value
+/// </summary>
 public enum CellConversion
 {
     [Obsolete("Do not use")]
     Unknown = 0,
-    None,   // default  - Normally the Fastest option, Will leave the value as a string.
-    Number, // Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double. Dates will be converted from ISO 8601.
+
+    /// <summary>
+    /// default  - Normally the Fastest option, Will leave the value as a string.
+    /// </summary>
+    /// 
+    None,
+    /// <summary>
+    /// Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double. Dates will be converted from ISO 8601.
+    /// </summary>
+    Number,
+
+    /// <summary>
+    /// As number and will also "Have a go" at detecting the date type (DateTime, DateOnly, TimeOnly, TimeSpan)
+    /// </summary>
     [Obsolete("Not Implemented yet!")]
-    NumberAndDates, // As number and will also "Have a go" at detecting the date type (DateTime, DateOnly, TimeOnly, TimeSpan)
+    NumberAndDates,
+
+    /// <summary>
+    /// As NumberAndDates, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    /// </summary>
     [Obsolete("Not Implemented yet!")]
-    ForceStyles // As  Dates, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    ForceStyles 
 }
 
+/// <summary>
+/// Specify how the internals deal with conversion and sheet access
+/// </summary>
 public record Options
 {
     /// <summary>

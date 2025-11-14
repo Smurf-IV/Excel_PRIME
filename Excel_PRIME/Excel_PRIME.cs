@@ -16,6 +16,9 @@ namespace ExcelPRIME;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
+/// <summary>
+/// Main entry point into the `Excel_PRIME` API's
+/// </summary>
 public sealed class Excel_PRIME : IExcel_PRIME
 {
     private bool _isDisposed;
@@ -203,12 +206,14 @@ public sealed class Excel_PRIME : IExcel_PRIME
         }
     }
 
+    /// <InheritDoc />
     ~Excel_PRIME()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(false);
     }
 
+    /// <InheritDoc />
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
