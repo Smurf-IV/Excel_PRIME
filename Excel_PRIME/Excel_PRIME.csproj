@@ -43,7 +43,7 @@
 		<Deterministic>False</Deterministic>
 		<VersionPrefix>1.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
 		<!--<VersionSuffix>beta</VersionSuffix>-->
-		<!--<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>-->
+		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageIcon>Excel.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>

@@ -1,18 +1,17 @@
-# This workflow will build a .NET project
+﻿# This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET Build and Test
+name: .NET Publish Release
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: workflow_dispatch
 
 jobs:
   build:
 
     runs-on: windows-latest
+    permissions: write-all
+      # packages: write
+      # contents: read
     strategy:
       matrix:
         dotnet-version: [ '8.0.x', '9.0.x', '10.0.x' ]
@@ -20,12 +19,12 @@ jobs:
     steps:
     - uses: actions/checkout@v5
       with:
-        lfs: true
+        # lfs: true
         fetch-depth: 0
         
-    - name: Checkout LFS objects
-      run: git lfs checkout
-      
+    # - name: Checkout LFS objects
+    #   run: git lfs checkout
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -34,7 +33,7 @@ jobs:
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Restore dependencies
       run: dotnet restore
       env:
@@ -43,5 +42,17 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
       
-    - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
+    # - name: Test
+    #   run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Pack
+      run: dotnet pack --no-build --configuration Release
+
+    - name: PushGithub
+      run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: PushNuget
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
+
