@@ -43,30 +43,33 @@
 		<Deterministic>False</Deterministic>
 		<VersionPrefix>0.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.DayOfYear)</VersionPrefix>
 		<VersionSuffix>beta</VersionSuffix>
-		<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>
+		<!--<PackageReleaseNotes>../Release_Notes.md</PackageReleaseNotes>-->
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageIcon>Excel.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\README.md">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
 		<None Include="..\Excel.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
 	</ItemGroup>
 
-	<!--<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
+	<ItemGroup>
+	  <None Include="Package_ReadMe.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
 		<PropertyGroup>
 			<PackageDescription>$([System.IO.File]::ReadAllText("../Release_Notes.md"))</PackageDescription>
 		</PropertyGroup>
-	</Target>-->
+	</Target>
 </Project>

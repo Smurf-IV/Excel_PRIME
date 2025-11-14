@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -323,7 +324,7 @@ internal class Cell : ICell
     public CellType RawExcelType { get; private init; }
 
     /// <InheritDoc />
-    public char[] ColumnLetters { get; private init; } = null!;
+    public IReadOnlyList<char> ColumnLetters { get; private init; } = null!;
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }

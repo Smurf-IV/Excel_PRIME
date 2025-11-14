@@ -5,6 +5,9 @@ using ExcelPRIME.Shared;
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// Defines a range of cells using a reference string
+/// </summary>
 public record DefinedRange
 {
     /// <summary>
@@ -45,6 +48,7 @@ public record DefinedRange
     /// <summary>
     /// Defines a cell range using variables
     /// </summary>
+    /// <param name="sheetName">The specified range owner sheet</param>
     /// <param name="columnStart">Column Letter start</param>
     /// <param name="columnEnd">Column Letter end</param>
     /// <param name="rowStart">First row number</param>

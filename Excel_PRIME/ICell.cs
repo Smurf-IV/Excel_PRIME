@@ -1,4 +1,6 @@
-﻿namespace ExcelPRIME;
+﻿using System.Collections.Generic;
+
+namespace ExcelPRIME;
 
 /// <summary>
 /// The type of cell as indicated by the Excel schema (Not interpreted)
@@ -15,6 +17,9 @@ public enum CellType
     Date        // ISO 8601 Format
 }
 
+/// <summary>
+/// 
+/// </summary>
 public interface ICell
 {
     /// <summary>
@@ -33,7 +38,7 @@ public interface ICell
     /// <summary>
     /// The Excel column identifier, e.g. `ABY`
     /// </summary>
-    char[] ColumnLetters { get; }
+    IReadOnlyList<char> ColumnLetters { get; }
 
     /// <summary>
     /// Excel 1 Based
