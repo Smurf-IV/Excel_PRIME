@@ -13,9 +13,12 @@ jobs:
   build:
 
     runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x', '9.0.x', '10.0.x' ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         lfs: true
         fetch-depth: 0
@@ -26,11 +29,17 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: ${{ matrix.dotnet-version }}
+        # Authenticates packages to push to GPR
+        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Restore dependencies
       run: dotnet restore
-      
+      env:
+        NUGET_AUTH_TOKEN: ${{ github.token }}
+
     - name: Build
       run: dotnet build --configuration Release --no-restore
       
