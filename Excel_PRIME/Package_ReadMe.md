@@ -2,9 +2,13 @@
 - **Excel**_**P**erformant **R**eader via **I**nterfaces for **M**emory **E**fficiency.
 - Without using any external libraries.
 - Optimised for Range extraction.
+- ![Excel.png](./Excel.png)
 
 # What does that mean?
-_Yet another Excel reader ?_, but starting with .Net 8 as the performant Runtime.
+- _Yet another Excel reader ?_, 
+    - Starting with .Net 8 as the performant Runtime (See Benchmarks)
+    - V9 gives an extra 5% boost, 
+    - V10 Another 5% ;-)
 
 Lets take each of the above elements and explain:
 
@@ -23,7 +27,9 @@ Lets take each of the above elements and explain:
 - A: Agreed, but then 
     - they do not have range extraction.
     - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
-    - Or allow multiple sheets to be read at the same time (because others use global memory to represent the current row)
+    - Or allow multiple sheets to be read at the same time 
+        - because others use global memory to represent the current row
+        - Or have a single access into the Zip Excel file
 
 
 ## Reader 📋
@@ -34,15 +40,16 @@ Read only, therefore no calculations or updates to formula calls
 - But, if your target deployment allows for the use of native performant binaries, then via the use of interfaces these will be pluggable
     - i.e. Using `Zlib.Net` for getting the data streams out of the compressed Excel file faster. (Or `SharpZipLib` / `PowerPlayZipper`)
     - A faster / slimmer implementation for xml stream reading (i.e. TurboXml)
+- Allow the implementation of different source files (i.e. XLS**B**)
 ### Q & A's
 - Q: Why?
 - A: As mentioned above, this is to allow a developer to replace with external nugets that might perform better XML speed etc.
 
 ## Memory 🌐
-- The reason for this is to handle very large XSLX files (i.e. > 500K rows with > 180 columns per sheet, with multiple sheets of this size)
+- The reason for this project, is to handle very large XSLX files (i.e. > 500K rows with > 180 columns per sheet, with multiple sheets of this size)
 - For `ETL` validation scenarios, i.e. make sure that the user modified data that has been transferred has interaction rules applied, before moving onto the `T` and `L` stages
 - Try not to hit / store in the LOH
-- No internal caching of previously loaded sheets / rows.
+- No internal .Net memory of previously loaded sheets / rows.
 ### Q & A's
 - Q: It appears that this uses more memory than other implementations
 - A: Currently yes, but it is being optimised for `Range Extraction`, 
@@ -64,12 +71,12 @@ Read only, therefore no calculations or updates to formula calls
 ### IDisposable
 - Got to tidy up those `Temp File`s, and release the `FileStream`'s
 
-----
+-----
 
-# It will  **_not_**  be ❌:
+# It will **_not_** be ❌:
 ## Same sheet Thread safe 📊
-- It will **Not** be _same sheet **Instance**_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
-    - but you **_can_** Open the sheet more than once, and have a different thread running over it,
+- It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
+    - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
 ## Poco 🤖
@@ -77,4 +84,4 @@ Read only, therefore no calculations or updates to formula calls
 ## Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
-----
+-----

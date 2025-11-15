@@ -12,12 +12,10 @@ jobs:
     permissions: write-all
       # packages: write
       # contents: read
-    strategy:
-      matrix:
-        dotnet-version: [ '8.0.x', '9.0.x', '10.0.x' ]
+
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         # lfs: true
         fetch-depth: 0
@@ -26,9 +24,12 @@ jobs:
     #   run: git lfs checkout
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+        dotnet-version: | 
+          8.x
+          9.x
+          10.x
         # Authenticates packages to push to GPR
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
