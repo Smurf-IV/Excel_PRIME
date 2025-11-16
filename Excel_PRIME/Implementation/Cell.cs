@@ -14,7 +14,7 @@ using ExcelPRIME.Shared;
 namespace ExcelPRIME.Implementation;
 
 [DebuggerDisplay("{RawValue.ToString(),raw}")]
-internal record Cell : ICell
+internal sealed record Cell : ICell
 {
     public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
