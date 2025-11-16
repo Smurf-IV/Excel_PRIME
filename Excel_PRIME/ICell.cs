@@ -5,6 +5,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// The type of cell as indicated by the Excel schema (Not interpreted)
 /// </summary>
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public enum CellType
 {
     Unknown,
@@ -16,6 +17,7 @@ public enum CellType
     Error,      // Excel error TODO interpret this please.
     Date        // ISO 8601 Format
 }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
 /// <summary>
 /// 

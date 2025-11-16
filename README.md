@@ -76,15 +76,18 @@ Read only, therefore no calculations or updates to formula calls
 
 -----
 
-# It will **_not_** be ❌:
-## Same sheet Thread safe 📊
+# It will **_not_** ⛔:
+## Be: Same sheet Thread safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## Poco 🤖
+## Do: Dynamic Ranges ⚠️
+- i.e. Ones that contain formulas:
+    - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
+## Do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## Writer / Modifier 📚
+## Be a: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----
@@ -128,7 +131,7 @@ Read only, therefore no calculations or updates to formula calls
 -----
 
 ## Phase 1 - MVP 🔍
-- [x] Add Non `IAsyncEnumerable`s and benchmark
+- ✅ Add `IEnumerable`s and benchmark
      - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
     - ⚠️ Still not convinced whether to implement "all the way down"
 - ✅ Implement `XmlReader.Create` for
@@ -156,35 +159,82 @@ Read only, therefore no calculations or updates to formula calls
 - ✅ Use internal `ZipEntry` rented buffer
     - ✅ Add and explain usage in options
       - 🚀 Big Performance improvements  [2025-11-07](Performance.md#2025-11-07)
-- ✅ Investigation into the smallest function ;-)
-      - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
-      - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
+- ✅ Investigation into the smallest function 💪
+    - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
+- ✅ Optimise for `CellConversion.None` 💪
+    - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
 - ✅ Parallel Sheet threads Access
+    - ✅ Multiple times (with locking)
 - ✅ Nuget
     - ✅ Beta etc.
+    - 🎊 Released as Nuget V1.yyMM.dd -> **`1.2511.14`**
+-----
 
-## Phase 2 - Release as Nuget V1.yyMM.dd
+## Phase 2 - Release as Nuget V2.yyMM.dd
 - ✅ Nuget
     - ✅ Manual workflow deploy Release
     - ✅ Manual workflow deploy Beta
-- [>] Read `definedName`s (Ranges)
-    - [ ] Store from global
-- [ ] Implement Sheet loading of
-    - [ ] Multiple times (with locking)
-    - [ ] Store `definedName` from Local sheets (When opened, if applicable [Check spec])
-- [ ] Implement Row extraction 
-    - [ ] Allow ColumnHeader addressing (i.e. `ABF`)
-- [ ] Implement RangeExtraction
-    - [ ] Global rangeNames
-    - [ ] Per Sheet rangeNames
-    - [ ] User defined
-
-## Phase 3 - Multi project deployments
+- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+    - ✅ Read from global
+    - ✅ Handle Dynamics (i.e. do not fall over! 🤷)
+- ✅ Deal with blank rows in a sheet 🗋
+    - ✅ Return a `null` cell row
+- ✅ Deal with Empty cells in a row 🗅
+    - ✅ Return a `null` cell (e.g. `<c r="F12" s="8"/>`)
+- ✅ Implement Sheet scoping of `definedName`s
+    - ✅ i.e. `<definedName name="OrderSize" localSheetId="0">'Try it Yourself'!$C$12:$E$12</definedName>`
+    - Note: The above will be referenced as `OrderSize (Try it Yourself)` as shown in LibreOffice.
+- ✅ Implement Row extraction 
+    - ✅ Allow ColumnHeader addressing (i.e. start -> end columns)
+- ✅ Implement RangeExtraction
+    - ✅ Global rangeNames
+    - ✅ Per Sheet rangeNames
+    - ✅ User defined
 - [ ] More Benchmarks
-    - [ ] Add even more "Excel readers" to the Benchmark project(s)
+    - [ ] Add "Excel readers" That perform Range Extraction
+-----
+
+## Phase 3 - XLS**B** 💾
+- [ ] Implement Open / Dispose (Async)
+    - [ ] Sheet Names
+    - [ ] Shared Strings
+- [ ] Implement Sheet loading 
+- [ ] Implement Row extraction 
+    - [ ] Skip
+    - [ ] Delayed read - until a cell is actually needed
+    - [ ] Deal with Null / Empty cells (Utilise sparse array?)
 - [ ] Cell object type 📅
-    - [ ] Investigate if the `XmlConvert` classes are efficient (Or via the interface specs)
-- [ ] Indicate that things may be `Hidden`
+- [ ] Parallel Sheet threads Access
+    - [ ] Multiple times (with locking)
+- [ ] Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+    - [ ] Read from global
+- [ ] Benchmarks 🖲️
+    - [ ] Add "Excel readers" That support XLS**B** Extraction
+-----
+
+## Phase 4 - Specific Cell value type(s) #️⃣
+- [ ] Cell object type 📅
+    - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
+    - [ ] Use of user defined column schema (Excel Number Format nuget?)
+    - [ ] Formatter applied -> `CellConversion.ForceStyles`
+    - [ ] `Operator` based conversion
+    - [ ] Investigate if the `XmlConvert` classes are efficient
+- [ ] Benchmarks
+-----
+
+## Phase 5 - Third Party Nugets 📦
+- [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
+    - [ ] Separate Nuget(s) ?
+- [ ] Benchmarks
+-----
+
+## Phase 6 - ideas 💡
+- [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
+- [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?
+    - [ ] Locking
+    - [ ] How to deal with rows that are completely blank
+    - [ ] `fibres` ?
+- [ ] Indicate that things may be `Hidden` 🖺
     - [ ] Sheet
     - [ ] Row
     - [ ] Column
@@ -194,25 +244,5 @@ Read only, therefore no calculations or updates to formula calls
     - [ ] Row
     - [ ] Column
     - [ ] Cell ?
-- [ ] Cell Information
-    - [ ] Value type indicator
-    - [ ] Formatter applied
-    - [ ] Anything else useful
-- [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
-- [ ] Implement Interface for other Libs (Xml / Zip)
-
-## Phase 4
-- [ ] XLS**B**
-
-
-## Phase 4 - 💡 Extension(s)
-- [ ] Add option class to allow _Basic_ Cell value type identification
-    - [ ] Extract into those types
-    - [ ] Deal with `DateOnly` / `TimeOnly` fields
-    - [ ] Use of user defined column schema (Excel Number Format nuget?)
-- [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?
-    - [ ] Locking
-    - [ ] How to deal with rows that are completely blank
-    - [ ] `fibres` ?
 
 - [ ] More ideas to be added later, Please suggest... ;-)

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+
+using ExcelPRIME.Shared;
 
 namespace ExcelPRIME.Implementation;
 
@@ -11,15 +15,12 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
 {
     private readonly Stream _stream;
     private readonly XmlReader _reader;
-    private readonly string _relationshipNamespace;
     private bool _isDisposed;
-    private readonly string _nameRefAtom;
-    private readonly string _sheetRefAtom;
 
-    public XmlWorkBookReader(Stream? stream, CancellationToken ct)
+    public XmlWorkBookReader(Stream? stream, CancellationToken _)
     {
-        _stream = stream;
-        _reader = XmlReader.Create(stream, new XmlReaderSettings
+        _stream = stream!;
+        _reader = XmlReader.Create(_stream, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
             IgnoreComments = true, // Skip parsing and allocating strings for comments
@@ -32,20 +33,9 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
-        // advance to the content
-        string workbookRefAtom = _reader.NameTable.Add("workbook");
-        _reader.ReadToFollowing(workbookRefAtom);
-        //string xmlns_rRefAtom = _reader.NameTable.Add("xmlns:r");
-        //_relationshipNamespace =
-        //    _reader.GetAttribute(xmlns_rRefAtom) ?? string.Empty; /* == XmlNamespaces.RelationshipsOclc
-        //        ? XmlNamespaces.RelationshipsOclc
-        //        : XmlNamespaces.RelationshipsOpenXmlFormat;*/
-
-        _nameRefAtom = _reader.NameTable.Add("name");
-        _sheetRefAtom = _reader.NameTable.Add("sheet");
     }
 
-    public async IAsyncEnumerable<KeyValuePair<string, int>> GetSheetNamesAsync(CancellationToken ct)
+    public async IAsyncEnumerable<KeyValuePair<string, int>> GetSheetNamesAsync([EnumeratorCancellation] CancellationToken ct)
     {
         string sheetsRefAtom = _reader.NameTable.Add("sheets");
         if (!_reader.ReadToFollowing(sheetsRefAtom))
@@ -53,6 +43,8 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
             yield break;
         }
 
+        string nameRefAtom = _reader.NameTable.Add("name");
+        string sheetRefAtom = _reader.NameTable.Add("sheet");
         int relativeSheetId = 0;
         while (await _reader.ReadAsync().ConfigureAwait(false)
                && !_reader.EOF
@@ -60,9 +52,9 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
               )
         {
             if (_reader.NodeType == XmlNodeType.Element
-                && _reader.LocalName == _sheetRefAtom)
+                && _reader.LocalName == sheetRefAtom)
             {
-                if (_reader.MoveToAttribute(_nameRefAtom))
+                if (_reader.MoveToAttribute(nameRefAtom))
                 {
                     relativeSheetId++;
                     // `r:id` and `sheetId` are not to be trusted
@@ -72,41 +64,70 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReader
         }
     }
 
-    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct)
+    public async Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(
+        IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
-        throw new NotImplementedException();
-        //var definedNames = _document.Descendants()
-        //    .Where(d => d.Name.LocalName == "definedNames")
-        //    .Descendants();
-        //Dictionary<string, DefinedRange> dict = new();
-        //foreach (XElement e in definedNames)
-        //{
-        //    int worksheetIndex = -1;
-        //    if (!string.IsNullOrWhiteSpace(e.Attribute("localSheetId")?.Value))
-        //    {
-        //        try
-        //        {
-        //            worksheetIndex = e.Attribute("localSheetId").Value.IntParseUnsafe() + 1;
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            // In a well-formed file, this should never happen.
-        //            throw new KeyNotFoundException(string.Concat("Error reading localSheetId value for DefinedName: ", e.Attribute("name")?.Value), exception);
-        //        }
-        //    }
+        string definedNamesRefAtom = _reader.NameTable.Add("definedNames");
+        Dictionary<string, DefinedRange> definedRanges = [];
+        if (!_reader.ReadToFollowing(definedNamesRefAtom))
+        {
+            definedRanges.TrimExcess();
+            return definedRanges.AsReadOnly();
+        }
 
-        //    DefinedRange range = new DefinedRange
-        //    {
-        //        Name = e.Attribute("name")?.Value ?? string.Empty,
-        //        Reference = e.Value,
-        //        SheetIndex = worksheetIndex
-        //    };
+        string definedNameRefAtom = _reader.NameTable.Add("definedName");
+        string nameRefAtom = _reader.NameTable.Add("name");
+        string localSheetIdRefAtom = _reader.NameTable.Add("localSheetId");
+        List<string>? sheetRefs = null;
+        while (await _reader.ReadAsync().ConfigureAwait(false)
+               && !_reader.EOF
+               && !ct.IsCancellationRequested
+              )
+        {
+            if (_reader.NodeType == XmlNodeType.Element
+                && _reader.LocalName == definedNameRefAtom)
+            {
+                string name = string.Empty;
+                string localSheetId = string.Empty;
+                int expectedAttributes = 2;
 
-        //    dict.Add(range.Key, range);
-        //}
+                while (_reader.MoveToNextAttribute() && expectedAttributes > 0)
+                {
+                    // Retrieve the atomized name directly.
+                    string currentAttributeName = _reader.LocalName;
+                    if (ReferenceEquals(currentAttributeName, nameRefAtom))
+                    {
+                        name = _reader.Value;
+                        expectedAttributes--;
+                    }
+                    else if (ReferenceEquals(currentAttributeName, localSheetIdRefAtom))
+                    {
+                        localSheetId = _reader.Value;
+                        expectedAttributes--;
+                    }
+                }
 
-        //IReadOnlyDictionary<string, DefinedRange> readOnlyDictionary = dict.AsReadOnly();
-        //return Task.FromResult(readOnlyDictionary);
+                string keyName = name;
+                string sheetRef = string.Empty;
+                if (!string.IsNullOrWhiteSpace(localSheetId))
+                {
+                    sheetRefs ??= [.. sheetNamesToOffsetSheetId.Keys];
+                    int sheetId = localSheetId.IntParse();
+                    sheetRef = sheetRefs[sheetId];
+                    if (!string.IsNullOrEmpty(sheetRef))
+                    {
+                        keyName = string.Concat(name, " (", sheetRef, ")");
+                    }
+                }
+
+                // Move to data
+                await _reader.ReadAsync().ConfigureAwait(false);
+                definedRanges[keyName] = new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef };
+            }
+        }
+
+        definedRanges.TrimExcess();
+        return definedRanges.AsReadOnly();
     }
 
     private void Dispose(bool isDisposing)

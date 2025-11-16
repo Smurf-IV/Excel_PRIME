@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 using ExcelPRIME.Shared;
 
@@ -13,84 +12,136 @@ public record DefinedRange
     /// <summary>
     /// Defines a range of cells using a reference string
     /// </summary>
-    /// <param name="reference">Reference string i.e. Sheet1!$A$1</param>
+    /// <param name="reference">Reference string i.e. Sheet1!$A$1:$A$4</param>
     /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
-    internal DefinedRange(string reference)
+    internal DefinedRange(in string reference)
     {
-        string[] splitReference = reference.Split('!');
-
-        SheetName = splitReference[0];
-        string range = splitReference[1];
-
-        // Default value
-        RowStart = 1;
-
-        string[] splitRange = range.Split(':');
-        if (splitRange.Length > 1)
+        if (reference.Contains('('))
         {
-            string[] startRef = splitRange[0].Split('$');
-            ColumnStart = startRef[1].IntParse();
-            string[] endRef = splitRange[1].Split('$');
-            ColumnEnd = endRef[1].IntParse();
-            if (splitRange[0].Count(c => c == '$') > 1)
-            {
-                RowStart = startRef[2].IntParse();
-                RowEnd = endRef[2].IntParse();
-            }
+            // e.g <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
+            ConstValue = reference;
+        }
+        else if (reference.Contains('!'))
+        {
+            DoExtractBasedOnSheetName(reference);
+        }
+        else if (reference.Contains(':'))
+        {
+            // e.g $A$1:$A$4
+            DoExtractBasedOnCellRange(reference);
+        }
+        else if (reference.Contains('$'))
+        {
+            // e.g. $A$1
+            DoExtractBasedOnSingleCell(reference);
         }
         else
         {
-            ColumnStart = ColumnEnd = range.Split('$')[1].IntParse();
-            RowEnd = RowStart = range.Split('$')[2].IntParse();
+            // e.g <definedName name="TaxRate">0.1</definedName>
+            ConstValue = reference;
+        }
+    }
+
+    private void DoExtractBasedOnSheetName(in string reference)
+    {
+        string[] splitReference = reference.Split('!');
+
+        SheetName = splitReference[0].Trim('\'');
+        string range = splitReference[1];
+
+        if (range.Contains(':'))     // "$C$12:$E$12"
+        {
+            DoExtractBasedOnCellRange(range);
+        }
+        else if (range.Contains('$'))   // "$C$12"
+        {
+            DoExtractBasedOnSingleCell(range);
+        }
+    }
+
+    private void DoExtractBasedOnSingleCell(in string range) // "$C$12"
+    {
+        string[] strings = range.Split('$');
+        ExcelColumnStart = ExcelColumnEnd = strings[1].GetColNumber();
+        ExcelRowEnd = ExcelRowStart = strings[2].IntParse();
+    }
+
+    private void DoExtractBasedOnCellRange(in string range) // "$C$12:$E$12"
+    {
+        // Default value
+        ExcelRowStart = 1;
+        string[] splitRange = range.Split(':');
+        //if (splitRange.Length > 1)
+        {
+            string[] startRef = splitRange[0].Split('$');
+            ExcelColumnStart = startRef[1].GetColNumber();  // Start with a '$', therefore first entry is empty
+            string[] endRef = splitRange[1].Split('$');
+            ExcelColumnEnd = endRef[1].GetColNumber();
+            if (startRef.Length > 2)
+            {
+                ExcelRowStart = startRef[2].IntParse();
+            }
+            if (endRef.Length > 2)
+            {
+                ExcelRowEnd = endRef[2].IntParse();
+            }
         }
     }
 
     /// <summary>
     /// Defines a cell range using variables
     /// </summary>
-    /// <param name="sheetName">The specified range owner sheet</param>
     /// <param name="columnStart">Column Letter start</param>
     /// <param name="columnEnd">Column Letter end</param>
     /// <param name="rowStart">First row number</param>
-    /// <param name="rowEnd">last row number</param>
-    public DefinedRange(string sheetName, int columnStart, int columnEnd, int rowStart = 1, int? rowEnd = null)
+    /// <param name="rowEnd">last row number [Excel 2010 specifies 1_048_576, but Power Query can go upto  1_999_999_997]</param>
+    /// <param name="sheetName">The Sheet this will be applied to.</param>
+    public DefinedRange(in string sheetName, ReadOnlySpan<char> columnStart, ReadOnlySpan<char> columnEnd, int rowStart = 1, int rowEnd = 1_048_576)
     {
         SheetName = sheetName;
-        ColumnStart = columnStart;
-        ColumnEnd = columnEnd;
-        RowStart = rowStart;
-        RowEnd = rowEnd;
+        ExcelColumnStart = columnStart.GetColNumber();
+        ExcelColumnEnd = columnEnd.GetColNumber();
+        ExcelRowStart = rowStart;
+        ExcelRowEnd = rowEnd;
     }
+
     /// <summary>
     /// Xml.Attribute("name").Value; 
     /// </summary>
     public required string Name { get; init; }
 
-    private readonly string? SheetName;
+    /// <summary>
+    /// What SheetName (If Any) does this belong to
+    /// </summary>
+    public string? SheetName { get; private set; }
 
     /// <summary>
     /// Column Range Start
     /// </summary>
-    public int? ColumnStart { get; set; }
+    public int ExcelColumnStart { get; private set; }
+
     /// <summary>
     /// Column Range End
     /// </summary>
-    public int? ColumnEnd { get; set; }
+    public int ExcelColumnEnd { get; private set; }
+
     /// <summary>
     /// Row Range Start
     /// </summary>
-    public int? RowStart { get; set; }
+    public int ExcelRowStart { get; private set; }
+
     /// <summary>
     /// Row Range End
     /// </summary>
-    public int? RowEnd { get; set; }
+    public int ExcelRowEnd { get; private set; }
+
     /// <summary>
     /// Xml.Value;
     /// </summary>
-    public required string Reference { get; init; }
+    public required string SheetIdReference { get; init; }
 
     /// <summary>
-    /// Used to generate a key for the dictionary 
+    /// Xml.Value;
     /// </summary>
-    public string Key => Name + SheetName;
+    public string? ConstValue { get; private set; }
 }

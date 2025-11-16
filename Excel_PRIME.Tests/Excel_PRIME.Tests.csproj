@@ -44,6 +44,7 @@
 		<PackageReference Include="NUnit3TestAdapter" Version="6.0.0-beta.1">
 		  <TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
+		<PackageReference Include="System.Linq.Async" Version="7.0.0-preview.10" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -63,6 +64,9 @@
 	  </None>
 	  <None Update="Data\Demo Column Types.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\dynamic-named-range.xlsx">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Data\empty.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -85,6 +89,9 @@
 	  <None Update="Data\multisheet1.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Data\named-range.xlsx">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Data\SameKey.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
@@ -96,6 +103,9 @@
 	  </None>
 	  <None Update="Data\singlesheet.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\solver.xlsx">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Data\special-char.xlsx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -25,11 +25,12 @@ public sealed class Excel_PRIME : IExcel_PRIME
     private readonly IXmlReaderHelpers _xmlReaderHelper;
     private readonly IZipReader _zipReader;
     private Stream? _fs;
-    private readonly Dictionary<string, TempFile> _baseFiles = new();
-    private readonly Dictionary<int, TempFile> _sheetFiles = new();
+    private readonly Dictionary<string, TempFile> _baseFiles = [];
+    private readonly Dictionary<int, TempFile> _sheetFiles = [];
     private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>().AsReadOnly();
-    private readonly InstanceContext _instanceContext = new InstanceContext();
+    private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
+    private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
 
     /// <InheritDoc />
     public Excel_PRIME(IXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)
@@ -53,12 +54,12 @@ public sealed class Excel_PRIME : IExcel_PRIME
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
         return OpenAsync(fs, fileType, options, ct);
     }
 
     /// <InheritDoc />
-    public async Task OpenAsync(Stream fileStream, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default)
+    public async Task OpenAsync(Stream fileStream, FileType fileType, Options? options = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileStream);
         if (!fileStream.CanSeek)
@@ -77,21 +78,6 @@ public sealed class Excel_PRIME : IExcel_PRIME
         // Now perform the Getting of the base data
         Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
         await GetSheetNamesAsync(workBookStream, ct).ConfigureAwait(false);
-
-        //TempFile workbook_rels = new TempFile("workbook.xml.rels");
-        //_baseFiles["xl/_rels/workbook.xml.rels"] = workbook_rels;
-        //using (FileStream targetStream = workbook.FileInfo.OpenWrite())
-        //{
-        //    await _zipReader.CopyToAsync("xl/_rels/workbook.xml.rels", targetStream, ct).ConfigureAwait(false);
-        //}
-
-        //        await GetSheetRelationsAsync(workbook_rels, ct).ConfigureAwait(false);
-
-        //_sheets = sheets.Where(x => sheetRelations.ContainsKey(x.RelationId))
-        //    .Select(x => new { Sheet = x, ZipEntry = _archive.GetEntry($"xl/{sheetRelations[x.RelationId].Target}") ?? throw new XlsxHelperException($"zip entry not found for {x.SheetName}.") })
-        //    .Select(x => new Worksheet(x.Sheet.SheetName, new WorksheetReader(x.ZipEntry!.Open(), _sharedStringLookup)))
-        //    .ToArray();
-
     }
 
     private async Task GetSharedStringsAsync(CancellationToken ct)
@@ -110,7 +96,7 @@ public sealed class Excel_PRIME : IExcel_PRIME
         }
         else
         {
-            TempFile shareStrings = new TempFile("sharedStrings.xml");
+            TempFile shareStrings = new("sharedStrings.xml");
             _baseFiles["xl/sharedStrings.xml"] = shareStrings;
             bool exists;
             using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
@@ -141,7 +127,42 @@ public sealed class Excel_PRIME : IExcel_PRIME
     public IEnumerable<string> SheetNames() => _sheetNamesToOffsetSheetId.Keys;
 
     /// <InheritDoc />
-    public IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default) => throw new NotImplementedException();
+    public async IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        if (_definedRanges == null)
+        {
+            // Lazy load on first use
+            Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
+            using IXmlWorkBookReader wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(workBookStream, ct)
+                .ConfigureAwait(false);
+            _definedRanges = await wbr.GetDefinedRangesAsync(_sheetNamesToOffsetSheetId, ct).ConfigureAwait(false);
+        }
+
+        if (!_definedRanges.TryGetValue(rangeName, out DefinedRange? definedRange))
+        {
+            yield break;
+        }
+
+        if (definedRange.ConstValue != null)
+        {
+            yield return [definedRange.ConstValue];
+            yield break;
+        }
+
+        using ISheet? targetSheet = await GetSheetAsync(
+            useThisSheetName ?? definedRange.SheetName ??
+            _sheetNamesToOffsetSheetId.First(kvp => kvp.Value == definedRange.SheetIdReference.IntParse()).Key,
+            false, ct).ConfigureAwait(false);
+        if (targetSheet == null)
+        {
+            yield break;
+        }
+
+        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
+        {
+            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+        }
+    }
 
     /// <InheritDoc />
     public async Task<ISheet?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)

@@ -11,6 +11,9 @@ using TernaryBool = bool?;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
+/// <summary>
+/// This Libraries main Contract
+/// </summary>
 public interface IExcel_PRIME : IDisposable
 {
     /// <summary>
@@ -29,7 +32,7 @@ public interface IExcel_PRIME : IDisposable
     /// <summary>
     /// _Owns_ the fileStream, until disposed. Must be Seekable.
     /// </summary>
-    Task OpenAsync(Stream fileStream, FileType fileType = FileType.Xlsx, Options? options = null, CancellationToken ct = default);
+    Task OpenAsync(Stream fileStream, FileType fileType/* = FileType.Xlsx*/, Options? options = null, CancellationToken ct = default);
 
     /// <summary>
     /// What names exist in this file

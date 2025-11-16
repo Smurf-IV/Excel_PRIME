@@ -40,7 +40,10 @@ public class LoadBenchmarks
         "Data/sampledocs-50mb-xlsx-file-sst.xlsx"
         //,"Data/100mb.xlsx"
         )]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    // ReSharper disable once PropertyCanBeMadeInitOnly.Global
     public string FileName { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     //[Benchmark(Baseline = true)]
     public async Task LoadWithSylvan()
@@ -71,7 +74,7 @@ public class LoadBenchmarks
     public void LoadWithFastExcel()
     {
         string filePath = Path.Combine(Environment.CurrentDirectory, FileName);
-        FileInfo inputFile = new FileInfo(filePath);
+        FileInfo inputFile = new(filePath);
 
         using FastExcel.FastExcel excel = new(inputFile);
     }

@@ -23,8 +23,11 @@ internal sealed class ZipReader : IZipReader
             return false;
         }
         targetStream.SetLength(entry.Length);   // Just saves a few moments.. And also checks if the OS can actually take the size
-
+#if NET10_0_OR_GREATER
+        using Stream decompressor = await entry.OpenAsync(ct).ConfigureAwait(false);
+#else
         using Stream decompressor = entry.Open();
+#endif
         // "81920 / 2" -> Stop internal ArrayPool from doubling and bursting into the LOH !!
         await decompressor.CopyToAsync(targetStream, 81920 / 2, ct)
                 .ConfigureAwait(false);

@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
+using ExcelPRIME.Shared;
+
 namespace ExcelPRIME.Implementation;
 
 internal sealed class Sheet : ISheet
@@ -38,55 +40,75 @@ internal sealed class Sheet : ISheet
     /// <InheritDoc />
     public int Index { get; }
 
-    public (int Height, int Width) SheetDimensions => _sheetReader.SheetDimensions;
+    /// <inheritdoc/>
+    public (int Height, int Width) SheetDimensions => _sheetReader!.SheetDimensions;
 
+    /// <inheritdoc/>
     public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
 
     /// <InheritDoc />
     public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
-        while (_sheetReader.CurrentRow < SheetDimensions.Height)
+        while (_sheetReader!.CurrentRow < SheetDimensions.Height)
         {
             yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
         }
     }
 
+    /// <inheritdoc/>
     public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
         CheckLocationAsync(startRow, ct).GetAwaiter().GetResult();
-        while (_sheetReader.CurrentRow < SheetDimensions.Height)
+        while (_sheetReader!.CurrentRow < SheetDimensions.Height)
         {
             yield return _sheetReader.GetNextRow(cellGetMode, ct);
         }
     }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow, int startColumn, int numberOfColumns, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn, 
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
-        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
-        throw new NotImplementedException();
-        while (_sheetReader.CurrentRow < SheetDimensions.Height)
+        await foreach (IRow? row in GetRowDataAsync(startRow, RowCellGet.None, ct).ConfigureAwait(false))
         {
-            yield return await _sheetReader.GetNextRowAsync(cellGetMode, ct).ConfigureAwait(false);
+            if (row is null)
+            {
+                yield break;
+            }
+
+            List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+            for (int i = excelStartColumn; i <= excelEndColumn; i++)
+            {
+                cells.Add(await row.GetCellAsync(i, ct).ConfigureAwait(false));
+            }
+
+            yield return cells.ToArray();
         }
     }
 
-    /// <InheritDoc />
-    public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(string range, [EnumeratorCancellation] CancellationToken ct)
+    /// <inheritdoc/>
+    public IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn,
+        ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default)
     {
-        int startRow = 0;
-        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
-        throw new NotImplementedException();
-        yield break;
+        int excelStartColumn = startExcelColumn.IntParse();
+        int excelEndColumn = endExcelColumn.IntParse();
+        return GetRowDataAsync(startRow, excelStartColumn, excelEndColumn, ct);
     }
 
     /// <InheritDoc />
-    public async Task<ICell?> GetRangeCellAsync(string rangeCell, CancellationToken ct)
+    public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
     {
-        int startRow = 0;
-        await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
-        throw new NotImplementedException();
+        await foreach (ICell?[]? rowCells in GetRowDataAsync(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct).ConfigureAwait(false))
+        {
+            if (rowCells == null
+                || _sheetReader!.CurrentRow > range.ExcelRowEnd)
+            {
+                yield break;
+            }
+
+            yield return rowCells;
+        }
     }
 
     private async Task CheckLocationAsync(int startRow, CancellationToken ct)
@@ -94,7 +116,7 @@ internal sealed class Sheet : ISheet
         if (_sheetReader == null
             || _sheetReader.CurrentRow > startRow
            )
-        { 
+        {
             if (_sheetReader != null)
             {
                 _sheetReader.Dispose();
@@ -131,12 +153,14 @@ internal sealed class Sheet : ISheet
         }
     }
 
+    /// <inheritdoc/>
     ~Sheet()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(false);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

@@ -14,12 +14,12 @@ using ExcelPRIME.Shared;
 namespace ExcelPRIME.Implementation;
 
 [DebuggerDisplay("{RawValue.ToString(),raw}")]
-internal class Cell : ICell
+internal record Cell : ICell
 {
-    public static async Task<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
+    public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
-        CellType type = CellType.Unknown;
+        CellType type = CellType.Numeric;
         object? value = null;
         int col = -1;
         char[] colName = [];
@@ -36,19 +36,19 @@ internal class Cell : ICell
         {
             // Retrieve the atomized name directly.
             string currentAttributeName = reader.LocalName;
-            if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
+            if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
                 ReadValue();
                 (int _, col, colName) = new ReadOnlySpan<char>(buffer, 0, len).GetRowColNumbers();
                 expectedAttributes--;
             }
-            else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
+            else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
             {
                 ReadValue();
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
+            else if (ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
             {
                 // TODO: the style, therefore converting into time only etc.
                 //ReadValue();
@@ -56,9 +56,10 @@ internal class Cell : ICell
             }
         }
 
-        if (await reader.ReadAsync().ConfigureAwait(false)
-            && !reader.IsEmptyElement
-            && Object.ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
+        reader.MoveToElement();
+        if (!reader.IsEmptyElement
+            && reader.ReadToDescendant(readerAtoms.vRefAtom)
+            //&& ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
            )
         {
             // Move to data
@@ -68,7 +69,7 @@ internal class Cell : ICell
                 if (type == CellType.SharedString)
                 {
                     ReadValue();
-                    value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
+                    value = instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()];
                 }
                 else
                 {
@@ -92,7 +93,7 @@ internal class Cell : ICell
 
                     case CellType.SharedString:
                         ReadValue();
-                        value = instanceContext.SharedStrings[buffer.AsSpan(0, len).IntParse()];
+                        value = instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()];
                         break;
 
                     case CellType.Boolean:
@@ -129,14 +130,16 @@ internal class Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return new Cell
-        {
-            ColumnLetters = colName,
-            //RowNumber = row;
-            ExcelColumnOffset = col,
-            RawExcelType = type,
-            RawValue = value
-        };
+        return value == null
+            ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+            : new Cell
+            {
+                ColumnLetters = colName,
+                //RowNumber = row;
+                ExcelColumnOffset = col,
+                RawExcelType = type,
+                RawValue = value
+            };
     }
 
     #region Borrowed and some finessing from XMLReader source

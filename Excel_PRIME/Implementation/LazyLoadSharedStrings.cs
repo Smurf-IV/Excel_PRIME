@@ -11,7 +11,7 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class LazyLoadSharedStrings : ISharedString
 {
-    private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
+    private static readonly SemaphoreLocker _locker = new();
     private readonly Stream? _stream;
     private readonly XmlReader _reader;
     private readonly List<string> _currentlyLoaded;
@@ -22,7 +22,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
 
     public LazyLoadSharedStrings()
     {
-        _currentlyLoaded = new List<string>(0);
+        _currentlyLoaded = [];
         _stream = null;
         _reader = XmlReader.Create(new StringReader(" "), new XmlReaderSettings
         {
@@ -115,9 +115,6 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
     }
 
-    // TODO: Should this be refactored to take a Cancellation Token
-    public string? this[string xmlIndex] => string.IsNullOrEmpty(xmlIndex) ? null : this[xmlIndex.IntParse()];
-
     private void LoadUntil(int untilIndex)
     {
         // TODO: If passed the CancellationToken, should it also be Async ?
@@ -131,7 +128,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             if (_reader.NodeType == XmlNodeType.Element)
             {
                 // Use the pre-atomized string for lightning-fast comparison
-                if (Object.ReferenceEquals(_reader.LocalName, _siRefAtom))
+                if (ReferenceEquals(_reader.LocalName, _siRefAtom))
                 {
                     _currentStNodeBuilder.Length = 0;
                     int hasMultipleTextForCell = 0;
@@ -144,7 +141,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
                         if (subReader.NodeType == XmlNodeType.Element)
                         {
                             // Use the pre-atomized string for lightning-fast comparison
-                            if (Object.ReferenceEquals(subReader.LocalName, _tRefAtom))
+                            if (ReferenceEquals(subReader.LocalName, _tRefAtom))
                             {
                                 if (subReader.IsEmptyElement)
                                 {

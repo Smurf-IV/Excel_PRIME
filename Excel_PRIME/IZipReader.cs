@@ -5,14 +5,16 @@ using System.Threading.Tasks;
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// How to extract the data from the Excel file
+/// </summary>
 public interface IZipReader : IDisposable
 {
     /// <summary>
     /// Initializes an instance of the internal ZipReader on the given stream.
     /// </summary>
-    /// <param name="fileStream">The input seekable stream.</param>
-    /// <remarks>stream is _not_ owned by the zip Archive</remarks>
-    Task OpenArchiveAsync(Stream fileStream, System.Threading.CancellationToken ct);
+    /// <remarks>Seekable stream is _not_ owned by the zip Archive</remarks>
+    Task OpenArchiveAsync(Stream fileStream, CancellationToken ct);
 
     /// <summary>
     /// Opens the entry (If exists), And copy's (Async) to the supplied stream
@@ -20,5 +22,8 @@ public interface IZipReader : IDisposable
     /// <returns>true if exists</returns>
     Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct);
 
+    /// <summary>
+    /// Helper function to get the actual internal Zip stream of an entry
+    /// </summary>
     Stream? GetEntry(string entryName);
 }

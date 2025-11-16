@@ -7,9 +7,9 @@ namespace ExcelPRIME.Shared;
 /// <summary>
 /// Borrowed from here https://stackoverflow.com/a/50139704
 /// </summary>
-internal class SemaphoreLocker : IDisposable
+internal sealed class SemaphoreLocker : IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private bool _isDisposed;
 
     public void Lock(Action worker)

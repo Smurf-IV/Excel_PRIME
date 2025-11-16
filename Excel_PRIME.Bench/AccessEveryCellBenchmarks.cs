@@ -23,13 +23,17 @@ public class AccessEveryCellBenchmarks
         "sampledocs-50mb-xlsx-file-sst.xlsx",
         "100mb.xlsx"
     )]
-    public string FileName { get; init; }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    // ReSharper disable once PropertyCanBeMadeInitOnly.Global
+    public string FileName { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     [Benchmark(Baseline = true)]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public async Task<int> AccessEveryCellSylvan()
     {
         int cells = 0;
+        // ReSharper disable once MethodHasAsyncOverload
         using ExcelDataReader reader = ExcelDataReader.Create(RootFolder + FileName);
         //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(RootFolder + FileName).ConfigureAwait(true);
         do
@@ -53,14 +57,14 @@ public class AccessEveryCellBenchmarks
     {
         int cells = 0;
         Workbook workbook = XlsxReader.OpenWorkbook(RootFolder + FileName);
-        foreach (XlsxHelper.Worksheet worksheet in workbook.Worksheets)
+        foreach (Worksheet worksheet in workbook.Worksheets)
         {
             using WorksheetReader worksheetReader = worksheet.WorksheetReader;
-            foreach (XlsxHelper.Row row in worksheetReader)
+            foreach (Row row in worksheetReader)
             {
-                foreach (XlsxHelper.Cell cell in row.Cells)
+                foreach (Cell cell in row.Cells)
                 {
-                    if (!string.IsNullOrEmpty(cell.CellValue?.ToString()))
+                    if (!string.IsNullOrEmpty(cell.CellValue))
                         cells++;
                 }
             }
@@ -99,7 +103,7 @@ public class AccessEveryCellBenchmarks
     public async Task<int> AccessEveryCellAsyncExcel_Prime()
     {
         int cells = 0;
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using Excel_PRIME workbook = new();
         await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
@@ -128,7 +132,7 @@ public class AccessEveryCellBenchmarks
     public async Task<int> AccessEveryCellExcel_Prime()
     {
         int cells = 0;
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using Excel_PRIME workbook = new();
         await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
@@ -157,7 +161,7 @@ public class AccessEveryCellBenchmarks
     public async Task<int> NumberCellAsyncExcel_Prime()
     {
         int cells = 0;
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using Excel_PRIME workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
@@ -189,10 +193,10 @@ public class AccessEveryCellBenchmarks
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public async Task<int> ParallelEveryCellAsyncExcel_PrimeTwice()
     {
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using Excel_PRIME workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 
-        ParallelOptions parallelOptions = new ParallelOptions
+        ParallelOptions parallelOptions = new()
         {
             MaxDegreeOfParallelism = Environment.ProcessorCount - 1,
             CancellationToken = CancellationToken.None
@@ -252,7 +256,4 @@ public class AccessEveryCellBenchmarks
             });
         return cells;
     }
-
-
 }
-

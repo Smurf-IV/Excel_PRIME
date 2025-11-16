@@ -17,7 +17,7 @@ internal sealed class Row : IRow
     private readonly InstanceContext _instanceContext;
     private readonly int _maxExcelColumnDimension;
     private bool _isDisposed;
-    private Dictionary<int, Cell> _cells = new ();
+    private Dictionary<int, Cell> _cells = [];
     private readonly ReaderAtoms _readerAtoms;
 
     public Row(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
@@ -27,18 +27,20 @@ internal sealed class Row : IRow
         _maxExcelColumnDimension = maxColumnDimension;
         _readerAtoms = readerAtoms;
         if (_reader.NodeType == XmlNodeType.Element
-            && Object.ReferenceEquals(_reader.LocalName, readerAtoms.rowRefAtom)
+            && ReferenceEquals(_reader.LocalName, readerAtoms.rowRefAtom)
            )
         {
-            while (_reader.MoveToNextAttribute())
+            int expectedAttributes = 1;
+            while (_reader.MoveToNextAttribute() && expectedAttributes > 0)
             {
                 // Retrieve the atomized name directly.
                 string currentAttributeName = _reader.LocalName;
-                if (Object.ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
+                if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
                 {
                     RowOffset = _reader.Value.IntParse();
+                    expectedAttributes--;
                 }
-                else if (Object.ReferenceEquals(currentAttributeName, readerAtoms.hiddenRefAtom))
+                else if (ReferenceEquals(currentAttributeName, readerAtoms.hiddenRefAtom))
                 {
                     // TODO: Do something about this
                     //_isCurrentRowHidden = ReadBooleanValue(_reader, buffer);
@@ -122,17 +124,22 @@ internal sealed class Row : IRow
         try
         {
             while (await _reader.ReadAsync().ConfigureAwait(false)
-                   && !ct.IsCancellationRequested
+                       && !ct.IsCancellationRequested
                     && _reader.Depth > currentDepth
-                   )
+                      )
             {
                 if (_reader.NodeType == XmlNodeType.Element
-                    && Object.ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
+                    && ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
+                    && !_reader.IsEmptyElement  // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     )
                 {
-                    Cell cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer, valueBuilder).ConfigureAwait(false);
-                    _cells.Add(cell.ExcelColumnOffset, cell);
-                    valueBuilder.Length = 0;;
+                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer, valueBuilder).ConfigureAwait(false);
+                    if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+                    {
+                        _cells.Add(cell.ExcelColumnOffset, cell);
+                    }
+
+                    valueBuilder.Length = 0;
                 }
             }
         }

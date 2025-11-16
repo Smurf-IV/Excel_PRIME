@@ -54,11 +54,11 @@ public sealed class TempFile : IDisposable
 
     /// <InheritDoc />
     public FileStream OpenForAsyncWrite()   // 0 == Let the OS perform larger read buffering
-        => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 0, true);
+        => new(_fi.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 0, true);
 
     /// <InheritDoc />
     public FileStream OpenForAsyncRead(bool allowReadShare=false)   // Let the OS perform larger read buffering
-        => new FileStream(_fi.FullName, FileMode.Open, FileAccess.Read, allowReadShare ? FileShare.Read : FileShare.None, 0/*x1000/*4 * 1024*/, true);
+        => new(_fi.FullName, FileMode.Open, FileAccess.Read, allowReadShare ? FileShare.Read : FileShare.None, 0/*x1000/*4 * 1024*/, true);
 
 
     // ReSharper disable UnusedMember.Local

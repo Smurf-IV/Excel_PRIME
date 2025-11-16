@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// Implementation contract for row instances
+/// </summary>
 public interface IRow : IDisposable
 {
     /// <summary>
@@ -17,6 +20,10 @@ public interface IRow : IDisposable
     /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
     /// </summary>
     IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
+    /// </summary>
     IEnumerable<ICell?> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>

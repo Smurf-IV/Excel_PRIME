@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+// ReSharper disable ForCanBeConvertedToForeach
 
 namespace ExcelPRIME.Shared;
 
@@ -41,11 +42,34 @@ internal static class ExcelColumns
                : columnRef.AsSpan().GetRowColNumbers();
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRefSpan)
+    public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRowRefSpan)
     {
         int colExcel = -1;
         int i = 0;
-        for (; i < columnRefSpan.Length; i++)
+        for (; i < columnRowRefSpan.Length; i++)
+        {
+            ref readonly char c = ref columnRowRefSpan[i];
+            if (c >= 'A')
+            {
+                colExcel = ((colExcel + 1) * 26) + (c - 'A');
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        colExcel++; // Make it into the Excel 1 offset #
+        char[] colName = columnRowRefSpan.Slice(0, i).ToArray();
+        int rowExcel = columnRowRefSpan.Slice(i).IntParse();
+        return (rowExcel, colExcel, colName);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static int GetColNumber(this ReadOnlySpan<char> columnRefSpan)
+    {
+        int colExcel = -1;
+        for (int i = 0; i < columnRefSpan.Length; i++)
         {
             ref readonly char c = ref columnRefSpan[i];
             if (c >= 'A')
@@ -58,9 +82,6 @@ internal static class ExcelColumns
             }
         }
 
-        colExcel++; // Make it into the Excel 1 offset #
-        char[] colName = columnRefSpan.Slice(0, i).ToArray();
-        int rowExcel = columnRefSpan.Slice(i).IntParse();
-        return (rowExcel, colExcel, colName);
+        return ++colExcel; // Make it into the Excel 1 offset #
     }
 }
