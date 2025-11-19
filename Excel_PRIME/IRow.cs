@@ -9,22 +9,45 @@ namespace ExcelPRIME;
 /// <summary>
 /// Implementation contract for row instances
 /// </summary>
-public interface IRow : IDisposable
+public interface IRowBase : IDisposable
 {
     /// <summary>
-    /// Excel 1 Based ? TBD
+    /// Excel 1 Based
     /// </summary>
     int RowOffset { get; }
+}
 
-    /// <summary>
-    /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
-    /// </summary>
-    IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
+/// <summary>
+/// Implementation contract for row instances
+/// </summary>
+public interface IRow : IRowBase
+{
     /// <summary>
     /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
     /// </summary>
     IEnumerable<ICell?> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves the cell data
+    /// </summary>
+    ICell? GetCell(int excelColumnIndex, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves (If exists) the cell data
+    /// </summary>
+    ICell? GetCell(string columnLetters, CancellationToken ct = default);
+}
+
+/// <summary>
+/// Implementation contract for row instances
+/// </summary>
+public interface IRowAsync : IRow
+{
+    /// <summary>
+    /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
+    /// </summary>
+    IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
@@ -35,5 +58,4 @@ public interface IRow : IDisposable
     /// Retrieves (If exists) the cell data
     /// </summary>
     Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
-
 }

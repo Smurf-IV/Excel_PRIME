@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace ExcelPRIME.Shared;
+namespace ExcelPRIME.FromExternal;
 
 internal static class Extensions
 {

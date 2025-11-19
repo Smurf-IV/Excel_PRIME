@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-using ExcelPRIME.Shared;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
@@ -64,6 +64,132 @@ internal sealed record Cell : ICell
         {
             // Move to data
             await reader.ReadAsync().ConfigureAwait(false);
+            if (instanceContext.Options.CellConversionType == CellConversion.None)
+            {
+                if (type == CellType.SharedString)
+                {
+                    ReadValue();
+                    value = instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()];
+                }
+                else
+                {
+                    value = ReadString(reader, valueBuilder);
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case CellType.Unknown:
+                    case CellType.Formula:
+                    case CellType.InlineString:
+                        value = ReadString(reader, valueBuilder);
+                        break;
+
+                    case CellType.Numeric:
+                        ReadValue();
+                        value = TryParseOrder(instanceContext.Options.CellConversionType, buffer.AsSpan(0, len));
+                        break;
+
+                    case CellType.SharedString:
+                        ReadValue();
+                        value = instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()];
+                        break;
+
+                    case CellType.Boolean:
+                        ReadValue();
+                        value = buffer[0] != '0';
+                        break;
+
+                    case CellType.Error:
+                        // TODO: Decrypt the error
+                        value = ReadString(reader, valueBuilder);
+                        break;
+
+                    case CellType.Date:
+                        ReadValue();
+                        if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
+                                CultureInfo.InvariantCulture, out double dateTimeValue))
+                        {
+                            value = DateTime.FromOADate(dateTimeValue);
+                        }
+                        else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
+                        {
+                            value = result;
+                        }
+                        else
+                        {
+                            value = new string(buffer.AsSpan(0, len));
+                        }
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(((int)type).ToString(CultureInfo.InvariantCulture));
+                }
+            }
+        }
+        // If this goes boom, then something is seriously wrong,
+        // TODO: The exception needs to state something useful!
+        return value == null
+            ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+            : new Cell
+            {
+                ColumnLetters = colName,
+                //RowNumber = row;
+                ExcelColumnOffset = col,
+                RawExcelType = type,
+                RawValue = value
+            };
+    }
+
+    public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
+    ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
+    {
+        CellType type = CellType.Numeric;
+        object? value = null;
+        int col = -1;
+        char[] colName = [];
+        int bufferSize = buffer.Length;
+        int len;
+
+        void ReadValue()
+        {
+            len = reader.ReadValueChunk(buffer, 0, bufferSize);
+        }
+
+        int expectedAttributes = 2;
+        while (reader.MoveToNextAttribute() && expectedAttributes > 0)
+        {
+            // Retrieve the atomized name directly.
+            string currentAttributeName = reader.LocalName;
+            if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
+            {
+                ReadValue();
+                (int _, col, colName) = new ReadOnlySpan<char>(buffer, 0, len).GetRowColNumbers();
+                expectedAttributes--;
+            }
+            else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
+            {
+                ReadValue();
+                type = GetCellType(buffer, len);
+                expectedAttributes--;
+            }
+            else if (ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
+            {
+                // TODO: the style, therefore converting into time only etc.
+                //ReadValue();
+                //style = GetStyleOffset(buffer, len);
+            }
+        }
+
+        reader.MoveToElement();
+        if (!reader.IsEmptyElement
+            && reader.ReadToDescendant(readerAtoms.vRefAtom)
+           //&& ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
+           )
+        {
+            // Move to data
+            reader.Read();
             if (instanceContext.Options.CellConversionType == CellConversion.None)
             {
                 if (type == CellType.SharedString)

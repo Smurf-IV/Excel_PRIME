@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace ExcelPRIME.Shared;
+namespace ExcelPRIME.FromExternal;
 
 /// <summary>
 /// Windows does not automatically delete temp files unless the user schedules a cleanup job.

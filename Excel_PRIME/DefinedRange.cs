@@ -1,6 +1,6 @@
 ﻿using System;
 
-using ExcelPRIME.Shared;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME;
 

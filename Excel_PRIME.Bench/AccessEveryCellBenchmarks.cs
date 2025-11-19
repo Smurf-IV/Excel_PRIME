@@ -107,8 +107,8 @@ public class AccessEveryCellBenchmarks
         await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync())
+            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
+            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
             {
                 if (row == null)
                 {   // Because this returns upto the dimension of the sheet Height
@@ -129,14 +129,14 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellExcel_Prime()
+    public int AccessEveryCellExcel_Prime()
     {
         int cells = 0;
         using Excel_PRIME workbook = new();
-        await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
+        workbook.Open(RootFolder + FileName);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
+            using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData())
             {
                 if (row == null)
@@ -165,8 +165,8 @@ public class AccessEveryCellBenchmarks
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync())
+            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
+            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
             {
                 if (row == null)
                 {   // Because this returns upto the dimension of the sheet Height
@@ -206,8 +206,8 @@ public class AccessEveryCellBenchmarks
             parallelOptions,
             async (sheetName, ct) =>
             {
-                using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
-                await foreach (IRow? row in worksheet!.GetRowDataAsync(ct: ct))
+                using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
+                await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
                     if (row == null)
                     {
@@ -233,8 +233,8 @@ public class AccessEveryCellBenchmarks
             parallelOptions,
             async (sheetName, ct) =>
             {
-                using ISheet? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
-                await foreach (IRow? row in worksheet!.GetRowDataAsync(ct: ct))
+                using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
+                await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
                     if (row == null)
                     {

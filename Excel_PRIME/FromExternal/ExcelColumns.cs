@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+
 // ReSharper disable ForCanBeConvertedToForeach
 
-namespace ExcelPRIME.Shared;
+namespace ExcelPRIME.FromExternal;
 
 /// <summary>
 /// Stolen from here

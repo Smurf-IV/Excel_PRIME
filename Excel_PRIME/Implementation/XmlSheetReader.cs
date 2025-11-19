@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-using ExcelPRIME.Shared;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class XmlSheetReader : IXmlSheetReader
+internal sealed class XmlSheetReader : IXmlSheetReaderAsync
 {
     private readonly InstanceContext _instanceContext;
-    private readonly XmlNameTable _sharedNameTable;
     private readonly XmlReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
@@ -22,7 +20,6 @@ internal sealed class XmlSheetReader : IXmlSheetReader
     public XmlSheetReader(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
         _instanceContext = instanceContext;
-        _sharedNameTable = sharedNameTable;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
@@ -52,7 +49,7 @@ internal sealed class XmlSheetReader : IXmlSheetReader
         string colsRefAtom = _reader.NameTable.Add("cols");
         string sheetDataRefAtom = _reader.NameTable.Add("sheetData");
 
-        var foundSheetData = false;
+        bool foundSheetData = false;
         while (!ct.IsCancellationRequested
                && !foundSheetData   // Do not read after finding sheetData
                && _reader.Read()
@@ -105,11 +102,12 @@ internal sealed class XmlSheetReader : IXmlSheetReader
         }
         CurrentRow = 0;
         // Atomize key names once for fast lookups later.
-        _rowRefAtom = _sharedNameTable.Add("row");
+        _rowRefAtom = sharedNameTable.Add("row");
         _readerAtoms = new ReaderAtoms(_reader);
     }
 
-    private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
+
+    private bool ReadToNextStartRow(CancellationToken ct)
     {
         while (_reader.ReadToFollowing(_rowRefAtom)
 
@@ -118,7 +116,7 @@ internal sealed class XmlSheetReader : IXmlSheetReader
         {
             if (_reader.NodeType == XmlNodeType.Element
                 && ReferenceEquals(_reader.LocalName, _rowRefAtom)
-                )
+               )
             {
                 CurrentRow++;
                 return true;
@@ -170,7 +168,7 @@ internal sealed class XmlSheetReader : IXmlSheetReader
     private NullRow? _lastNullRow;
     private Row? _lastRow;
 #pragma warning restore CA2213
-    public async Task<IRow?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    public async Task<IRowAsync?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
         if (_lastRow != null)
         {
@@ -190,7 +188,7 @@ internal sealed class XmlSheetReader : IXmlSheetReader
         }
 
         if (CurrentRow < _startRow
-            || !await ReadToNextStartRowAsync(ct).ConfigureAwait(false)
+            || !ReadToNextStartRow(ct)
            )
         {
             return null;
@@ -214,7 +212,48 @@ internal sealed class XmlSheetReader : IXmlSheetReader
         return nextRow;
     }
 
-    public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default) => GetNextRowAsync(cellGetMode, ct).GetAwaiter().GetResult();
+    public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    {
+        if (_lastRow != null)
+        {
+            CurrentRow++;
+            if (_lastRow.RowOffset > CurrentRow)
+            {
+                _lastNullRow = new NullRow(CurrentRow);
+                return _lastNullRow;
+            }
+            else
+            {
+                _lastNullRow = null;    // Do not call dispose, because they are being returned to the caller
+                Row thisRow = _lastRow;
+                _lastRow = null;    // Do not call dispose, because they are being returned to the caller
+                return thisRow;
+            }
+        }
 
-    public Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(CancellationToken ct) => throw new NotImplementedException();
+        if (CurrentRow < _startRow
+            || !ReadToNextStartRow(ct)
+           )
+        {
+            return null;
+        }
+
+        Row nextRow = new(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
+        if (cellGetMode > RowCellGet.None)
+        {
+            nextRow.GetCells(ct);
+        }
+
+        if (nextRow.RowOffset > CurrentRow)
+        {
+            // Deal with blank rows in the sheet?
+            // i.e. ones that do not have a definition in the xml! Therefore, will "Look like a jump"
+            _lastRow = nextRow;
+            _lastNullRow = new NullRow(CurrentRow);
+            return _lastNullRow;
+        }
+
+        return nextRow;
+    }
+
 }

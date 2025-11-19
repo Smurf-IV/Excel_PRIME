@@ -41,7 +41,7 @@ internal class BugTesting
     {
         const string fileName = "Data/100mb.xlsx";
         int cells = 0;
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {

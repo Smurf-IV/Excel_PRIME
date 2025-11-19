@@ -6,25 +6,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-using ExcelPRIME.Shared;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class Sheet : ISheet
+internal sealed class Sheet : ISheetAsync
 {
     private bool _isDisposed;
-    private readonly IXmlReaderHelpers _xmlReaderHelper;
+    private readonly IXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
     private readonly Stream _stream;
-    private IXmlSheetReader? _sheetReader;
+    private IXmlSheetReaderAsync? _sheetReader;
 
     /// <summary>
     /// Get the internal file name of this worksheet
     /// </summary>
     internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
 
-    internal Sheet(Stream stream, IXmlReaderHelpers xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
         _stream = stream;
         _xmlReaderHelper = xmlReaderHelper;
@@ -47,7 +47,7 @@ internal sealed class Sheet : ISheet
     public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<IRow?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<IRowAsync?> GetRowDataAsync(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         await CheckLocationAsync(startRow, ct).ConfigureAwait(false);
         while (_sheetReader!.CurrentRow < SheetDimensions.Height)
@@ -59,8 +59,9 @@ internal sealed class Sheet : ISheet
     /// <inheritdoc/>
     public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
-        CheckLocationAsync(startRow, ct).GetAwaiter().GetResult();
-        while (_sheetReader!.CurrentRow < SheetDimensions.Height)
+        CheckLocation(startRow, ct);
+        while (_sheetReader!.CurrentRow < SheetDimensions.Height
+               && !ct.IsCancellationRequested)
         {
             yield return _sheetReader.GetNextRow(cellGetMode, ct);
         }
@@ -70,9 +71,10 @@ internal sealed class Sheet : ISheet
     public async IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn, 
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        await foreach (IRow? row in GetRowDataAsync(startRow, RowCellGet.None, ct).ConfigureAwait(false))
+        await foreach (IRowAsync? row in GetRowDataAsync(startRow, RowCellGet.None, ct).ConfigureAwait(false))
         {
-            if (row is null)
+            if (row is null
+                || ct.IsCancellationRequested)
             {
                 yield break;
             }
@@ -87,6 +89,28 @@ internal sealed class Sheet : ISheet
         }
     }
 
+    /// <InheritDoc />
+    public IEnumerable<ICell?[]?> GetRowData(int startRow, int excelStartColumn, int excelEndColumn,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        foreach (IRow? row in GetRowData(startRow, RowCellGet.None, ct))
+        {
+            if (row is null
+                || ct.IsCancellationRequested)
+            {
+                yield break;
+            }
+
+            List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+            for (int i = excelStartColumn; i <= excelEndColumn; i++)
+            {
+                cells.Add(row.GetCell(i, ct));
+            }
+
+            yield return cells.ToArray();
+        }
+    }
+
     /// <inheritdoc/>
     public IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn,
         ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default)
@@ -94,6 +118,15 @@ internal sealed class Sheet : ISheet
         int excelStartColumn = startExcelColumn.IntParse();
         int excelEndColumn = endExcelColumn.IntParse();
         return GetRowDataAsync(startRow, excelStartColumn, excelEndColumn, ct);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<ICell?[]?> GetRowData(int startRow, ReadOnlySpan<char> startExcelColumn,
+        ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default)
+    {
+        int excelStartColumn = startExcelColumn.IntParse();
+        int excelEndColumn = endExcelColumn.IntParse();
+        return GetRowData(startRow, excelStartColumn, excelEndColumn, ct);
     }
 
     /// <InheritDoc />
@@ -111,6 +144,21 @@ internal sealed class Sheet : ISheet
         }
     }
 
+    /// <InheritDoc />
+    public IEnumerable<ICell?[]> GetDefinedRange(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
+    {
+        foreach (ICell?[]? rowCells in GetRowData(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct))
+        {
+            if (rowCells == null
+                || _sheetReader!.CurrentRow > range.ExcelRowEnd
+                || ct.IsCancellationRequested)
+            {
+                yield break;
+            }
+
+            yield return rowCells;
+        }
+    }
     private async Task CheckLocationAsync(int startRow, CancellationToken ct)
     {
         if (_sheetReader == null
@@ -140,12 +188,43 @@ internal sealed class Sheet : ISheet
         }
     }
 
+    private void CheckLocation(int startRow, CancellationToken ct)
+    {
+        if (_sheetReader == null
+            || _sheetReader.CurrentRow > startRow
+           )
+        {
+            if (_sheetReader != null)
+            {
+                _sheetReader.Dispose();
+                if (!_stream.CanSeek)
+                {
+                    // TODO: Not pretty, need to sort this to allow multi open, when using Zip stream!
+                    throw new NotSupportedException(
+                        "Please open sheet with `OverrideOptionsAndUseSheetOnlyOnce = false`; Or, do not attempt to go backwards with an existing sheet instance");
+                }
+                else
+                {
+                    _stream.Position = 0;
+                }
+            }
+
+            _sheetReader = _xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, ct);
+        }
+        while (_sheetReader.CurrentRow < startRow
+               && !ct.IsCancellationRequested)
+        {
+            _sheetReader.GetNextRow(RowCellGet.None, ct);
+        }
+    }
+
     private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {
             if (isDisposing)
             {
+                _sheetReader?.Dispose();
                 _stream.Dispose();
             }
 

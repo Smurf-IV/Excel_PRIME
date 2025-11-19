@@ -25,15 +25,17 @@ Lets take each of the above elements and explain:
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
-    - they do not have range extraction.
+    - They do not have range extraction.
     - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
+    - Or re-use of already extracted (massive) sheets
     - Or allow multiple sheets to be read at the same time 
         - because others use global memory to represent the current row
         - Or have a single access into the Zip Excel file
 
 
 ## Reader 📋
-Read only, therefore no calculations or updates to formula calls
+- Read only
+    - Therefore no calculations or updates to formula calls
 
 ## Interfaces 🏗️
 - Will use the DotNet core functionality by default
@@ -63,8 +65,8 @@ Read only, therefore no calculations or updates to formula calls
 - Only unzip the sheet(s) when they are asked for
 - Only load the shared strings upto the current request number
 ### Q & A's
-- Q: 
-- A:
+- Q: Sometimes the `Async` _await_ s add too much overhead
+- A: true, that is why there are also the equivalent base interfaces that perform the same functionality without the need for the `async await` overheads.
 
 
 ## Etc. 🔧
@@ -126,17 +128,14 @@ Read only, therefore no calculations or updates to formula calls
     - 🎉 Now With `Sylvan.Data.Excel`
     - 🎉 Now With `XlsxHelper`
 - ✅ More UnitTests
-    - ⚠️ Performance [2025-10-08](Performance.md#2025-10-08)
 
 -----
 
 ## Phase 1 - MVP 🔍
 - ✅ Add `IEnumerable`s and benchmark
-     - ⚠️ Performance [2025-10-13](Performance.md#2025-10-13)
     - ⚠️ Still not convinced whether to implement "all the way down"
 - ✅ Implement `XmlReader.Create` for
     - ✅ Loading sharedStrings
-        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
     - ✅ Sheet loading
     - ✅ Some Profiling Enahancements 
         - ✅ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
@@ -184,12 +183,18 @@ Read only, therefore no calculations or updates to formula calls
 - ✅ Implement Sheet scoping of `definedName`s
     - ✅ i.e. `<definedName name="OrderSize" localSheetId="0">'Try it Yourself'!$C$12:$E$12</definedName>`
     - Note: The above will be referenced as `OrderSize (Try it Yourself)` as shown in LibreOffice.
-- ✅ Implement Row extraction 
+- ✅ Implement Row extraction 📟
     - ✅ Allow ColumnHeader addressing (i.e. start -> end columns)
-- ✅ Implement RangeExtraction
+- ✅ Implement RangeExtraction 📲
     - ✅ Global rangeNames
     - ✅ Per Sheet rangeNames
     - ✅ User defined
+- ✅ Add `IEnumerable`s _All_ the way down ⤵️
+    - i.e. remove the need for Asynchronous awaits
+    - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
+    - ⛓️‍💥 **Breaking Change** 🔩
+        - The Async classes now have `Async` appended to be distinct from the non async versions
+        - But, `Async` inherit from the non, so they are interchangable
 - [ ] More Benchmarks
     - [ ] Add "Excel readers" That perform Range Extraction
 -----

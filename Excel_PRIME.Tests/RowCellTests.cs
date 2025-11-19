@@ -22,8 +22,8 @@ public class RowCellTests
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
+            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
                 await foreach (ICell? cell in row.GetAllCellsAsync().ConfigureAwait(false))
                 {
@@ -57,10 +57,10 @@ public class RowCellTests
             ["करो हाथों को ऊपर कस आवी गयो", "કેમ છો "]
         ];
         workbook.SheetNames().Should().NotBeEmpty();
-        using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
+        using ISheetAsync? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
         worksheet1!.Name.Should().Be("text styling");
         int r = 0;
-        await foreach (IRow? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
             await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
@@ -99,10 +99,10 @@ public class RowCellTests
             [null, 0.5],
             [null, 0.25]
         ];
-        using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
+        using ISheetAsync? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet2!.Name.Should().Be("number & date formatting");
         r = 0;
-        await foreach (IRow? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
             await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
@@ -133,7 +133,7 @@ public class RowCellTests
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
         return;
 
-        static async Task DoSheet1(IExcel_PRIME workbook)
+        static async Task DoSheet1(IExcel_PRIMEAsync workbook)
         {
             string[][] workSheet1Content =
             [
@@ -145,10 +145,10 @@ public class RowCellTests
                 ["multi format", "\"", " text  ", " t", "t "],
                 ["करो हाथों को ऊपर कस आवी गयो", "કેમ છો "]
             ];
-            using ISheet? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
+            using ISheetAsync? worksheet1 = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
             worksheet1!.Name.Should().Be("text styling");
             int r = 0;
-            await foreach (IRow? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
+            await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
                 await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
@@ -169,7 +169,7 @@ public class RowCellTests
             r.Should().Be(workSheet1Content.Length);
         }
 
-        static async Task DoSheet2(IExcel_PRIME workbook)
+        static async Task DoSheet2(IExcel_PRIMEAsync workbook)
         {
             object?[][] workSheet2Content =
             [
@@ -189,10 +189,10 @@ public class RowCellTests
                 [null, 0.5],
                 [null, 0.25]
             ];
-            using ISheet? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
+            using ISheetAsync? worksheet2 = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
             worksheet2!.Name.Should().Be("number & date formatting");
             int r = 0;
-            await foreach (IRow? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
+            await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
                 await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
@@ -237,9 +237,9 @@ public class RowCellTests
             [/*null, */"Order Size", 94, 54, 0, /*null, null, null, */25600]
         ];
 
-        using ISheet? worksheet2 = await workbook.GetSheetAsync("Solution").ConfigureAwait(false);
+        using ISheetAsync? worksheet2 = await workbook.GetSheetAsync("Solution").ConfigureAwait(false);
         int r = 0;
-        await foreach (IRow? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
             await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
@@ -271,8 +271,8 @@ public class RowCellTests
     {
         using Excel_PRIME workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
-        ISheet? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
-        IRow? row = valSheet.GetRowData(0, RowCellGet.PreGet).First();
+        ISheetAsync? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
+        IRowAsync? row = await valSheet.GetRowDataAsync(0, RowCellGet.PreGet).FirstAsync();
         ICell? cell = await row.GetCellAsync(1).ConfigureAwait(false);
         cell.RawValue.Should().BeOfType<int>().And.Be(1);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);

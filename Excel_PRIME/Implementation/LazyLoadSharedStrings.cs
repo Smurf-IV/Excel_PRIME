@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 
-using ExcelPRIME.Shared;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 

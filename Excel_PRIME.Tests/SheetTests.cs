@@ -16,7 +16,7 @@ internal class SheetTests
     [TestCase("Data/Hidden.xlsx", 3)]
     public async Task A010_StepThroughEmptyXlsx(string fileName, int expected)
     {
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().HaveCount(expected);
     }
@@ -28,7 +28,7 @@ internal class SheetTests
     [TestCase("Data/sample_file_good.xlsx", new[] { "MasterInvoice_Detailed_XLSX" })]
     public async Task A020_GetsWorkSheets(string fileName, string[] worksheetNames)
     {
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().HaveCount(worksheetNames.Length);
         int i = 0;
@@ -46,7 +46,7 @@ internal class SheetTests
     [TestCase("Data/verysimple.xlsx")]
     public async Task A030_DisposeReleasesFile(string fileName)
     {
-        using (IExcel_PRIME workbook = new Excel_PRIME())
+        using (IExcel_PRIMEAsync workbook = new Excel_PRIME())
         {
             await workbook.OpenAsync(fileName).ConfigureAwait(false);
             foreach (string worksheetName in workbook.SheetNames())
@@ -65,7 +65,7 @@ internal class SheetTests
     [TestCase("Data/multisheet1.xlsx")]
     public async Task A040_ReOpenWorkSheets(string fileName)
     {
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         foreach (string worksheetName in workbook.SheetNames())
         {

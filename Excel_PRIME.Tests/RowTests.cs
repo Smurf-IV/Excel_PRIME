@@ -13,13 +13,13 @@ internal class RowTests
     [TestCase("Data/multipleemptysheets.xlsx")]
     public async Task A010_EmptyXlsx(string fileName)
     {
-        using IExcel_PRIME workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().NotBeEmpty();
         foreach (string sheetName in workbook.SheetNames())
         {
-            using ISheet? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
-            await foreach (IRow? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
+            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
             }
         }

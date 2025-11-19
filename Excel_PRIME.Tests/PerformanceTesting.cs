@@ -14,14 +14,14 @@ internal class PerformanceTesting
 {
     [Test]
     [TestCase("sampledocs-50mb-xlsx-file.xlsx", 7000012)]
-    [TestCase("Blank Data 1 Million Rows.xlsx", 14314945)]
+    [TestCase("Blank Data 1 Million Rows.xlsx", 15463982)]
     [TestCase("sampledocs-50mb-xlsx-file-sst.xlsx", 7000012)]
     [TestCase("100mb.xlsx", 8930256)]
     [Explicit("Lot of data being thrown about !")]
-    public async Task A010_AccessEveryCellExcel_Prime(string fileName, int expectedCells)
+    public void A010_AccessEveryCellExcel_Prime(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
-        int cells = await aecB.AccessEveryCellExcel_Prime().ConfigureAwait(false);
+        int cells = aecB.AccessEveryCellExcel_Prime();
         cells.Should().Be(expectedCells);
     }
 
@@ -66,7 +66,7 @@ internal class PerformanceTesting
 
     [Test]
     [TestCase("sampledocs-50mb-xlsx-file.xlsx", 7000012)]
-    [TestCase("Blank Data 1 Million Rows.xlsx", 14314945)]
+    [TestCase("Blank Data 1 Million Rows.xlsx", 15463982)]
     [TestCase("sampledocs-50mb-xlsx-file-sst.xlsx", 7000012)]
     [TestCase("100mb.xlsx", 8930256)]
     [Explicit("Lot of data being thrown about !")]

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ExcelPRIME.Shared;
+namespace ExcelPRIME.FromExternal;
 
 /// <summary>
 /// Borrowed from here https://stackoverflow.com/a/50139704
