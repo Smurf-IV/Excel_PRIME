@@ -98,6 +98,7 @@ Lets take each of the above elements and explain:
 |--------------------------- |-------------|
 | [![.NET](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/Smurf-IV/Excel_PRIME/actions/workflows/dotnet.yml) | Release build and tests |
 
+<a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
 -----
 
 # Targets 🎯
