@@ -16,12 +16,7 @@ public record DefinedRange
     /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
     internal DefinedRange(in string reference)
     {
-        if (reference.Contains('('))
-        {
-            // e.g <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
-            ConstValue = reference;
-        }
-        else if (reference.Contains('!'))
+        if (reference.Contains('!'))
         {
             DoExtractBasedOnSheetName(reference);
         }

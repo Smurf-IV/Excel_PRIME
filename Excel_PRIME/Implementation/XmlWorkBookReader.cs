@@ -152,6 +152,11 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReaderAsync
                 // Move to data
                 await _reader.ReadAsync().ConfigureAwait(false);
                 definedRanges[keyName] = new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef };
+                // Handle this situation-> <definedName name="DışVeri_2" localSheetId="3" hidden="1">Worksheet!$A$952351:$H$985351</definedName>
+                if (definedRanges[keyName].SheetName == sheetRef)
+                {
+                    definedRanges.TryAdd(name, new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef });
+                }
             }
         }
 
@@ -159,8 +164,7 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReaderAsync
         return definedRanges.AsReadOnly();
     }
 
-    public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(
-        IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
+    public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
         string definedNamesRefAtom = _reader.NameTable.Add("definedNames");
         Dictionary<string, DefinedRange> definedRanges = [];
@@ -218,6 +222,11 @@ internal sealed class XmlWorkBookReader : IXmlWorkBookReaderAsync
                 // Move to data
                 _reader.Read();
                 definedRanges[keyName] = new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef };
+                // Handle this situation-> <definedName name="DışVeri_2" localSheetId="3" hidden="1">Worksheet!$A$952351:$H$985351</definedName>
+                if (definedRanges[keyName].SheetName == sheetRef)
+                {
+                    definedRanges.TryAdd(name, new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef });
+                }
             }
         }
 

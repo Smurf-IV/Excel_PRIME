@@ -1,4 +1,9 @@
-﻿# 2025-11-19 - Beta V2
+﻿# 2025-11-25  - Beta V2
+- Make `DefinedName`'s work with `localSheetId`definitions
+- Start to Add Benchmarks for range extraction
+    - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
+ 
+# 2025-11-19 - Beta V2
 - Add `IEnumerable`s _All_ the way down ⤵️
     - i.e. remove the need for Asynchronous awaits
     - 🚀 Yielding More Performance improvements
@@ -11,8 +16,6 @@
 - Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
 - Implement RangeExtraction
     - Global rangeNames
-    - Per Sheet referenced range names
-    - User defined
 - Deal with blank rows in a sheet 🗋
     - Return a `null` cell row
 - Deal with Empty cells in a row 🗅
@@ -37,3 +40,6 @@
 # 2025-11-07
 - Add option to use the Stream from `ZipEntry`
 - Explain the Excel cell types
+
+<a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
+

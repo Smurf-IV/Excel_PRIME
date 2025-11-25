@@ -217,10 +217,17 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
             yield break;
         }
 
-        using ISheetAsync? targetSheet = await GetSheetAsync(
-            useThisSheetName ?? definedRange.SheetName ??
-            _sheetNamesToOffsetSheetId.First(kvp => kvp.Value == definedRange.SheetIdReference.IntParse()).Key,
-            false, ct).ConfigureAwait(false);
+        string definedRangeSheetName = useThisSheetName ?? definedRange.SheetName ??
+            _sheetNamesToOffsetSheetId.FirstOrDefault(kvp => kvp.Value == definedRange.SheetIdReference.IntParse()).Key;
+        if (!_sheetNamesToOffsetSheetId.ContainsKey(definedRangeSheetName))
+        {
+            // range might be the following definition
+            // <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
+            // Or user has made a mistake
+            yield break;
+        }
+
+        using ISheetAsync? targetSheet = await GetSheetAsync(definedRangeSheetName, false, ct).ConfigureAwait(false);
         if (targetSheet == null)
         {
             yield break;
@@ -230,6 +237,19 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         {
             yield return rowCells.Select(cell => cell?.RawValue).ToArray();
         }
+    }
+
+    /// <InheritDoc />
+    public IEnumerable<object?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        string? useThisSheetName = null;
+        int valueOffset = useLocalSheetId + 1;
+        KeyValuePair<string, int> firstOrDefault = _sheetNamesToOffsetSheetId.FirstOrDefault(kvp => kvp.Value == valueOffset);
+        if (!string.IsNullOrEmpty(firstOrDefault.Key))
+        {
+            useThisSheetName = firstOrDefault.Key;
+        }
+        return GetDefinedRange(rangeName, useThisSheetName, ct);
     }
 
     /// <InheritDoc />
@@ -243,9 +263,20 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
             _definedRanges = wbr.GetDefinedRanges(_sheetNamesToOffsetSheetId, ct);
         }
 
-        if (!_definedRanges.TryGetValue(rangeName, out DefinedRange? definedRange))
+        DefinedRange? definedRange = null;
+        // Perhaps Caller is trying to use a localSheetId reference via `useThisSheetName`
+        if (!string.IsNullOrEmpty(useThisSheetName))
         {
-            yield break;
+            _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
+        }
+        // Maybe it is not an override of the `localSheetId`, so try the expected reference
+        if ( definedRange == null)
+        {
+            if (!_definedRanges.TryGetValue(rangeName, out definedRange))
+            {
+                throw new KeyNotFoundException(
+                    $"rangeName: [{rangeName}] and useThisSheetName :[{useThisSheetName}] combo not found");
+            }
         }
 
         if (definedRange.ConstValue != null)

@@ -49,6 +49,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Excel_PRIME.Bench\Excel_PRIME.Bench.csproj" />
+	  <ProjectReference Include="..\Excel_PRIME.RangeBench\Excel_PRIME.RangeBench.csproj" />
 	  <ProjectReference Include="..\Excel_PRIME\Excel_PRIME.csproj" />
 	</ItemGroup>
 

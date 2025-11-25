@@ -60,6 +60,15 @@ public interface IExcel_PRIME : IDisposable
     /// <param name="ct"></param>
     /// <returns></returns>
     IEnumerable<object?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// From the `definedName`s in the xlsx, use the name to return the range data
+    /// </summary>
+    /// <param name="rangeName"></param>
+    /// <param name="useLocalSheetId">If passed in, then check that the range exists in that first, before switching to the global name</param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    IEnumerable<object?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default);
 }
 
 /// <summary>

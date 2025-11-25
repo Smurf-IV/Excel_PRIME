@@ -1,8 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
 using AwesomeAssertions;
+
+using ExcelPRIME.RangeBench;
 
 using NUnit.Framework;
 
@@ -74,4 +78,22 @@ internal class DefinedRangeTests
         orderSizeT.Should().HaveElementAt(1, 0);
         orderSizeT.Should().HaveElementAt(2, 0);
     }
+
+    public static Type[] Rangers = // for multiple arguments it's an IEnumerable of IGetRange's
+    [
+        typeof(GetRangeExcelPrime),  //  7.9 
+        typeof(GetRangeClosedXML),  // 44.1
+        typeof(GetRangeEPPlus)   // 15.2 ->  V8.3 | 14.1 V7.3.2
+    ];
+
+    [Test]
+    [TestCaseSource(nameof(Rangers))]
+    public void A050_GetRangers(Type ranger)
+    {
+        const int expected = 1_418_304;
+        RangeBenchmarks aecB = new();
+        int cells = aecB.Access100mb(ranger);
+        cells.Should().Be(expected);
+    }
+
 }

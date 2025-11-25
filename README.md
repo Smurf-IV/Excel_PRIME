@@ -22,13 +22,14 @@ Lets take each of the above elements and explain:
     - No attempt at "creating / using" datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
+- Now the fastest in Real world usage [2025-11-19](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
-    - They do not have range extraction.
+    - They do **not** have range extraction.
     - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
-    - Or re-use of already extracted (massive) sheets
-    - Or allow multiple sheets to be read at the same time 
+    - Or **re-use** of already extracted (massive) sheets
+    - Or allow multiple sheets to be read at the **same** time 
         - because others use global memory to represent the current row
         - Or have a single access into the Zip Excel file
 
@@ -171,6 +172,12 @@ Lets take each of the above elements and explain:
 -----
 
 ## Phase 2 - Release as Nuget V2.yyMM.dd
+- ✅ Add `IEnumerable`s _All_ the way down ⤵️
+    - i.e. remove the need for Asynchronous awaits
+    - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
+    - ⛓️‍💥 **Breaking Change** 🔩
+        - The Async classes now have `Async` appended to be distinct from the non async versions
+        - But, `Async` inherit from the non, so they are interchangable
 - ✅ Nuget
     - ✅ Manual workflow deploy Release
     - ✅ Manual workflow deploy Beta
@@ -186,18 +193,18 @@ Lets take each of the above elements and explain:
     - Note: The above will be referenced as `OrderSize (Try it Yourself)` as shown in LibreOffice.
 - ✅ Implement Row extraction 📟
     - ✅ Allow ColumnHeader addressing (i.e. start -> end columns)
-- ✅ Implement RangeExtraction 📲
+- [>] Implement RangeExtraction 📲
     - ✅ Global rangeNames
-    - ✅ Per Sheet rangeNames
-    - ✅ User defined
-- ✅ Add `IEnumerable`s _All_ the way down ⤵️
-    - i.e. remove the need for Asynchronous awaits
-    - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
-    - ⛓️‍💥 **Breaking Change** 🔩
-        - The Async classes now have `Async` appended to be distinct from the non async versions
-        - But, `Async` inherit from the non, so they are interchangable
-- [ ] More Benchmarks
-    - [ ] Add "Excel readers" That perform Range Extraction
+    - ✅ Make `DefinedName`'s work with `localSheetId`definitions
+    - [ ] User defined, using the `["A1:B10"]` syntax
+- [>] Add Benchmarks for "Excel readers" That perform Range Extraction
+    - [ ] `Aspose.Cells` Version="25.11.0"
+    - ✅ `ClosedXML` Version="0.105.0"
+        - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
+    - ✅ `EPPlus` Version="8.3.0"
+        - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
+    - [ ] `FastExcel` Version="3.0.13"
+    - [ ] `FreeSpire.XLS` Version="14.2.0"
 -----
 
 ## Phase 3 - XLS**B** 💾

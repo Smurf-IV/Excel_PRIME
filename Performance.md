@@ -400,3 +400,16 @@ And then slightly different versions of the following dependent on date:
 |-------------------------------- |--------------------- |-------------:|------------:|-----------:|----------:|-----------:|------------:|
 ```
 -----
+
+# 2025-11-25
+- Make `DefinedName`'s work with `localSheetId`definitions
+- Start to Add Benchmarks for range extraction
+
+```
+| Method      | ranger               | Mean     | Error     | StdDev   | Gen0         | Gen1        | Gen2       | Allocated |
+|------------ |--------------------- |---------:|----------:|---------:|-------------:|------------:|-----------:|----------:|
+| Access100mb | Excel(...)edXML [39] | 39.508 s | 10.2098 s | 0.5596 s | 1248000.0000 | 382000.0000 |  6000.0000 |  10.21 GB |
+| Access100mb | Excel(...)PPlus [36] | 13.795 s |  2.9397 s | 0.1611 s |  593000.0000 | 163000.0000 | 18000.0000 |   7.33 GB |
+| Access100mb | Excel(...)Prime [40] |  8.079 s |  0.9203 s | 0.0504 s |  244000.0000 | 127000.0000 |  7000.0000 |   1.86 GB |
+```
+-----
