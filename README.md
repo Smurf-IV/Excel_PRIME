@@ -198,13 +198,14 @@ Lets take each of the above elements and explain:
     - ✅ Make `DefinedName`'s work with `localSheetId`definitions
     - [ ] User defined, using the `["A1:B10"]` syntax
 - [>] Add Benchmarks for "Excel readers" That perform Range Extraction
-    - [ ] `Aspose.Cells` Version="25.11.0"
     - ✅ `ClosedXML` Version="0.105.0"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
     - ✅ `EPPlus` Version="8.3.0"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
-    - [ ] `FastExcel` Version="3.0.13"
-    - [ ] `FreeSpire.XLS` Version="14.2.0"
+    - ⚠️ `FastExcel` Version="3.0.13" -> [Fails on Range Extraction](https://github.com/ahmedwalid05/FastExcel/issues/89)
+    - [>] `FreeSpire.XLS` Version="14.2.0"
+        - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
+    - [ ] `Aspose.Cells` Version="25.11.0"
 -----
 
 ## Phase 3 - XLS**B** 💾

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace ExcelPRIME.RangeBench;
 
@@ -34,7 +35,7 @@ public class GetRangeExcelPrime : IGetRange
         IEnumerable<object?[]> rangeRows = _workbook.GetDefinedRange(userRange, sheetName);
         foreach (var rangeRow in rangeRows)
         {
-            yield return rangeRow;
+            yield return rangeRow.Select(cell => cell?.ToString());
         }
     }
 

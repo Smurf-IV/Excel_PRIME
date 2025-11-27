@@ -81,9 +81,10 @@ internal class DefinedRangeTests
 
     public static Type[] Rangers = // for multiple arguments it's an IEnumerable of IGetRange's
     [
-        typeof(GetRangeExcelPrime),  //  7.9 
+        typeof(GetRangeExcelPrime),  //  8.8 
         typeof(GetRangeClosedXML),  // 44.1
-        typeof(GetRangeEPPlus)   // 15.2 ->  V8.3 | 14.1 V7.3.2
+        typeof(GetRangeEPPlus),   // 15.2 ->  V8.3 | 14.1 V7.3.2
+        typeof(GetRangeFreeSpire)   // 26.1
     ];
 
     [Test]

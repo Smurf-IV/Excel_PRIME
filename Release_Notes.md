@@ -1,4 +1,10 @@
-﻿# 2025-11-25  - Beta V2
+﻿# 2025-11-27 - Beta V2
+- Change benchmarks to use `ToString` to be fair on `ClosedXML`
+- Attempt to use `FastExcel` - Failed due to Bug
+- Use Commercial `FreeSpire`
+    - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
+
+# 2025-11-25  - Beta V2
 - Make `DefinedName`'s work with `localSheetId`definitions
 - Start to Add Benchmarks for range extraction
     - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)

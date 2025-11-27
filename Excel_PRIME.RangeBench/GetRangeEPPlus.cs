@@ -52,7 +52,7 @@ public class GetRangeEPPlus : IGetRange
                 var rowData = new List<object?>(range.End.Column - range.Start.Column);
                 for (int col = range.Start.Column; col <= range.End.Column; col++)
                 {
-                    rowData.Add(range.Worksheet.Cells[row, col].Value);
+                    rowData.Add(range.Worksheet.Cells[row, col].Value.ToString());
                 }
                 yield return rowData;
             }

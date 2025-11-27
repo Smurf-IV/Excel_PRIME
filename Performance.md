@@ -364,7 +364,7 @@ And then slightly different versions of the following dependent on date:
 ```
 -----
 
-# 2025-11-16
+# 2025-11-16 - Beta V2
 - Add `IEnumerable`s _All_ the way down ⤵️
     - i.e. remove the need for Asynchronous awaits
     - ⛓️‍💥 Breaking Change 🔩
@@ -401,7 +401,7 @@ And then slightly different versions of the following dependent on date:
 ```
 -----
 
-# 2025-11-25
+# 2025-11-25 - Beta V2
 - Make `DefinedName`'s work with `localSheetId`definitions
 - Start to Add Benchmarks for range extraction
 
@@ -411,5 +411,20 @@ And then slightly different versions of the following dependent on date:
 | Access100mb | Excel(...)edXML [39] | 39.508 s | 10.2098 s | 0.5596 s | 1248000.0000 | 382000.0000 |  6000.0000 |  10.21 GB |
 | Access100mb | Excel(...)PPlus [36] | 13.795 s |  2.9397 s | 0.1611 s |  593000.0000 | 163000.0000 | 18000.0000 |   7.33 GB |
 | Access100mb | Excel(...)Prime [40] |  8.079 s |  0.9203 s | 0.0504 s |  244000.0000 | 127000.0000 |  7000.0000 |   1.86 GB |
+```
+-----
+
+# 2025-11-27 - Beta V2
+- Change benchmarks to use `ToString` to be fair on `ClosedXML`
+- Attempt to use `FastExcel` - Failed due to Bug
+- Use Commercial `FreeSpire`
+
+```
+| Method      | ranger               | Mean     | Error    | StdDev   | Gen0         | Gen1        | Gen2       | Allocated |
+|------------ |--------------------- |---------:|---------:|---------:|-------------:|------------:|-----------:|----------:|
+| Access100mb | Excel(...)edXML [39] | 41.751 s | 3.9483 s | 0.2164 s | 1248000.0000 | 382000.0000 |  6000.0000 |  10.21 GB |
+| Access100mb | Excel(...)PPlus [36] | 14.232 s | 2.9999 s | 0.1644 s |  593000.0000 | 163000.0000 | 18000.0000 |   7.33 GB |
+| Access100mb | Excel(...)Prime [40] |  8.145 s | 0.9088 s | 0.0498 s |  244000.0000 | 127000.0000 |  7000.0000 |   1.86 GB |
+| Access100mb | Excel(...)Spire [39] | 24.023 s | 9.0692 s | 0.4971 s | 1181000.0000 | 445000.0000 |  6000.0000 |   9.95 GB |
 ```
 -----

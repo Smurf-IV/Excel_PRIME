@@ -24,7 +24,6 @@
 		<PackageReference Include="BenchmarkDotNet" Version="0.15.6" />
 		<PackageReference Include="ClosedXML" Version="0.105.0" />
 		<PackageReference Include="EPPlus" Version="8.3.0" />
-		<PackageReference Include="FastExcel" Version="3.0.13" />
 		<PackageReference Include="FreeSpire.XLS" Version="14.2.0" />
 		<PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36714.1" />
 	</ItemGroup>

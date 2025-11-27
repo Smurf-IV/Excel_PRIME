@@ -18,6 +18,7 @@ public class RangeBenchmarks
         yield return typeof(GetRangeExcelPrime);
         yield return typeof(GetRangeClosedXML);
         yield return typeof(GetRangeEPPlus);
+        yield return typeof(GetRangeFreeSpire);
     }
 
 
