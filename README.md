@@ -200,12 +200,14 @@ Lets take each of the above elements and explain:
 - [>] Add Benchmarks for "Excel readers" That perform Range Extraction
     - ✅ `ClosedXML` Version="0.105.0"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
-    - ✅ `EPPlus` Version="8.3.0"
+    - ✅ `EPPlus_LPGL` Version="4.5.3.13"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
     - ⚠️ `FastExcel` Version="3.0.13" -> [Fails on Range Extraction](https://github.com/ahmedwalid05/FastExcel/issues/89)
-    - [>] `FreeSpire.XLS` Version="14.2.0"
+    - ✅ `FreeSpire.XLS` Version="14.2.0"
         - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
-    - [ ] `Aspose.Cells` Version="25.11.0"
+    - [>] `Aspose.Cells` Version="25.11.0"
+        - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
+    - [ ] Extend bencmarks to cover the other large file types
 -----
 
 ## Phase 3 - XLS**B** 💾

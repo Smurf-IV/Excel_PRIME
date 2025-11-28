@@ -1,7 +1,13 @@
-﻿# 2025-11-27 - Beta V2
+﻿# 2025-11-18 - Beta V2
+- Implement usage of _commercial_ `Aspose.Cells`
+- Switch to `EPPlus-LPGL` (It's faster than v8.x ;-))
+    - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
+
+
+# 2025-11-27 - Beta V2
 - Change benchmarks to use `ToString` to be fair on `ClosedXML`
 - Attempt to use `FastExcel` - Failed due to Bug
-- Use Commercial `FreeSpire`
+- Use _commercial_ `FreeSpire`
     - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
 
 # 2025-11-25  - Beta V2
@@ -29,23 +35,4 @@
 - Remove some warnings
 
 # 2025-11-14 - V1
-- Parallel Sheet Access
-- ApplicationIcon
-- Remove some warnings
-- Nuget deployment V1
-
-
-# 2025-11-12
-- Optimise for `CellConversion.None` 💪
-    - [Performance on 2025-11-12](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-12)
-
-# 2025-11-08
-- Investigation into the smallest function 💪
-    - [Performance on 2025-11-08](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-08)
-
-# 2025-11-07
-- Add option to use the Stream from `ZipEntry`
-- Explain the Excel cell types
-
-<a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
-
+- 🚀 [Performance on 2025-11-12](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-12)

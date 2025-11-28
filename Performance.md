@@ -417,7 +417,7 @@ And then slightly different versions of the following dependent on date:
 # 2025-11-27 - Beta V2
 - Change benchmarks to use `ToString` to be fair on `ClosedXML`
 - Attempt to use `FastExcel` - Failed due to Bug
-- Use Commercial `FreeSpire`
+- Use _commercial_ `FreeSpire`
 
 ```
 | Method      | ranger               | Mean     | Error    | StdDev   | Gen0         | Gen1        | Gen2       | Allocated |
@@ -426,5 +426,20 @@ And then slightly different versions of the following dependent on date:
 | Access100mb | Excel(...)PPlus [36] | 14.232 s | 2.9999 s | 0.1644 s |  593000.0000 | 163000.0000 | 18000.0000 |   7.33 GB |
 | Access100mb | Excel(...)Prime [40] |  8.145 s | 0.9088 s | 0.0498 s |  244000.0000 | 127000.0000 |  7000.0000 |   1.86 GB |
 | Access100mb | Excel(...)Spire [39] | 24.023 s | 9.0692 s | 0.4971 s | 1181000.0000 | 445000.0000 |  6000.0000 |   9.95 GB |
+```
+-----
+
+# 2025-11-18 - Beta V2
+- Implement usage of _commercial_ `Aspose.Cells`
+- Switch to `EPPlus-LPGL` (It's faster than v8.x ;-))
+
+```
+| Method      | ranger               | Mean     | Error    | StdDev   | Gen0         | Gen1        | Gen2       | Allocated |
+|------------ |--------------------- |---------:|---------:|---------:|-------------:|------------:|-----------:|----------:|
+| Access100mb | Excel(...)Cells [41] |  7.743 s | 0.1866 s | 0.0102 s |  175000.0000 |  98000.0000 |  7000.0000 |   1.49 GB |
+| Access100mb | Excel(...)edXML [39] | 40.052 s | 2.4428 s | 0.1339 s | 1248000.0000 | 382000.0000 |  6000.0000 |  10.21 GB |
+| Access100mb | Excel(...)PPlus [36] | 11.381 s | 1.1321 s | 0.0621 s |  550000.0000 | 189000.0000 | 13000.0000 |   6.08 GB |
+| Access100mb | Excel(...)Prime [40] |  7.786 s | 0.3911 s | 0.0214 s |  244000.0000 | 127000.0000 |  7000.0000 |   1.86 GB |
+| Access100mb | Excel(...)Spire [39] | 23.528 s | 1.8896 s | 0.1036 s | 1181000.0000 | 449000.0000 |  6000.0000 |   9.95 GB |
 ```
 -----

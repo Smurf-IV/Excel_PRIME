@@ -45,7 +45,6 @@ public class GetRangeFreeSpire : IGetRange
                 }
             }
         }
-
     }
 
     public IEnumerable<IEnumerable<object?>> GetRange(string userRange, string sheetName) => throw new NotImplementedException();

@@ -84,7 +84,8 @@ internal class DefinedRangeTests
         typeof(GetRangeExcelPrime),  //  8.8 
         typeof(GetRangeClosedXML),  // 44.1
         typeof(GetRangeEPPlus),   // 15.2 ->  V8.3 | 14.1 V7.3.2
-        typeof(GetRangeFreeSpire)   // 26.1
+        typeof(GetRangeFreeSpire),   // 26.1
+        typeof(GetRangeAsposeCells)
     ];
 
     [Test]

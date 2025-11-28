@@ -11,13 +11,6 @@ public class GetRangeEPPlus : IGetRange
 {
     private ExcelPackage? excelPackage;
 
-    static GetRangeEPPlus()
-    {
-        ExcelPackage.License.SetNonCommercialOrganization(
-            "Smurf-IV Benchmark"); //This will also set the Company property to the organization name provided in the argument.
-    }
-
-
     public void Dispose()
     {
         excelPackage?.Dispose();
