@@ -443,3 +443,39 @@ And then slightly different versions of the following dependent on date:
 | Access100mb | Excel(...)Spire [39] | 23.528 s | 1.8896 s | 0.1036 s | 1181000.0000 | 449000.0000 |  6000.0000 |   9.95 GB |
 ```
 -----
+
+# 2025-12-01 - Beta V2
+- Replaced the dictionary with a fixed-size Cell?[] 
+- Defensive bounds checks when assigning parsed cells to avoid out-of-range writes.
+- `Row` disposal when going out of `yield` scopes
+- Add `ThreadStringBuilderPool` for memory efficiency
+- Add `AccessPivotTable` and explain why the other libraries do **not work**
+
+```
+| Method                          | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
+|-------------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
+| AccessEveryCellSylvan           | 100mb.xlsx           |     baseline |  43000.0000 | 41000.0000 |  5000.0000 |  338.72 MB |             |
+| AccessEveryCellXlsxHelper       | 100mb.xlsx           | 4.10x slower | 424000.0000 |  5000.0000 |  2000.0000 | 3380.58 MB |  9.98x more |
+| AccessEveryCellAsyncExcel_Prime | 100mb.xlsx           | 1.55x slower | 413000.0000 | 50000.0000 |  3000.0000 | 3286.11 MB |  9.70x more |
+| AccessEveryCellExcel_Prime      | 100mb.xlsx           | 1.27x slower | 318000.0000 | 54000.0000 |  6000.0000 | 2504.76 MB |  7.39x more |
+| NumberCellAsyncExcel_Prime      | 100mb.xlsx           | 1.59x slower | 417000.0000 | 53000.0000 |  6000.0000 | 3287.89 MB |  9.71x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | Blank(...).xlsx [30] |     baseline |  40000.0000 |  2000.0000 |  1000.0000 |   318.9 MB |             |
+| AccessEveryCellXlsxHelper       | Blank(...).xlsx [30] | 1.02x slower | 218000.0000 |  1000.0000 |          - | 1739.24 MB |  5.45x more |
+| AccessEveryCellAsyncExcel_Prime | Blank(...).xlsx [30] | 1.22x slower | 458000.0000 | 42000.0000 | 41000.0000 |  3455.5 MB | 10.84x more |
+| AccessEveryCellExcel_Prime      | Blank(...).xlsx [30] | 1.08x faster | 307000.0000 | 42000.0000 | 41000.0000 | 2250.22 MB |  7.06x more |
+| NumberCellAsyncExcel_Prime      | Blank(...).xlsx [30] | 1.27x slower | 473000.0000 | 42000.0000 | 41000.0000 | 3578.89 MB | 11.22x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [34] |     baseline |  33000.0000 |          - |          - |   265.7 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [34] | 1.11x faster | 100000.0000 |          - |          - |  799.73 MB |  3.01x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [34] | 1.06x slower | 192000.0000 |  1000.0000 |          - | 1534.91 MB |  5.78x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [34] | 1.17x faster | 123000.0000 |  1000.0000 |          - |  983.37 MB |  3.70x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [34] | 1.19x slower | 207000.0000 |  1000.0000 |          - |  1656.2 MB |  6.23x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [30] |     baseline |  36000.0000 |          - |          - |  294.16 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [30] | 1.10x faster |  93000.0000 |          - |          - |  742.13 MB |  2.52x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.08x slower | 195000.0000 |  1000.0000 |          - | 1558.22 MB |  5.30x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.20x faster | 126000.0000 |  1000.0000 |          - | 1007.03 MB |  3.42x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.35x slower | 212000.0000 |  1000.0000 |          - | 1694.93 MB |  5.76x more |
+```
+-----

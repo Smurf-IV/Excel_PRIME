@@ -3,22 +3,22 @@ using System.Collections.Generic;
 
 using Aspose.Cells;
 
-using DocumentFormat.OpenXml.Drawing;
-
-using Perfolizer.Mathematics.Common;
-
 
 namespace ExcelPRIME.RangeBench;
 
 public class GetRangeAsposeCells : IGetRange
 {
-    Workbook workbook;
+    private Workbook? _workbook;
 
-    public void Dispose() => workbook.Dispose();
+    public void Dispose()
+    {
+        _workbook?.Dispose();
+        _workbook = null;
+    }
 
     public bool LoadFile(string fullPath)
     {
-        workbook = new Workbook(fullPath, new LoadOptions { CheckDataValid = false, KeepUnparsedData = false, ParsingFormulaOnOpen = false });
+        _workbook = new Workbook(fullPath, new LoadOptions { CheckDataValid = false, KeepUnparsedData = false, ParsingFormulaOnOpen = false });
         return true;
     }
 
@@ -28,18 +28,16 @@ public class GetRangeAsposeCells : IGetRange
         if (localSheetId.HasValue)
         {
             //Get a specific named range in the worksheet
-            namedRange = workbook.Worksheets.GetRangeByName(definedName, localSheetId.Value, false);
+            namedRange = _workbook.Worksheets.GetRangeByName(definedName, localSheetId.Value, false);
         }
         else
         {
             //Get a specific named range in the workbook
-            namedRange = workbook.Worksheets.GetRangeByName(definedName);
+            namedRange = _workbook.Worksheets.GetRangeByName(definedName);
         }
         if (namedRange != null)
         {
             //Get range
-            int firstRow = namedRange.FirstRow;
-            int firstColumn = namedRange.FirstColumn;
             int rowCount = namedRange.RowCount;
             int columnCount = namedRange.ColumnCount;
             // Iterate through each row in the range

@@ -68,7 +68,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn, 
+    public async IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         await foreach (IRowAsync? row in GetRowDataAsync(startRow, RowCellGet.None, ct).ConfigureAwait(false))
@@ -78,15 +78,23 @@ internal sealed class Sheet : ISheetAsync
             {
                 yield break;
             }
-
-            List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
-            for (int i = excelStartColumn; i <= excelEndColumn; i++)
+            try
             {
-                cells.Add(await row.GetCellAsync(i, ct).ConfigureAwait(false));
+                List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+                for (int i = excelStartColumn; i <= excelEndColumn; i++)
+                {
+                    cells.Add(await row.GetCellAsync(i, ct).ConfigureAwait(false));
+                }
+
+                yield return cells.ToArray();
+            }
+            finally
+            {
+                row.Dispose();
             }
 
-            yield return cells.ToArray();
         }
+        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <InheritDoc />
@@ -101,14 +109,22 @@ internal sealed class Sheet : ISheetAsync
                 yield break;
             }
 
-            List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
-            for (int i = excelStartColumn; i <= excelEndColumn; i++)
+            try
             {
-                cells.Add(row.GetCell(i, ct));
-            }
+                List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+                for (int i = excelStartColumn; i <= excelEndColumn; i++)
+                {
+                    cells.Add(row.GetCell(i, ct));
+                }
 
-            yield return cells.ToArray();
+                yield return cells.ToArray();
+            }
+            finally
+            {
+                row.Dispose();
+            }
         }
+        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <inheritdoc/>
@@ -142,6 +158,7 @@ internal sealed class Sheet : ISheetAsync
 
             yield return rowCells;
         }
+        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <InheritDoc />
@@ -158,6 +175,7 @@ internal sealed class Sheet : ISheetAsync
 
             yield return rowCells;
         }
+        GC.Collect(1, GCCollectionMode.Optimized, false,true);
     }
     private async Task CheckLocationAsync(int startRow, CancellationToken ct)
     {
@@ -184,7 +202,8 @@ internal sealed class Sheet : ISheetAsync
         }
         while (_sheetReader.CurrentRow < startRow)
         {
-            await _sheetReader.GetNextRowAsync(RowCellGet.None, ct).ConfigureAwait(false);
+            IRowAsync? row = await _sheetReader.GetNextRowAsync(RowCellGet.None, ct).ConfigureAwait(false);
+            row?.Dispose();
         }
     }
 
@@ -214,7 +233,8 @@ internal sealed class Sheet : ISheetAsync
         while (_sheetReader.CurrentRow < startRow
                && !ct.IsCancellationRequested)
         {
-            _sheetReader.GetNextRow(RowCellGet.None, ct);
+            IRow? row = _sheetReader.GetNextRow(RowCellGet.None, ct);
+            row?.Dispose();
         }
     }
 

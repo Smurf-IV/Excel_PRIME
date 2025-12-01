@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,11 +145,7 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                foreach (ICell? cell in row.GetAllCells())
-                {
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
-                        cells++;
-                }
+                cells += row.GetAllCells().Count(cell => !string.IsNullOrEmpty(cell?.RawValue?.ToString()));
                 row.Dispose();
             }
         }

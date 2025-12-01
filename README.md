@@ -171,7 +171,7 @@ Lets take each of the above elements and explain:
     - 🎊 Released as Nuget V1.yyMM.dd -> **`1.2511.14`**
 -----
 
-## Phase 2 - Release as Nuget V2.yyMM.dd
+## Phase 2 - Beta V2
 - ✅ Add `IEnumerable`s _All_ the way down ⤵️
     - i.e. remove the need for Asynchronous awaits
     - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
@@ -197,7 +197,7 @@ Lets take each of the above elements and explain:
     - ✅ Global rangeNames
     - ✅ Make `DefinedName`'s work with `localSheetId`definitions
     - [ ] User defined, using the `["A1:B10"]` syntax
-- [>] Add Benchmarks for "Excel readers" That perform Range Extraction
+- ✅ Add Benchmarks for "Excel readers" That perform Range Extraction
     - ✅ `ClosedXML` Version="0.105.0"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
     - ✅ `EPPlus_LPGL` Version="4.5.3.13"
@@ -205,9 +205,13 @@ Lets take each of the above elements and explain:
     - ⚠️ `FastExcel` Version="3.0.13" -> [Fails on Range Extraction](https://github.com/ahmedwalid05/FastExcel/issues/89)
     - ✅ `FreeSpire.XLS` Version="14.2.0"
         - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
-    - [>] `Aspose.Cells` Version="25.11.0"
+    - ✅ `Aspose.Cells` Version="25.11.0"
         - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
-    - [ ] Extend bencmarks to cover the other large file types
+    - ⚠️ Extend bencmarks to cover the other large file types
+        - It appears that most of the others do not like the `pivot-tables` file.!! 🤯
+- [>] Investigate _memory usage_(s) 🧑‍💻
+    - [>] Some performance improvements 🏃‍➡️ [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
+- [ ] Release as Nuget V2.yyMM.dd 💨
 -----
 
 ## Phase 3 - XLS**B** 💾
@@ -226,6 +230,7 @@ Lets take each of the above elements and explain:
     - [ ] Read from global
 - [ ] Benchmarks 🖲️
     - [ ] Add "Excel readers" That support XLS**B** Extraction
+- [ ] Release as Nuget V3.yyMM.dd
 -----
 
 ## Phase 4 - Specific Cell value type(s) #️⃣

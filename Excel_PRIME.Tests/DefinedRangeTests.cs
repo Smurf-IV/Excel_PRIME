@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +8,7 @@ using AwesomeAssertions;
 using ExcelPRIME.RangeBench;
 
 using NUnit.Framework;
+
 
 namespace ExcelPRIME.Tests;
 
@@ -90,11 +90,38 @@ internal class DefinedRangeTests
 
     [Test]
     [TestCaseSource(nameof(Rangers))]
-    public void A050_GetRangers(Type ranger)
+    public void A050_GetRangers100mb(Type ranger)
     {
         const int expected = 1_418_304;
         RangeBenchmarks aecB = new();
         int cells = aecB.Access100mb(ranger);
+        cells.Should().Be(expected);
+    }
+
+    //[Test]
+    //[TestCaseSource(nameof(Rangers))]
+    //[Explicit("Other Readers fail!!")]
+    //public void A051_GetRangersPivotTable(Type ranger)
+    //{
+    //    const int expected = 214 * 6 * 2; // Rows * Cols * twice -> Sheet1!$A$1:$F$214
+    //    RangeBenchmarks aecB = new();
+    //    int cells = aecB.AccessPivotTable(ranger);
+    //    cells.Should().Be(expected);
+    //}
+
+    [Test]
+    public void A052_ExcelPrime_PivotTable()
+    {
+        const int expected = 214 * 6 * 2; // Rows * Cols * twice -> Sheet1!$A$1:$F$214
+        //int cells = aecB.AccessPivotTable(typeof(GetRangeExcelPrime));
+        using IGetRange getRanger = new GetRangeExcelPrime();
+        getRanger.LoadFile("Data\\pivot-tables.xlsx");
+
+        //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
+        var filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        int cells = filterDatabaseSheet.Sum(row => row.Count());
+        var filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
+        cells += filterDatabase.Sum(row => row.Count());
         cells.Should().Be(expected);
     }
 

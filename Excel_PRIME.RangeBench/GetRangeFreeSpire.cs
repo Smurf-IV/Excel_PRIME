@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.VisualStudio.OLE.Interop;
-
 using Spire.Xls;
 using Spire.Xls.Core;
 

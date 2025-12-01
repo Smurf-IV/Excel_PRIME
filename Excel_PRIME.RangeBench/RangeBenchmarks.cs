@@ -6,8 +6,6 @@ using System.Runtime.CompilerServices;
 
 using BenchmarkDotNet.Attributes;
 
-using Microsoft.VisualBasic.CompilerServices;
-
 namespace ExcelPRIME.RangeBench;
 
 [ExcludeFromCodeCoverage]
@@ -49,4 +47,27 @@ public class RangeBenchmarks
 
         return cells;
     }
+
+    //[Benchmark]   
+    //[ArgumentsSource(nameof(Rangers))]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public int AccessPivotTable(Type ranger)
+    {
+        // GetRangeAsposeCells Fails with: Expected cells to be 2568, but found 0
+        // GetRangeClosedXML fails with: ClosedXML.Excel.IO.PartStructureException : There is a problem with element structure in XML, the number of elements found is not what was expected.
+        // GetRangeEPPlus Fails with : System.Collections.Generic.KeyNotFoundException : The given key '_xlnm._FilterDatabase' was not present in the dictionary.
+        // GetRangeExcelPrime Passes ;-)
+        // GetRangeFreeSpire fails with: Expected cells to be 2568, but found 0
+        using IGetRange getRanger = (IGetRange)Activator.CreateInstance(ranger)!;
+        getRanger.LoadFile("Data\\pivot-tables.xlsx");
+
+        //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
+        var filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        int cells = filterDatabaseSheet.Sum(row => row.Count());
+        var filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
+        cells += filterDatabase.Sum(row => row.Count());
+
+        return cells;
+    }
+
 }
