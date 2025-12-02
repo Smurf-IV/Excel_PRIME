@@ -13,9 +13,6 @@ jobs:
   build:
 
     runs-on: windows-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '8.x', '9.x', '10.x' ]
 
     steps:
     - uses: actions/checkout@v6
@@ -32,7 +29,10 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+        dotnet-version: | 
+          8.x
+          9.x
+        #  10.x is already there
         # Authenticates packages to push to GPR
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:

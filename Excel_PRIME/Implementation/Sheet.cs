@@ -80,13 +80,15 @@ internal sealed class Sheet : ISheetAsync
             }
             try
             {
-                List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+                int length = excelEndColumn - excelStartColumn + 1;
+                ICell?[] cells = new ICell?[length];
+
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
-                    cells.Add(await row.GetCellAsync(i, ct).ConfigureAwait(false));
+                    cells[i - excelStartColumn] = await row.GetCellAsync(i, ct).ConfigureAwait(false);
                 }
 
-                yield return cells.ToArray();
+                yield return cells;
             }
             finally
             {
@@ -94,7 +96,6 @@ internal sealed class Sheet : ISheetAsync
             }
 
         }
-        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <InheritDoc />
@@ -111,20 +112,20 @@ internal sealed class Sheet : ISheetAsync
 
             try
             {
-                List<ICell?> cells = new(excelEndColumn - excelStartColumn + 1);
+                int length = excelEndColumn - excelStartColumn + 1;
+                ICell?[] cells = new ICell?[length];
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
-                    cells.Add(row.GetCell(i, ct));
+                    cells[i - excelStartColumn] = row.GetCell(i, ct);
                 }
 
-                yield return cells.ToArray();
+                yield return cells;
             }
             finally
             {
                 row.Dispose();
             }
         }
-        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <inheritdoc/>
@@ -158,7 +159,6 @@ internal sealed class Sheet : ISheetAsync
 
             yield return rowCells;
         }
-        GC.Collect(1, GCCollectionMode.Optimized, false, true);
     }
 
     /// <InheritDoc />
@@ -175,7 +175,6 @@ internal sealed class Sheet : ISheetAsync
 
             yield return rowCells;
         }
-        GC.Collect(1, GCCollectionMode.Optimized, false,true);
     }
     private async Task CheckLocationAsync(int startRow, CancellationToken ct)
     {

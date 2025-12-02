@@ -90,6 +90,7 @@ internal class DefinedRangeTests
 
     [Test]
     [TestCaseSource(nameof(Rangers))]
+    [Explicit("Long running tests of external libraries")]
     public void A050_GetRangers100mb(Type ranger)
     {
         const int expected = 1_418_304;

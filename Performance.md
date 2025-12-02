@@ -478,4 +478,47 @@ And then slightly different versions of the following dependent on date:
 | AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.20x faster | 126000.0000 |  1000.0000 |          - | 1007.03 MB |  3.42x more |
 | NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.35x slower | 212000.0000 |  1000.0000 |          - | 1694.93 MB |  5.76x more |
 ```
+
+```
+| Method      | ranger               | Mean     | Error     | StdDev   | Gen0         | Gen1        | Gen2       | Allocated |
+|------------ |--------------------- |---------:|----------:|---------:|-------------:|------------:|-----------:|----------:|
+| Access100mb | Excel(...)Cells [41] |  7.662 s |  0.1705 s | 0.0093 s |  175000.0000 |  98000.0000 |  7000.0000 |   1.49 GB |
+| Access100mb | Excel(...)edXML [39] | 41.662 s | 10.9401 s | 0.5997 s | 1248000.0000 | 382000.0000 |  6000.0000 |  10.21 GB |
+| Access100mb | Excel(...)PPlus [36] | 11.506 s |  2.5959 s | 0.1423 s |  550000.0000 | 188000.0000 | 13000.0000 |   6.08 GB |
+| Access100mb | Excel(...)Prime [40] |  6.948 s |  0.2571 s | 0.0141 s |  204000.0000 |  58000.0000 |  6000.0000 |   1.56 GB |
+| Access100mb | Excel(...)Spire [39] | 23.756 s |  1.3510 s | 0.0741 s | 1181000.0000 | 449000.0000 |  6000.0000 |   9.95 GB |
+```
+-----
+
+# 2025-12-02 - Beta V2
+- Remove explicit GC.Collect calls
+- Replace per-iteration List<> with array (Cannot return sharedPool due to `yield return`)
+
+```
+| Method                          | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
+|-------------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
+| AccessEveryCellSylvan           | 100mb.xlsx           |     baseline |  43000.0000 | 41000.0000 |  5000.0000 |  338.72 MB |             |
+| AccessEveryCellXlsxHelper       | 100mb.xlsx           | 4.08x slower | 424000.0000 |  5000.0000 |  2000.0000 | 3380.59 MB |  9.98x more |
+| AccessEveryCellAsyncExcel_Prime | 100mb.xlsx           | 1.54x slower | 387000.0000 | 52000.0000 |  3000.0000 | 3073.08 MB |  9.07x more |
+| AccessEveryCellExcel_Prime      | 100mb.xlsx           | 1.28x slower | 292000.0000 | 53000.0000 |  6000.0000 | 2291.71 MB |  6.77x more |
+| NumberCellAsyncExcel_Prime      | 100mb.xlsx           | 1.53x slower | 387000.0000 | 52000.0000 |  3000.0000 | 3074.83 MB |  9.08x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | Blank(...).xlsx [30] |     baseline |  40000.0000 |  2000.0000 |  1000.0000 |   318.9 MB |             |
+| AccessEveryCellXlsxHelper       | Blank(...).xlsx [30] | 1.02x slower | 218000.0000 |  1000.0000 |          - | 1739.24 MB |  5.45x more |
+| AccessEveryCellAsyncExcel_Prime | Blank(...).xlsx [30] | 1.22x slower | 433000.0000 | 42000.0000 | 41000.0000 | 3260.61 MB | 10.22x more |
+| AccessEveryCellExcel_Prime      | Blank(...).xlsx [30] | 1.06x faster | 282000.0000 | 42000.0000 | 41000.0000 | 2055.34 MB |  6.45x more |
+| NumberCellAsyncExcel_Prime      | Blank(...).xlsx [30] | 1.29x slower | 449000.0000 | 42000.0000 | 41000.0000 |    3384 MB | 10.61x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [34] |     baseline |  33000.0000 |          - |          - |  265.67 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [34] | 1.11x faster | 100000.0000 |          - |          - |  799.73 MB |  3.01x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [34] | 1.04x slower | 180000.0000 |  1000.0000 |          - | 1439.61 MB |  5.42x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [34] | 1.19x faster | 111000.0000 |  1000.0000 |          - |     888 MB |  3.34x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [34] | 1.17x slower | 195000.0000 |  1000.0000 |          - | 1560.79 MB |  5.87x more |
+|                                 |                      |              |             |            |            |            |             |
+| AccessEveryCellSylvan           | sampl(...).xlsx [30] |     baseline |  36000.0000 |          - |          - |  294.16 MB |             |
+| AccessEveryCellXlsxHelper       | sampl(...).xlsx [30] | 1.08x faster |  93000.0000 |          - |          - |  742.13 MB |  2.52x more |
+| AccessEveryCellAsyncExcel_Prime | sampl(...).xlsx [30] | 1.09x slower | 183000.0000 |  1000.0000 |          - | 1462.85 MB |  4.97x more |
+| AccessEveryCellExcel_Prime      | sampl(...).xlsx [30] | 1.19x faster | 114000.0000 |  1000.0000 |          - |  911.66 MB |  3.10x more |
+| NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.37x slower | 200000.0000 |  1000.0000 |          - | 1599.56 MB |  5.44x more |
+```
 -----
