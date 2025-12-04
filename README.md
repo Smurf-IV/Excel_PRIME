@@ -210,7 +210,8 @@ Lets take each of the above elements and explain:
     - ⚠️ Extend bencmarks to cover the other large file types
         - It appears that most of the others do not like the `pivot-tables` file.!! 🤯
 - [>] Investigate _memory usage_(s) 🧑‍💻
-    - [>] Some performance improvements 🏃‍➡️ [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
+    - ✅ Some performance improvements 🏃‍➡️ [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
+    - [>] More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
 - [ ] Release as Nuget V2.yyMM.dd 💨
 -----
 

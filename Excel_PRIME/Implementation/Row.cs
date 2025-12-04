@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -13,21 +14,49 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class Row : IRowAsync
 {
-    private readonly XmlReader _reader;
-    private readonly InstanceContext _instanceContext;
-    private readonly int _maxExcelColumnDimension;
+    private XmlReader? _reader;
+    private InstanceContext? _instanceContext;
+    private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private Cell?[]? _cells;
     private bool _cellsLoaded;
-    private readonly ReaderAtoms _readerAtoms;
+    private ReaderAtoms _readerAtomsRefForSafety;
 
-    public Row(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
+    // Small object pool for Row instances to avoid allocating a new Row per XML row.
+    private static readonly ConcurrentBag<Row> s_pool = new();
+
+    private Row()
+    {
+        // Private ctor for pooling. Keep lightweight.
+    }
+
+    internal static Row Rent()
+    {
+        if (s_pool.TryTake(out Row? item))
+        {
+            return item;
+        }
+
+        return new Row();
+    }
+
+    internal static void Return(Row row)
+    {
+        // Reset state so next consumer sees a clean Row.
+        row.Reset();
+        s_pool.Add(row);
+    }
+
+    internal void Initialize(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
     {
         _reader = rowElement;
         _instanceContext = instanceContext;
         _maxExcelColumnDimension = maxColumnDimension;
-        _readerAtoms = readerAtoms;
+        // keep a ref only to help with defensive checks; main use is in comparisons inside methods
+        // (ReaderAtoms itself holds references to the atomized names).
+        _readerAtomsRefForSafety = readerAtoms;
 
+        // Read initial attributes (previously in ctor)
         if (_reader.NodeType == XmlNodeType.Element
             && ReferenceEquals(_reader.LocalName, readerAtoms.rowRefAtom)
            )
@@ -53,36 +82,41 @@ internal sealed class Row : IRowAsync
         }
     }
 
-    private void Dispose(bool isDisposing)
+    private void Reset()
     {
-        if (!_isDisposed)
-        {
-            if (isDisposing)
-            {
-                // Release references to allow GC of contained cells
-                _cells = null;
-                _cellsLoaded = false;
-            }
-
-            _isDisposed = true;
-        }
+        _isDisposed = false;
+        _reader = null;
+        _instanceContext = null;
+        _maxExcelColumnDimension = 0;
+        _cells = null;
+        _cellsLoaded = false;
+        // Do not reset RowOffset — it will be set again on Initialize
+        RowOffset = 0;
     }
 
-    ~Row()
+    private void DisposeManagedState()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
+        // Release references to allow GC of contained cells
+        _cells = null;
+        _cellsLoaded = false;
     }
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
+        DisposeManagedState();
+
+        // Return to pool for reuse
+        Return(this);
     }
 
     /// <InheritDoc />
-    public int RowOffset { get; }
+    public int RowOffset { get; private set; }
 
     private const int BufferSize = 64;
 
@@ -93,6 +127,11 @@ internal sealed class Row : IRowAsync
     internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded)
+        {
+            return;
+        }
+
+        if (_reader == null)
         {
             return;
         }
@@ -127,12 +166,12 @@ internal sealed class Row : IRowAsync
                        && _reader.Depth > currentDepth)
             {
                 if (_reader.NodeType == XmlNodeType.Element
-                    && ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
-                    && !_reader.IsEmptyElement  // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety!.cRefAtom)
+                    && !_reader.IsEmptyElement    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtoms, buffer, valueBuilder).ConfigureAwait(false);
-                    if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext!, _readerAtomsRefForSafety!, buffer, valueBuilder).ConfigureAwait(false);
+                    if (cell != null)    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset;
                         if (offset > 0 && offset <= _maxExcelColumnDimension)
@@ -168,6 +207,11 @@ internal sealed class Row : IRowAsync
             return;
         }
 
+        if (_reader == null)
+        {
+            return;
+        }
+
         if (_reader.IsEmptyElement)
         {
             _cells = new Cell?[_maxExcelColumnDimension + 1];
@@ -197,11 +241,11 @@ internal sealed class Row : IRowAsync
                    && _reader.Depth > currentDepth)
             {
                 if (_reader.NodeType == XmlNodeType.Element
-                    && ReferenceEquals(_reader.LocalName, _readerAtoms.cRefAtom)
+                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety!.cRefAtom)
                     && !_reader.IsEmptyElement  // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext, _readerAtoms, buffer, valueBuilder);
+                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext!, _readerAtomsRefForSafety, buffer, valueBuilder);
                     if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset;
@@ -240,6 +284,7 @@ internal sealed class Row : IRowAsync
         }
     }
 
+    /// <InheritDoc />
     public IEnumerable<ICell?> GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);

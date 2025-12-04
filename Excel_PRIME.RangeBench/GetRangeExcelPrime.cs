@@ -7,10 +7,7 @@ public class GetRangeExcelPrime : IGetRange
 {
     private readonly Excel_PRIME _workbook = new();
 
-    public void Dispose()
-    {
-        _workbook.Dispose();
-    }
+    public void Dispose() => _workbook.Dispose();
 
     public bool LoadFile(string fullPath)
     {

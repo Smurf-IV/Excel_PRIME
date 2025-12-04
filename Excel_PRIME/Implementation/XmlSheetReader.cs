@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Collections.Concurrent;
 
 using ExcelPRIME.FromExternal;
 
@@ -16,6 +17,9 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
     private readonly int _startRow;
     private readonly string _rowRefAtom;
     private readonly ReaderAtoms _readerAtoms;
+
+    // Pool of Row instances shared by this reader (concurrent for safety).
+    private readonly ConcurrentBag<Row> _rowPool = new();
 
     public XmlSheetReader(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
@@ -39,7 +43,7 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
         {
             if (_reader.NodeType == XmlNodeType.Element
                 && ReferenceEquals(_reader.LocalName, worksheetRefAtom)
-                )
+               )
             {
                 break;
             }
@@ -78,7 +82,6 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
                     else
                     {
                         (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
-
                         SheetDimensions = new ValueTuple<int, int>(rowMax, colMax);
                     }
                 }
@@ -106,11 +109,26 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
         _readerAtoms = new ReaderAtoms(_reader);
     }
 
+    private Row CreateRowFromPool()
+    {
+        if (_rowPool.TryTake(out Row? r))
+        {
+            return r;
+        }
+
+        return Row.Rent();
+    }
+
+    private void ReturnRowToPool(Row r)
+    {
+        // Row.Dispose handles returning to global pool; but we keep an internal pool for speed.
+        // Reset any reader-specific state is handled by Row.Reset inside Return.
+        _rowPool.Add(r);
+    }
 
     private bool ReadToNextStartRow(CancellationToken ct)
     {
         while (_reader.ReadToFollowing(_rowRefAtom)
-
                && !ct.IsCancellationRequested
               )
         {
@@ -138,6 +156,8 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
                 _lastNullRow = null;    // Do not call dispose, because they have been returned to the caller
                 _lastRow = null;    // Do not call dispose, because they have been returned to the caller
                 _reader.Dispose();
+                // optionally clear local pool references so they can be GC'd
+                while (_rowPool.TryTake(out _)) { }
             }
 
             _isDisposed = true;
@@ -151,23 +171,16 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
     /// </summary>
     public int CurrentRow { get; private set; }
 
-    ~XmlSheetReader()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
-    }
-
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
     }
 
 #pragma warning disable CA2213  // Do not call dispose, because they are being returned to the caller
     private NullRow? _lastNullRow;
     private Row? _lastRow;
 #pragma warning restore CA2213
+
     public async Task<IRowAsync?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
         if (_lastRow != null)
@@ -194,7 +207,9 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
             return null;
         }
 
-        Row nextRow = new(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
+        Row nextRow = CreateRowFromPool();
+        nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
+
         if (cellGetMode > RowCellGet.None)
         {
             await nextRow.GetCellsAsync(ct).ConfigureAwait(false);
@@ -238,7 +253,9 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
             return null;
         }
 
-        Row nextRow = new(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
+        Row nextRow = CreateRowFromPool();
+        nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width, _readerAtoms);
+
         if (cellGetMode > RowCellGet.None)
         {
             nextRow.GetCells(ct);
@@ -255,5 +272,4 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
 
         return nextRow;
     }
-
 }

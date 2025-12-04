@@ -1,10 +1,17 @@
-﻿# 2025-12-01 - Beta V2
-- Replaced the dictionary with a fixed-size Cell?[] 
-- Defensive bounds checks when assigning parsed cells to avoid out-of-range writes.
-- `Row` disposal when going out of `yield` scopes
-- Add `ThreadStringBuilderPool` for memory efficiency
-- Add `AccessPivotTable` and explain why the other libraries do **not work**
-    - [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
+﻿# 2025-12-## - Beta V2
+- Investigate _memory usage_(s) 🧑‍💻
+    - Removed finalizers from several classes
+    - Added a lightweight Row pooling strategy
+- More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
+
+# 2025-12-01 - Beta V2
+- Investigate _memory usage_(s) 🧑‍💻
+    - Replaced the dictionary with a fixed-size Cell?[] 
+    - Defensive bounds checks when assigning parsed cells to avoid out-of-range writes.
+    - `Row` disposal when going out of `yield` scopes
+    - Add `ThreadStringBuilderPool` for memory efficiency
+    - Add `AccessPivotTable` and explain why the other libraries do **not work**
+- [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
 
 # 2025-11-18 - Beta V2
 - Implement usage of _commercial_ `Aspose.Cells`

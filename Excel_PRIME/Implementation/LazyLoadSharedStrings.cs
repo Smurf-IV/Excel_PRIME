@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -185,16 +184,5 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
     }
 
-    ~LazyLoadSharedStrings()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
-    }
+    public void Dispose() => Dispose(isDisposing: true);
 }

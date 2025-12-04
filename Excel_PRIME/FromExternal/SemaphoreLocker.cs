@@ -24,7 +24,7 @@ internal sealed class SemaphoreLocker : IDisposable
                 }
                 finally
                 {
-                    isTaken =  _semaphore.Wait(TimeSpan.FromMilliseconds(250));
+                    isTaken = _semaphore.Wait(TimeSpan.FromMilliseconds(250));
                 }
             }
             while (!isTaken);
@@ -107,16 +107,5 @@ internal sealed class SemaphoreLocker : IDisposable
         }
     }
 
-    ~SemaphoreLocker()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
-    }
+    public void Dispose() => Dispose(isDisposing: true);
 }

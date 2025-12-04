@@ -82,10 +82,10 @@ internal sealed class Sheet : ISheetAsync
             {
                 int length = excelEndColumn - excelStartColumn + 1;
                 ICell?[] cells = new ICell?[length];
-
+                int idx = 0;
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
-                    cells[i - excelStartColumn] = await row.GetCellAsync(i, ct).ConfigureAwait(false);
+                    cells[idx++] = await row.GetCellAsync(i, ct).ConfigureAwait(false);
                 }
 
                 yield return cells;
@@ -94,7 +94,6 @@ internal sealed class Sheet : ISheetAsync
             {
                 row.Dispose();
             }
-
         }
     }
 
@@ -114,9 +113,10 @@ internal sealed class Sheet : ISheetAsync
             {
                 int length = excelEndColumn - excelStartColumn + 1;
                 ICell?[] cells = new ICell?[length];
+                int idx = 0;
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
-                    cells[i - excelStartColumn] = row.GetCell(i, ct);
+                    cells[idx++] = row.GetCell(i, ct);
                 }
 
                 yield return cells;
@@ -176,6 +176,7 @@ internal sealed class Sheet : ISheetAsync
             yield return rowCells;
         }
     }
+
     private async Task CheckLocationAsync(int startRow, CancellationToken ct)
     {
         if (_sheetReader == null
@@ -251,18 +252,5 @@ internal sealed class Sheet : ISheetAsync
         }
     }
 
-    /// <inheritdoc/>
-    ~Sheet()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(false);
-    }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(isDisposing: true);
-        GC.SuppressFinalize(this);
-    }
+    public void Dispose() => Dispose(isDisposing: true);
 }
