@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ internal class DefinedRangeTests
         taxRate.FirstOrDefault().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
 
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
-        var prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        object?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
         prices[0].Should().BeEquivalentTo(["5"]);
         prices[1].Should().BeEquivalentTo(["4"]);
@@ -41,7 +42,7 @@ internal class DefinedRangeTests
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         // Do not fallover with <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
-        var prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        object?[][] prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
     }
 
     [Test]
@@ -60,19 +61,19 @@ internal class DefinedRangeTests
         // Do not fallover with
         // <definedName name="OrderSize" localSheetId="0">'Try it Yourself'!$C$12:$E$12</definedName>
         // <definedName name="OrderSize">Solution!$C$12:$E$12</definedName>
-        var orderSizeS = await workbook.GetDefinedRangeAsync("OrderSize").FirstAsync();
+        object?[] orderSizeS = await workbook.GetDefinedRangeAsync("OrderSize").FirstAsync();
         orderSizeS.Should().HaveCount(3);
         orderSizeS.Should().HaveElementAt(0, 94);
         orderSizeS.Should().HaveElementAt(1, 54);
         orderSizeS.Should().HaveElementAt(2, 0);
 
-        var orderSizeU = await workbook.GetDefinedRangeAsync("OrderSize", "Try it Yourself").FirstAsync();
+        object?[] orderSizeU = await workbook.GetDefinedRangeAsync("OrderSize", "Try it Yourself").FirstAsync();
         orderSizeU.Should().HaveCount(3);
         orderSizeU.Should().HaveElementAt(0, 0);
         orderSizeU.Should().HaveElementAt(1, 0);
         orderSizeU.Should().HaveElementAt(2, 0);
 
-        var orderSizeT = await workbook.GetDefinedRangeAsync("OrderSize (Try it Yourself)").FirstAsync();
+        object?[] orderSizeT = await workbook.GetDefinedRangeAsync("OrderSize (Try it Yourself)").FirstAsync();
         orderSizeT.Should().HaveCount(3);
         orderSizeT.Should().HaveElementAt(0, 0);
         orderSizeT.Should().HaveElementAt(1, 0);
@@ -119,9 +120,9 @@ internal class DefinedRangeTests
         getRanger.LoadFile("Data\\pivot-tables.xlsx");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        var filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
         int cells = filterDatabaseSheet.Sum(row => row.Count());
-        var filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
+        IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());
         cells.Should().Be(expected);
     }

@@ -29,7 +29,7 @@ public class GetRangeEPPlus : IGetRange
         // worksheet scope
         if (localSheetId.HasValue)
         {
-            var worksheet = excelPackage!.Workbook.Worksheets.ElementAt(localSheetId.Value);
+            ExcelWorksheet? worksheet = excelPackage!.Workbook.Worksheets.ElementAt(localSheetId.Value);
             namedRange = worksheet.Names[definedName];
         }
         else
@@ -39,10 +39,10 @@ public class GetRangeEPPlus : IGetRange
         }
         if (namedRange != null)
         {
-            var range = namedRange;
+            ExcelNamedRange range = namedRange;
             for (int row = range.Start.Row; row <= range.End.Row; row++)
             {
-                var rowData = new List<object?>(range.End.Column - range.Start.Column);
+                List<object?> rowData = new List<object?>(range.End.Column - range.Start.Column);
                 for (int col = range.Start.Column; col <= range.End.Column; col++)
                 {
                     rowData.Add(range.Worksheet.Cells[row, col].Value.ToString());

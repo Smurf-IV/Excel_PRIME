@@ -43,7 +43,7 @@ public class GetRangeAsposeCells : IGetRange
             // Iterate through each row in the range
             for (int i = 0; i < rowCount; i++)
             {
-                var rowData = new List<object?>(columnCount);
+                List<object?> rowData = new List<object?>(columnCount);
 
                 // Iterate through each column in the range to access individual cell values
                 for (int j = 0; j < columnCount; j++)

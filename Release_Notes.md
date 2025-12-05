@@ -3,7 +3,11 @@
     - Removed finalizers from several classes
     - Added a lightweight Row pooling strategy
 - More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
-
+- Replaced the `ReadString` implementation (Memory optimisation)
+- Some code Cleanup
+- Prefer returning ReadOnlyMemory<char> to avoid allocating a new string
+- Sacrificed a little speed..
+- 
 # 2025-12-01 - Beta V2
 - Investigate _memory usage_(s) 🧑‍💻
     - Replaced the dictionary with a fixed-size Cell?[] 

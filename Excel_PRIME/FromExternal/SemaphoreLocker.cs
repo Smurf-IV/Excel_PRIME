@@ -94,6 +94,17 @@ internal sealed class SemaphoreLocker : IDisposable
         }
     }
 
+    // New non-allocating lock helpers
+    public void Enter()
+    {
+        _semaphore.Wait();
+    }
+
+    public void Exit()
+    {
+        _semaphore.Release();
+    }
+
     private void Dispose(bool isDisposing)
     {
         if (!_isDisposed)

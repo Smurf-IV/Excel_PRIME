@@ -37,9 +37,9 @@ public class GetRangeClosedXML : IGetRange
             rangesLocal = wb!.Ranges(definedName);
         }
 
-        foreach (var range in rangesLocal)
+        foreach (IXLRange range in rangesLocal)
         {
-            foreach (var row in range.Rows())
+            foreach (IXLRangeRow? row in range.Rows())
             {
                 yield return row.Cells().Select(c => c.Value.ToString());
             }

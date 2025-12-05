@@ -21,7 +21,7 @@ public class GetRangeExcelPrime : IGetRange
         IEnumerable<object?[]> rangeRows = localSheetId.HasValue
                 ? _workbook.GetDefinedRange(definedName, localSheetId.Value)
                 : _workbook.GetDefinedRange(definedName);
-        foreach (var rangeRow in rangeRows)
+        foreach (object?[] rangeRow in rangeRows)
         {
             yield return rangeRow;
         }
@@ -30,7 +30,7 @@ public class GetRangeExcelPrime : IGetRange
     public IEnumerable<IEnumerable<object?>> GetRange(string userRange, string sheetName)
     {
         IEnumerable<object?[]> rangeRows = _workbook.GetDefinedRange(userRange, sheetName);
-        foreach (var rangeRow in rangeRows)
+        foreach (object?[] rangeRow in rangeRows)
         {
             yield return rangeRow.Select(cell => cell?.ToString());
         }

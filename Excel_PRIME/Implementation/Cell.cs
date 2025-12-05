@@ -119,7 +119,8 @@ internal sealed record Cell : ICell
                         }
                         else
                         {
-                            value = new string(buffer.AsSpan(0, len));
+                            // Prefer returning ReadOnlyMemory<char> to avoid allocating a new string
+                            value = new ReadOnlyMemory<char>(buffer.AsSpan(0, len).ToArray());
                         }
                         break;
 
@@ -245,7 +246,7 @@ internal sealed record Cell : ICell
                         }
                         else
                         {
-                            value = new string(buffer.AsSpan(0, len));
+                            value = new ReadOnlyMemory<char>(buffer.AsSpan(0, len).ToArray());
                         }
                         break;
 
@@ -275,45 +276,65 @@ internal sealed record Cell : ICell
         {
             return string.Empty;
         }
-        XmlReader subReader = reader;
 
-        if (subReader.NodeType == XmlNodeType.Element)
+        // If we're positioned on an element, parse its inner textual content by
+        // iterating over the reader until we exit the element's depth. Avoid
+        // creating a subtree XmlReader to reduce allocations (XmlSubtreeReader.NodeData).
+        if (reader.NodeType == XmlNodeType.Element)
         {
-            if (subReader.IsEmptyElement)
+            if (reader.IsEmptyElement)
             {
                 return string.Empty;
             }
 
-            subReader = reader.ReadSubtree();
-            if (subReader.Read())
+            int startDepth = reader.Depth;
+
+            // Move to the first node inside the element
+            if (!reader.Read())
             {
-                if (reader.NodeType == XmlNodeType.EndElement)
+                return string.Empty;
+            }
+
+            string result = string.Empty;
+            int hasMultipleTextForCell = 0;
+
+            while (reader.Depth > startDepth)
+            {
+                var nt = reader.NodeType;
+                bool isTextual = nt == XmlNodeType.Text || nt == XmlNodeType.CDATA || nt == XmlNodeType.Whitespace || nt == XmlNodeType.SignificantWhitespace;
+                if (isTextual)
                 {
-                    return string.Empty;
+                    if (hasMultipleTextForCell++ > 0)
+                    {
+                        valueBuilder.Append(result);
+                    }
+                    result = reader.Value;
+                }
+
+                if (!reader.Read())
+                {
+                    break;
                 }
             }
-        }
-        string result = string.Empty;
-        int hasMultipleTextForCell = 0;
-        while (IsTextualNode(reader.NodeType))
-        {
-            if (hasMultipleTextForCell++ > 0)
+
+            if (hasMultipleTextForCell > 1)
             {
+                // Append last piece and return combined string
                 valueBuilder.Append(result);
+                result = valueBuilder.ToString();
             }
-            result = reader.Value;
-            if (!subReader.Read())
-            {
-                break;
-            }
+
+            return result;
         }
-        if (hasMultipleTextForCell > 1)
+
+        // Not positioned on an element - return value if textual
+        var nodeType = reader.NodeType;
+        if (nodeType == XmlNodeType.Text || nodeType == XmlNodeType.CDATA || nodeType == XmlNodeType.Whitespace || nodeType == XmlNodeType.SignificantWhitespace)
         {
-            // Add last iteration, and get current combined string
-            valueBuilder.Append(result);
-            result = valueBuilder.ToString();
+            return reader.Value;
         }
-        return result;
+
+        return string.Empty;
     }
 
     private const uint IsTextualNodeBitmap = 0x6018; // 00 0110 0000 0001 1000
@@ -442,7 +463,8 @@ internal sealed record Cell : ICell
         {   //  	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
             return resultD;
         }
-        return new string(asSpan);
+        // Fall back to ReadOnlyMemory to avoid immediate string allocation; callers that need string can ToString()
+        return new ReadOnlyMemory<char>(asSpan.ToArray());
     }
 
 

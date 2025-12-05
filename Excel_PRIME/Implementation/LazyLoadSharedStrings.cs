@@ -88,7 +88,8 @@ internal sealed class LazyLoadSharedStrings : ISharedString
             // Many sheets may be attempting to get shared strings
             if (requestIndex >= _currentlyLoaded.Count)
             {
-                _locker.Lock(() =>
+                _locker.Enter();
+                try
                 {
                     // Use additional offset to reduce locking intensity
                     LoadUntil(requestIndex+16);
@@ -99,7 +100,11 @@ internal sealed class LazyLoadSharedStrings : ISharedString
                         // Release resources
                         _reader.Close();
                     }
-                });
+                }
+                finally
+                {
+                    _locker.Exit();
+                }
             }
 
             if (requestIndex >= _currentlyLoaded.Count)
