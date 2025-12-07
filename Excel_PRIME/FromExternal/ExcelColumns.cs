@@ -37,10 +37,33 @@ internal static class ExcelColumns
     /// <summary>
     /// Convert ColumnNameRef - Character(s) into a Row - Column Excel Number eg A->1, B->2, AA -> 27
     /// </summary>
-    public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this string columnRef) =>
-           columnRef.Length == 0
-               ? (0, 0, [])
-               : columnRef.AsSpan().GetRowColNumbers();
+    public static (int rowExcel, int colExcel, ReadOnlyMemory<char> colName) GetRowColNumbers(this string columnRef)
+        => string.IsNullOrEmpty(columnRef) ? (0, 0, ReadOnlyMemory<char>.Empty) : GetRowColNumbersFromString(columnRef);
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static (int rowExcel, int colExcel, ReadOnlyMemory<char> colName) GetRowColNumbersFromString(string columnRowRef)
+    {
+        ReadOnlySpan<char> span = columnRowRef.AsSpan();
+        int colExcel = -1;
+        int i = 0;
+        for (; i < span.Length; i++)
+        {
+            ref readonly char c = ref span[i];
+            if (c >= 'A')
+            {
+                colExcel = ((colExcel + 1) * 26) + (c - 'A');
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        colExcel++; // Make it into the Excel 1 offset #
+        ReadOnlyMemory<char> colName = columnRowRef.AsMemory(0, i);
+        int rowExcel = span.Slice(i).IntParse();
+        return (rowExcel, colExcel, colName);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRowRefSpan)

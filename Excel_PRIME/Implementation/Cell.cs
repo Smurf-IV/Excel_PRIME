@@ -59,7 +59,6 @@ internal sealed record Cell : ICell
         reader.MoveToElement();
         if (!reader.IsEmptyElement
             && reader.ReadToDescendant(readerAtoms.vRefAtom)
-            //&& ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
            )
         {
             // Move to data
@@ -73,7 +72,7 @@ internal sealed record Cell : ICell
                 }
                 else
                 {
-                    value = ReadString(reader, valueBuilder);
+                    value = ReadString(reader, valueBuilder, buffer);
                 }
             }
             else
@@ -83,7 +82,7 @@ internal sealed record Cell : ICell
                     case CellType.Unknown:
                     case CellType.Formula:
                     case CellType.InlineString:
-                        value = ReadString(reader, valueBuilder);
+                        value = ReadString(reader, valueBuilder, buffer);
                         break;
 
                     case CellType.Numeric:
@@ -103,7 +102,7 @@ internal sealed record Cell : ICell
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = ReadString(reader, valueBuilder);
+                        value = ReadString(reader, valueBuilder, buffer);
                         break;
 
                     case CellType.Date:
@@ -186,7 +185,6 @@ internal sealed record Cell : ICell
         reader.MoveToElement();
         if (!reader.IsEmptyElement
             && reader.ReadToDescendant(readerAtoms.vRefAtom)
-           //&& ReferenceEquals(reader.LocalName, readerAtoms.vRefAtom)
            )
         {
             // Move to data
@@ -200,7 +198,7 @@ internal sealed record Cell : ICell
                 }
                 else
                 {
-                    value = ReadString(reader, valueBuilder);
+                    value = ReadString(reader, valueBuilder, buffer);
                 }
             }
             else
@@ -210,7 +208,7 @@ internal sealed record Cell : ICell
                     case CellType.Unknown:
                     case CellType.Formula:
                     case CellType.InlineString:
-                        value = ReadString(reader, valueBuilder);
+                        value = ReadString(reader, valueBuilder, buffer);
                         break;
 
                     case CellType.Numeric:
@@ -230,7 +228,7 @@ internal sealed record Cell : ICell
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = ReadString(reader, valueBuilder);
+                        value = ReadString(reader, valueBuilder, buffer);
                         break;
 
                     case CellType.Date:
@@ -270,7 +268,7 @@ internal sealed record Cell : ICell
     }
 
     #region Borrowed and some finessing from XMLReader source
-    private static string ReadString(XmlReader reader, StringBuilder valueBuilder)
+    private static string ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
     {
         if (reader.ReadState != ReadState.Interactive)
         {
@@ -278,13 +276,23 @@ internal sealed record Cell : ICell
         }
 
         // If we're positioned on an element, parse its inner textual content by
-        // iterating over the reader until we exit the element's depth. Avoid
-        // creating a subtree XmlReader to reduce allocations (XmlSubtreeReader.NodeData).
+        // using ReadElementContentAsString fast path where possible, otherwise
+        // collect text with ReadValueChunk into the provided buffer to minimize allocations.
         if (reader.NodeType == XmlNodeType.Element)
         {
             if (reader.IsEmptyElement)
             {
                 return string.Empty;
+            }
+
+            // Try the optimized fast path first
+            try
+            {
+                return reader.ReadElementContentAsString();
+            }
+            catch
+            {
+                // fallthrough to manual chunked read
             }
 
             int startDepth = reader.Depth;
@@ -295,20 +303,26 @@ internal sealed record Cell : ICell
                 return string.Empty;
             }
 
-            string result = string.Empty;
-            int hasMultipleTextForCell = 0;
+            valueBuilder.Clear();
+            bool wroteAny = false;
 
             while (reader.Depth > startDepth)
             {
-                var nt = reader.NodeType;
+                XmlNodeType nt = reader.NodeType;
                 bool isTextual = nt == XmlNodeType.Text || nt == XmlNodeType.CDATA || nt == XmlNodeType.Whitespace || nt == XmlNodeType.SignificantWhitespace;
                 if (isTextual)
                 {
-                    if (hasMultipleTextForCell++ > 0)
+                    // Read text content in chunks into buffer and append
+                    int read;
+                    do
                     {
-                        valueBuilder.Append(result);
-                    }
-                    result = reader.Value;
+                        read = reader.ReadValueChunk(buffer, 0, buffer.Length);
+                        if (read > 0)
+                        {
+                            valueBuilder.Append(buffer, 0, read);
+                            wroteAny = true;
+                        }
+                    } while (read > 0);
                 }
 
                 if (!reader.Read())
@@ -317,18 +331,11 @@ internal sealed record Cell : ICell
                 }
             }
 
-            if (hasMultipleTextForCell > 1)
-            {
-                // Append last piece and return combined string
-                valueBuilder.Append(result);
-                result = valueBuilder.ToString();
-            }
-
-            return result;
+            return wroteAny ? valueBuilder.ToString() : string.Empty;
         }
 
         // Not positioned on an element - return value if textual
-        var nodeType = reader.NodeType;
+        XmlNodeType nodeType = reader.NodeType;
         if (nodeType == XmlNodeType.Text || nodeType == XmlNodeType.CDATA || nodeType == XmlNodeType.Whitespace || nodeType == XmlNodeType.SignificantWhitespace)
         {
             return reader.Value;
@@ -385,14 +392,14 @@ internal sealed record Cell : ICell
     }
     #endregion
 
-    private static object? TryParseOrder(CellConversion optionsCellConversionType, ReadOnlySpan<char> asSpan)
+    private static object? TryParseOrder(CellConversion optionsCell_conversionType, ReadOnlySpan<char> asSpan)
     {
         if (asSpan.Length == 0)
         {
             return null;
         }
 
-        return optionsCellConversionType switch
+        return optionsCell_conversionType switch
         {
             CellConversion.None => new ReadOnlyMemory<char>(asSpan.ToArray()),
             CellConversion.Number => PerformNumberLiteralConversion(asSpan),
@@ -460,7 +467,7 @@ internal sealed record Cell : ICell
         }
         if (double.TryParse(asSpan, NumberStyles.Float,
                 CultureInfo.InvariantCulture, out double resultD))
-        {   //  	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
+        {   //   	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
             return resultD;
         }
         // Fall back to ReadOnlyMemory to avoid immediate string allocation; callers that need string can ToString()

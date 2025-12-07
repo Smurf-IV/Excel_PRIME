@@ -36,16 +36,32 @@ internal sealed class SharedStringsRestrictedNameTable : NameTable
             case 0:
                 return string.Empty;
             case 1:
-                if (value[0] == tAtom[0]) return tAtom;
+                if (value[0] == tAtom[0])
+                {
+                    return tAtom;
+                }
+
                 break;
             case 2:
-                if (value.SequenceEqual(siAtom)) return siAtom;
+                if (value.SequenceEqual(siAtom))
+                {
+                    return siAtom;
+                }
+
                 break;
             case 3:
-                if (value.SequenceEqual(sstAtom)) return sstAtom;
+                if (value.SequenceEqual(sstAtom))
+                {
+                    return sstAtom;
+                }
+
                 break;
             case 11:
-                if (value.SequenceEqual(uniqueCountAtom)) return uniqueCountAtom;
+                if (value.SequenceEqual(uniqueCountAtom))
+                {
+                    return uniqueCountAtom;
+                }
+
                 break;
         }
         return null;
@@ -94,22 +110,54 @@ internal sealed class SheetRestrictedNameTable : NameTable
                 }
                 break;
             case 2:
-                if (value.SequenceEqual(isAtom)) return isAtom;
+                if (value.SequenceEqual(isAtom))
+                {
+                    return isAtom;
+                }
+
                 break;
             case 3:
                 // ReSharper disable once ConvertIfStatementToSwitchStatement
-                if (value.SequenceEqual(rowAtom)) return rowAtom;
-                if (value.SequenceEqual(colAtom)) return colAtom;
-                if (value.SequenceEqual(refAtom)) return refAtom;
+                if (value.SequenceEqual(rowAtom))
+                {
+                    return rowAtom;
+                }
+
+                if (value.SequenceEqual(colAtom))
+                {
+                    return colAtom;
+                }
+
+                if (value.SequenceEqual(refAtom))
+                {
+                    return refAtom;
+                }
+
                 break;
             case 6:
-                if (value.SequenceEqual(hiddenAtom)) return hiddenAtom;
+                if (value.SequenceEqual(hiddenAtom))
+                {
+                    return hiddenAtom;
+                }
+
                 break;
             case 9:
                 // ReSharper disable once ConvertIfStatementToSwitchStatement
-                if (value.SequenceEqual(dimensionAtom)) return dimensionAtom;
-                if (value.SequenceEqual(sheetDataAtom)) return sheetDataAtom;
-                if (value.SequenceEqual(worksheetAtom)) return worksheetAtom;
+                if (value.SequenceEqual(dimensionAtom))
+                {
+                    return dimensionAtom;
+                }
+
+                if (value.SequenceEqual(sheetDataAtom))
+                {
+                    return sheetDataAtom;
+                }
+
+                if (value.SequenceEqual(worksheetAtom))
+                {
+                    return worksheetAtom;
+                }
+
                 break;
         }
         return null;
@@ -144,30 +192,66 @@ internal sealed class WorkBookRestrictedNameTable : NameTable
             case 0:
                 return string.Empty;
             case 2:
-                if (value.SequenceEqual(idAtom)) return idAtom;
+                if (value.SequenceEqual(idAtom))
+                {
+                    return idAtom;
+                }
+
                 break;
             case 4:
-                if (value.SequenceEqual(nameAtom)) return nameAtom;
+                if (value.SequenceEqual(nameAtom))
+                {
+                    return nameAtom;
+                }
+
                 break;
             case 5:
-                if (value.SequenceEqual(sheetAtom)) return sheetAtom;
+                if (value.SequenceEqual(sheetAtom))
+                {
+                    return sheetAtom;
+                }
+
                 break;
             case 6:
-                if (value.SequenceEqual(sheetsAtom)) return sheetsAtom;
+                if (value.SequenceEqual(sheetsAtom))
+                {
+                    return sheetsAtom;
+                }
+
                 break;
             case 7:
                 // ReSharper disable once ConvertIfStatementToSwitchStatement
-                if (value.SequenceEqual(xmlns_rAtom)) return xmlns_rAtom;
-                if (value.SequenceEqual(sheetIdAtom)) return sheetIdAtom;
+                if (value.SequenceEqual(xmlns_rAtom))
+                {
+                    return xmlns_rAtom;
+                }
+
+                if (value.SequenceEqual(sheetIdAtom))
+                {
+                    return sheetIdAtom;
+                }
+
                 break;
             case 8:
-                if (value.SequenceEqual(workbookAtom)) return workbookAtom;
+                if (value.SequenceEqual(workbookAtom))
+                {
+                    return workbookAtom;
+                }
+
                 break;
             case 11:
-                if (value.SequenceEqual(definedNameAtom)) return definedNameAtom;
+                if (value.SequenceEqual(definedNameAtom))
+                {
+                    return definedNameAtom;
+                }
+
                 break;
             case 12:
-                if (value.SequenceEqual(definedNamesAtom)) return definedNamesAtom;
+                if (value.SequenceEqual(definedNamesAtom))
+                {
+                    return definedNamesAtom;
+                }
+
                 break;
         }
         return null;

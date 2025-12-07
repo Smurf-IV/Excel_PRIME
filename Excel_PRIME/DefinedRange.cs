@@ -16,19 +16,46 @@ public record DefinedRange
     /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
     internal DefinedRange(in string reference)
     {
-        if (reference.Contains('!'))
+        ReadOnlySpan<char> span = reference.AsSpan();
+        int exclIndex = span.IndexOf('!');
+        if (exclIndex >= 0)
         {
-            DoExtractBasedOnSheetName(reference);
+            // sheet name may be quoted with '
+            ReadOnlySpan<char> sheetSpan = span.Slice(0, exclIndex);
+            if (sheetSpan.Length > 0 && sheetSpan[0] == '\'')
+            {
+                // Trim leading and trailing single quote
+                if (sheetSpan.Length >= 2 && sheetSpan[^1] == '\'')
+                {
+                    SheetName = new string(sheetSpan.Slice(1, sheetSpan.Length - 2));
+                }
+                else
+                {
+                    SheetName = sheetSpan.ToString();
+                }
+            }
+            else
+            {
+                SheetName = sheetSpan.ToString();
+            }
+
+            ReadOnlySpan<char> range = span.Slice(exclIndex + 1);
+            if (range.IndexOf(':') >= 0)
+            {
+                DoExtractBasedOnCellRange(range);
+            }
+            else if (range.IndexOf('$') >= 0)
+            {
+                DoExtractBasedOnSingleCell(range);
+            }
         }
-        else if (reference.Contains(':'))
+        else if (span.IndexOf(':') >= 0)
         {
-            // e.g $A$1:$A$4
-            DoExtractBasedOnCellRange(reference);
+            DoExtractBasedOnCellRange(span);
         }
-        else if (reference.Contains('$'))
+        else if (span.IndexOf('$') >= 0)
         {
-            // e.g. $A$1
-            DoExtractBasedOnSingleCell(reference);
+            DoExtractBasedOnSingleCell(span);
         }
         else
         {
@@ -37,48 +64,101 @@ public record DefinedRange
         }
     }
 
-    private void DoExtractBasedOnSheetName(in string reference)
+    private void DoExtractBasedOnSingleCell(ReadOnlySpan<char> range) // e.g. "$C$12" or span of that
     {
-        string[] splitReference = reference.Split('!');
-
-        SheetName = splitReference[0].Trim('\'');
-        string range = splitReference[1];
-
-        if (range.Contains(':'))     // "$C$12:$E$12"
+        // Expect patterns like $C$12 or maybe C12
+        // Find first '$' then next '$'
+        int firstDollar = range.IndexOf('$');
+        int secondDollar = -1;
+        if (firstDollar >= 0)
         {
-            DoExtractBasedOnCellRange(range);
+            secondDollar = range.Slice(firstDollar + 1).IndexOf('$');
+            if (secondDollar >= 0)
+            {
+                secondDollar += firstDollar + 1;
+            }
         }
-        else if (range.Contains('$'))   // "$C$12"
+
+        if (firstDollar >= 0 && secondDollar > firstDollar)
         {
-            DoExtractBasedOnSingleCell(range);
+            ReadOnlySpan<char> colSpan = range.Slice(firstDollar + 1, secondDollar - (firstDollar + 1));
+            ReadOnlySpan<char> rowSpan = range.Slice(secondDollar + 1);
+            ExcelColumnStart = ExcelColumnEnd = colSpan.GetColNumber();
+            ExcelRowStart = ExcelRowEnd = rowSpan.IntParse();
+        }
+        else
+        {
+            // fallback: try parsing letters then digits
+            int i = 0;
+            while (i < range.Length && !char.IsDigit(range[i])) i++;
+            ReadOnlySpan<char> col = range.Slice(0, i);
+            ReadOnlySpan<char> row = range.Slice(i);
+            ExcelColumnStart = ExcelColumnEnd = col.GetColNumber();
+            ExcelRowStart = ExcelRowEnd = row.IntParse();
         }
     }
 
-    private void DoExtractBasedOnSingleCell(in string range) // "$C$12"
-    {
-        string[] strings = range.Split('$');
-        ExcelColumnStart = ExcelColumnEnd = strings[1].GetColNumber();
-        ExcelRowEnd = ExcelRowStart = strings[2].IntParse();
-    }
-
-    private void DoExtractBasedOnCellRange(in string range) // "$C$12:$E$12"
+    private void DoExtractBasedOnCellRange(ReadOnlySpan<char> range) // e.g. "$C$12:$E$12" or similar
     {
         // Default value
         ExcelRowStart = 1;
-        string[] splitRange = range.Split(':');
-        //if (splitRange.Length > 1)
+        int colon = range.IndexOf(':');
+        ReadOnlySpan<char> left = colon >= 0 ? range.Slice(0, colon) : range;
+        ReadOnlySpan<char> right = colon >= 0 ? range.Slice(colon + 1) : ReadOnlySpan<char>.Empty;
+
+        // parse left
+        if (left.Length > 0)
         {
-            string[] startRef = splitRange[0].Split('$');
-            ExcelColumnStart = startRef[1].GetColNumber();  // Start with a '$', therefore first entry is empty
-            string[] endRef = splitRange[1].Split('$');
-            ExcelColumnEnd = endRef[1].GetColNumber();
-            if (startRef.Length > 2)
+            int firstDollar = left.IndexOf('$');
+            int secondDollar = -1;
+            if (firstDollar >= 0)
             {
-                ExcelRowStart = startRef[2].IntParse();
+                secondDollar = left.Slice(firstDollar + 1).IndexOf('$');
+                if (secondDollar >= 0) secondDollar += firstDollar + 1;
             }
-            if (endRef.Length > 2)
+
+            if (firstDollar >= 0 && secondDollar > firstDollar)
             {
-                ExcelRowEnd = endRef[2].IntParse();
+                ReadOnlySpan<char> startCol = left.Slice(firstDollar + 1, secondDollar - (firstDollar + 1));
+                ExcelColumnStart = startCol.GetColNumber();
+                if (secondDollar + 1 < left.Length)
+                {
+                    ExcelRowStart = left.Slice(secondDollar + 1).IntParse();
+                }
+            }
+            else
+            {
+                int i = 0; while (i < left.Length && !char.IsDigit(left[i])) i++;
+                ExcelColumnStart = left.Slice(0, i).GetColNumber();
+                if (i < left.Length) ExcelRowStart = left.Slice(i).IntParse();
+            }
+        }
+
+        // parse right
+        if (right.Length > 0)
+        {
+            int firstDollar = right.IndexOf('$');
+            int secondDollar = -1;
+            if (firstDollar >= 0)
+            {
+                secondDollar = right.Slice(firstDollar + 1).IndexOf('$');
+                if (secondDollar >= 0) secondDollar += firstDollar + 1;
+            }
+
+            if (firstDollar >= 0 && secondDollar > firstDollar)
+            {
+                ReadOnlySpan<char> endCol = right.Slice(firstDollar + 1, secondDollar - (firstDollar + 1));
+                ExcelColumnEnd = endCol.GetColNumber();
+                if (secondDollar + 1 < right.Length)
+                {
+                    ExcelRowEnd = right.Slice(secondDollar + 1).IntParse();
+                }
+            }
+            else
+            {
+                int i = 0; while (i < right.Length && !char.IsDigit(right[i])) i++;
+                ExcelColumnEnd = right.Slice(0, i).GetColNumber();
+                if (i < right.Length) ExcelRowEnd = right.Slice(i).IntParse();
             }
         }
     }

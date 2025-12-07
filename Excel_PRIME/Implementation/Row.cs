@@ -118,7 +118,7 @@ internal sealed class Row : IRowAsync
     /// <InheritDoc />
     public int RowOffset { get; private set; }
 
-    private const int BufferSize = 64;
+    private const int BufferSize = 512;
 
     /// <summary>
     /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.

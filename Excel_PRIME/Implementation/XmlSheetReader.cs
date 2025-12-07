@@ -95,7 +95,7 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
                 if (_reader.IsEmptyElement)
                 {
                     // TODO: Need to understand when and how this is used
-                    continue;
+                    //continue;
                 }
             }
             else if (ReferenceEquals(readerLocalName, sheetDataRefAtom))

@@ -119,59 +119,86 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         }
     }
 
+    // TODO: If passed the CancellationToken, should it also be Async ?
     private void LoadUntil(int untilIndex)
     {
-        // TODO: If passed the CancellationToken, should it also be Async ?
-        // ReSharper disable once TooWideLocalVariableScope
-        string cellValueText;
+        // Parse sequentially until we have loaded enough shared strings.
         while (untilIndex >= _currentlyLoaded.Count
                && _reader.Read()
                && !_reader.EOF
               )
         {
-            if (_reader.NodeType == XmlNodeType.Element)
+            if (_reader.NodeType != XmlNodeType.Element)
             {
-                // Use the pre-atomized string for lightning-fast comparison
-                if (ReferenceEquals(_reader.LocalName, _siRefAtom))
+                continue;
+            }
+
+            // Use the pre-atomized string for lightning-fast comparison
+            if (!ReferenceEquals(_reader.LocalName, _siRefAtom))
+            {
+                continue;
+            }
+
+            _currentStNodeBuilder.Length = 0;
+
+            if (_reader.IsEmptyElement)
+            {
+                _currentlyLoaded.Add(string.Empty);
+                continue;
+            }
+
+            int siDepth = _reader.Depth;
+
+            // Iterate through nodes until we exit the <si> element
+            while (_reader.Read())
+            {
+                // If we've reached the end of <si>, break
+                if (_reader.NodeType == XmlNodeType.EndElement && _reader.Depth == siDepth)
                 {
-                    _currentStNodeBuilder.Length = 0;
-                    int hasMultipleTextForCell = 0;
-                    cellValueText = string.Empty;
-                    XmlReader subReader = _reader.ReadSubtree();
-                    while (subReader.Read()
-                           && !subReader.EOF
-                          )
+                    break;
+                }
+
+                // When we encounter a <t> element, collect its textual content without creating a subtree reader
+                if (_reader.NodeType == XmlNodeType.Element && ReferenceEquals(_reader.LocalName, _tRefAtom))
+                {
+                    if (_reader.IsEmptyElement)
                     {
-                        if (subReader.NodeType == XmlNodeType.Element)
+                        // nothing
+                        continue;
+                    }
+
+                    int tDepth = _reader.Depth;
+                    // Move to the first node inside <t>
+                    if (!_reader.Read())
+                    {
+                        break;
+                    }
+
+                    // Collect all text-like nodes until we exit the <t> element
+                    while (!_reader.EOF)
+                    {
+                        if (_reader.NodeType == XmlNodeType.Text || _reader.NodeType == XmlNodeType.CDATA
+                            || _reader.NodeType == XmlNodeType.Whitespace || _reader.NodeType == XmlNodeType.SignificantWhitespace)
                         {
-                            // Use the pre-atomized string for lightning-fast comparison
-                            if (ReferenceEquals(subReader.LocalName, _tRefAtom))
-                            {
-                                if (subReader.IsEmptyElement)
-                                {
-                                    continue;
-                                }
+                            _currentStNodeBuilder.Append(_reader.Value);
+                        }
 
-                                if (hasMultipleTextForCell++ > 0)
-                                {
-                                    _currentStNodeBuilder.Append(cellValueText);
-                                }
+                        if (_reader.NodeType == XmlNodeType.EndElement && _reader.Depth == tDepth)
+                        {
+                            break;
+                        }
 
-                                cellValueText = subReader.ReadElementContentAsString();
-                            }
+                        if (!_reader.Read())
+                        {
+                            break;
                         }
                     }
 
-                    if (hasMultipleTextForCell > 1)
-                    {
-                        // Add last iteration, and get current combined string
-                        _currentStNodeBuilder.Append(cellValueText);
-                        cellValueText = _currentStNodeBuilder.ToString();
-                    }
-
-                    _currentlyLoaded.Add(cellValueText);
+                    // after inner loop, reader is positioned on the EndElement of <t> (or after), continue outer loop
                 }
             }
+
+            _currentlyLoaded.Add(_currentStNodeBuilder.ToString());
         }
     }
 

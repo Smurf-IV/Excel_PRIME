@@ -1,4 +1,4 @@
-﻿# 2025-12-## - Beta V2
+﻿# 2025-12-07 - Beta V2
 - Investigate _memory usage_(s) 🧑‍💻
     - Removed finalizers from several classes
     - Added a lightweight Row pooling strategy
@@ -7,7 +7,8 @@
 - Some code Cleanup
 - Prefer returning ReadOnlyMemory<char> to avoid allocating a new string
 - Sacrificed a little speed..
-- 
+    - [Performance on 2025-12-07](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-07)
+
 # 2025-12-01 - Beta V2
 - Investigate _memory usage_(s) 🧑‍💻
     - Replaced the dictionary with a fixed-size Cell?[] 

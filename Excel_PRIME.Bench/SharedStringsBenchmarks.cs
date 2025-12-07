@@ -3,10 +3,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Threading;
-using BenchmarkDotNet.Attributes;
-using ExcelPRIME;
+using System.Threading.Tasks;
 
-namespace Excel_PRIME.Bench;
+using BenchmarkDotNet.Attributes;
+
+namespace ExcelPRIME.Bench;
 
 [MemoryDiagnoser]
 public class SharedStringsBenchmarks
@@ -29,7 +30,7 @@ public class SharedStringsBenchmarks
         string path = Path.Combine(RootFolder, FileName);
         FileStream fs = File.OpenRead(path);
         archive = new ZipArchive(fs, ZipArchiveMode.Read, leaveOpen: false);
-        var entry = archive.GetEntry("xl/sharedStrings.xml");
+        ZipArchiveEntry? entry = archive.GetEntry("xl/sharedStrings.xml");
         if (entry == null)
         {
             return;
@@ -37,18 +38,18 @@ public class SharedStringsBenchmarks
         sharedStringsStream = entry.Open();
 
         // Instantiate internal XmlReaderHelpersAsync via reflection and call GetSharedStringsAsync
-        var asm = Assembly.Load("Excel_PRIME");
-        var helperType = asm.GetType("ExcelPRIME.Implementation.XmlReaderHelpersAsync", throwOnError: false, ignoreCase: false);
+        Assembly asm = Assembly.Load("Excel_PRIME");
+        Type? helperType = asm.GetType("ExcelPRIME.Implementation.XmlReaderHelpersAsync", throwOnError: false, ignoreCase: false);
         if (helperType != null)
         {
             // Create instance (internal) via Activator
             object? helper = Activator.CreateInstance(helperType, nonPublic: true);
             if (helper != null)
             {
-                var getSharedStringsAsync = helperType.GetMethod("GetSharedStringsAsync", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                MethodInfo? getSharedStringsAsync = helperType.GetMethod("GetSharedStringsAsync", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                 if (getSharedStringsAsync != null)
                 {
-                    var task = (System.Threading.Tasks.Task<ISharedString>)getSharedStringsAsync.Invoke(helper, new object[] { sharedStringsStream, CancellationToken.None })!;
+                    Task<ISharedString> task = (System.Threading.Tasks.Task<ISharedString>)getSharedStringsAsync.Invoke(helper, new object[] { sharedStringsStream, CancellationToken.None })!;
                     task.Wait();
                     sharedStrings = task.Result;
                 }
@@ -64,30 +65,44 @@ public class SharedStringsBenchmarks
         archive?.Dispose();
     }
 
-    //[Benchmark(Baseline = true)]
+    [Benchmark(Baseline = true)]
     public int AccessFirstThousandSequential()
     {
-        if (sharedStrings is null) return 0;
+        if (sharedStrings is null)
+        {
+            return 0;
+        }
+
         int total = 0;
         for (int i = 0; i < 1000; i++)
         {
             string? s = sharedStrings[i];
-            if (s != null) total += s.Length;
+            if (s != null)
+            {
+                total += s.Length;
+            }
         }
         return total;
     }
 
-   // [Benchmark]
+    [Benchmark]
     public int AccessRandomThousand()
     {
-        if (sharedStrings is null) return 0;
+        if (sharedStrings is null)
+        {
+            return 0;
+        }
+
         int total = 0;
-        var rnd = new Random(42);
+        Random rnd = new Random(42);
         for (int i = 0; i < 1000; i++)
         {
             int idx = rnd.Next(0, 5000);
             string? s = sharedStrings[idx];
-            if (s != null) total += s.Length;
+            if (s != null)
+            {
+                total += s.Length;
+            }
         }
         return total;
     }
