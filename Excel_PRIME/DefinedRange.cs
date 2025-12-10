@@ -64,6 +64,54 @@ public record DefinedRange
         }
     }
 
+    /// <summary>
+    /// Defines a cell range using variables
+    /// </summary>
+    /// <param name="columnStart">Column Letter start</param>
+    /// <param name="columnEnd">Column Letter end</param>
+    /// <param name="rowStart">First row number</param>
+    /// <param name="rowEnd">last row number [Excel 2010 specifies 1_048_576, but Power Query can go upto  1_999_999_997]</param>
+    /// <param name="sheetName">The Sheet this will be applied to.</param>
+    public DefinedRange(in string sheetName, ReadOnlySpan<char> columnStart, ReadOnlySpan<char> columnEnd, int rowStart = 1, int rowEnd = 1_048_576)
+    {
+        SheetName = sheetName;
+        Name = string.Empty;
+        SheetIdReference = string.Empty;
+        ExcelColumnStart = columnStart.GetColNumber();
+        ExcelColumnEnd = columnEnd.GetColNumber();
+        ExcelRowStart = rowStart;
+        ExcelRowEnd = rowEnd;
+    }
+
+    /// <summary>
+    /// User defined range (With or Without `$`'s, e.g., `A1:B2`)
+    /// </summary>
+    /// <param name="userRange"></param>
+    /// <param name="sheetName"></param>
+    public DefinedRange(in string userRange, in string sheetName)
+    {
+        if (string.IsNullOrWhiteSpace(userRange))
+        {
+            throw new ArgumentException("userRange cannot be null or whitespace", nameof(userRange));
+        }
+        if (string.IsNullOrWhiteSpace(sheetName))
+        {
+            throw new ArgumentException("sheetName cannot be null or whitespace", nameof(sheetName));
+        }
+
+        SheetName = sheetName;
+        Name = userRange;
+        SheetIdReference = string.Empty;
+        if (userRange.Contains(':'))
+        {
+            DoExtractBasedOnCellRange(userRange);
+        }
+        else 
+        {
+            DoExtractBasedOnSingleCell(userRange);
+        }
+    }
+    
     private void DoExtractBasedOnSingleCell(ReadOnlySpan<char> range) // e.g. "$C$12" or span of that
     {
         // Expect patterns like $C$12 or maybe C12
@@ -164,26 +212,9 @@ public record DefinedRange
     }
 
     /// <summary>
-    /// Defines a cell range using variables
-    /// </summary>
-    /// <param name="columnStart">Column Letter start</param>
-    /// <param name="columnEnd">Column Letter end</param>
-    /// <param name="rowStart">First row number</param>
-    /// <param name="rowEnd">last row number [Excel 2010 specifies 1_048_576, but Power Query can go upto  1_999_999_997]</param>
-    /// <param name="sheetName">The Sheet this will be applied to.</param>
-    public DefinedRange(in string sheetName, ReadOnlySpan<char> columnStart, ReadOnlySpan<char> columnEnd, int rowStart = 1, int rowEnd = 1_048_576)
-    {
-        SheetName = sheetName;
-        ExcelColumnStart = columnStart.GetColNumber();
-        ExcelColumnEnd = columnEnd.GetColNumber();
-        ExcelRowStart = rowStart;
-        ExcelRowEnd = rowEnd;
-    }
-
-    /// <summary>
     /// Xml.Attribute("name").Value; 
     /// </summary>
-    public required string Name { get; init; }
+    public string Name { get; init; }
 
     /// <summary>
     /// What SheetName (If Any) does this belong to
@@ -213,7 +244,7 @@ public record DefinedRange
     /// <summary>
     /// Xml.Value;
     /// </summary>
-    public required string SheetIdReference { get; init; }
+    public string SheetIdReference { get; init; }
 
     /// <summary>
     /// Xml.Value;

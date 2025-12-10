@@ -300,6 +300,35 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         }
     }
 
+
+    /// <InheritDoc />
+    public async IAsyncEnumerable<object?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
+        if (targetSheet == null)
+        {
+            yield break;
+        }
+        (int rowMax, int colMax, ReadOnlyMemory<char> colName) = range.GetRowColNumbers();
+
+        DefinedRange definedRange = new DefinedRange(range, sheetName);
+
+        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        {
+            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+        }
+    }
+
+    /// <InheritDoc />
+    public IEnumerable<object?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
+        if (targetSheet == null)
+        {
+            yield break;
+        }
+    }
+
     /// <InheritDoc />
     public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {

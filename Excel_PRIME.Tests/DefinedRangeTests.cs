@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -43,6 +44,7 @@ internal class DefinedRangeTests
 
         // Do not fallover with <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
         object?[][] prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        prices.Should().BeNullOrEmpty();
     }
 
     [Test]
@@ -82,11 +84,11 @@ internal class DefinedRangeTests
 
     public static Type[] Rangers = // for multiple arguments it's an IEnumerable of IGetRange's
     [
-        typeof(GetRangeExcelPrime),  //  8.8 
-        typeof(GetRangeClosedXML),  // 44.1
-        typeof(GetRangeEPPlus),   // 15.2 ->  V8.3 | 14.1 V7.3.2
-        typeof(GetRangeFreeSpire),   // 26.1
-        typeof(GetRangeAsposeCells)
+        typeof(GRExcelPrime),  //  8.8 
+        typeof(GRClosedXML),  // 44.1
+        typeof(GREPPlus),   // 15.2 ->  V8.3 | 14.1 V7.3.2
+        typeof(GRFreeSpire),   // 26.1
+        typeof(GRAsposeCells)
     ];
 
     [Test]
@@ -116,7 +118,7 @@ internal class DefinedRangeTests
     {
         const int expected = 214 * 6 * 2; // Rows * Cols * twice -> Sheet1!$A$1:$F$214
         //int cells = aecB.AccessPivotTable(typeof(GetRangeExcelPrime));
-        using IGetRange getRanger = new GetRangeExcelPrime();
+        using IGetRange getRanger = new GRExcelPrime();
         getRanger.LoadFile("Data\\pivot-tables.xlsx");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
@@ -125,6 +127,49 @@ internal class DefinedRangeTests
         IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());
         cells.Should().Be(expected);
+    }
+
+    [Test]
+    public async Task A060_UserRanges()
+    {
+        const string fileName = "Data/solver.xlsx";
+        using Excel_PRIME workbook = new();
+        await workbook.OpenAsync(fileName,
+            options: new Options
+            {
+                CellConversionType = CellConversion.Number,
+                AccessExcelFileInForwardOnlyMode = false
+            }
+        ).ConfigureAwait(true);
+
+        // Do not fallover with
+        Func<Task> sutMethod = async () =>
+        {
+            await workbook.GetUserRangeAsync("Try it Yourself", "C12:E12").FirstAsync();
+        };
+
+        await sutMethod.Should().ThrowAsync<KeyNotFoundException>()
+            .WithMessage("* does not exist").ConfigureAwait(false);
+
+        object?[] orderSizeS = await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync();
+        orderSizeS.Should().HaveCount(3);
+        orderSizeS.Should().HaveElementAt(0, 94);
+        orderSizeS.Should().HaveElementAt(1, 54);
+        orderSizeS.Should().HaveElementAt(2, 0);
+
+        object?[] orderSizeD = await workbook.GetUserRangeAsync("$C$12:$E$12", "Solution").FirstAsync();
+        orderSizeD.Should().HaveCount(3);
+        orderSizeD.Should().HaveElementAt(0, 94);
+        orderSizeD.Should().HaveElementAt(1, 54);
+        orderSizeD.Should().HaveElementAt(2, 0);
+
+        object?[] orderSizeU = await workbook.GetUserRangeAsync("C12", "Solution").FirstAsync();
+        orderSizeU.Should().HaveCount(1);
+        orderSizeU.Should().HaveElementAt(0, 94);
+
+        object?[] orderSizeC = await workbook.GetUserRangeAsync("$C$12", "Solution").FirstAsync();
+        orderSizeC.Should().HaveCount(1);
+        orderSizeC.Should().HaveElementAt(0, 94);
     }
 
 }

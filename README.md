@@ -171,7 +171,7 @@ Lets take each of the above elements and explain:
     - 🎊 Released as Nuget V1.yyMM.dd -> **`1.2511.14`**
 -----
 
-## Phase 2 - Beta V2
+## Phase 2 - RC
 - ✅ Add `IEnumerable`s _All_ the way down ⤵️
     - i.e. remove the need for Asynchronous awaits
     - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
@@ -193,10 +193,11 @@ Lets take each of the above elements and explain:
     - Note: The above will be referenced as `OrderSize (Try it Yourself)` as shown in LibreOffice.
 - ✅ Implement Row extraction 📟
     - ✅ Allow ColumnHeader addressing (i.e. start -> end columns)
-- [>] Implement RangeExtraction 📲
+- ✅ Implement RangeExtraction 📲
     - ✅ Global rangeNames
     - ✅ Make `DefinedName`'s work with `localSheetId`definitions
-    - [ ] User defined, using the `["A1:B10"]` syntax
+    - ✅ User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
+      - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
 - ✅ Add Benchmarks for "Excel readers" That perform Range Extraction
     - ✅ `ClosedXML` Version="0.105.0"
         - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
@@ -209,13 +210,14 @@ Lets take each of the above elements and explain:
         - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
     - ⚠️ Extend bencmarks to cover the other large file types
         - It appears that most of the others do not like the `pivot-tables` file.!! 🤯
-- [>] Investigate _memory usage_(s) 🧑‍💻
+- ✅ Investigate _memory usage_(s) 🧑‍💻
     - ✅ Some performance improvements 🏃‍➡️ [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
-    - [>] More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
-- [ ] Release as Nuget V2.yyMM.dd 💨
+    - ✅ More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
+    - ✅ Sacrificed a little speed ➡️ [Performance on 2025-12-07](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-07)
+- ✅ Release as Nuget V2.2512-10 💨
 -----
 
-## Phase 3 - XLS**B** 💾
+## Phase 3 - XLS**B** 💾 - Alpha V3
 - [ ] Implement Open / Dispose (Async)
     - [ ] Sheet Names
     - [ ] Shared Strings

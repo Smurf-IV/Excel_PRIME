@@ -113,4 +113,31 @@ public interface IExcel_PRIMEAsync : IExcel_PRIME
     /// <param name="ct"></param>
     /// <returns></returns>
     IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName=null, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// From the `definedName`s in the xlsx, use the name to return the range data
+    /// </summary>
+    /// <param name="rangeName"></param>
+    /// <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    IEnumerable<object?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// User defined range (With or Without `$`'s, e.g., `A1:B2`)
+    /// </summary>
+    /// <param name="range"></param>
+    /// <param name="sheetName"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    IAsyncEnumerable<object?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// User defined range (With or Without `$`'s, e.g., `A1:B2`)
+    /// </summary>
+    /// <param name="range"></param>
+    /// <param name="sheetName"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    IEnumerable<object?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default);
 }

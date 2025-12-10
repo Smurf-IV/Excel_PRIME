@@ -6,7 +6,7 @@ using ClosedXML.Excel;
 
 namespace ExcelPRIME.RangeBench;
 
-public class GetRangeClosedXML : IGetRange
+public class GRClosedXML : IGetRange
 {
     private XLWorkbook? wb;
 

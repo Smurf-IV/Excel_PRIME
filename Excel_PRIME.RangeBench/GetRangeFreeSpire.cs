@@ -7,7 +7,7 @@ using Spire.Xls.Core;
 
 namespace ExcelPRIME.RangeBench;
 
-public class GetRangeFreeSpire : IGetRange
+public class GRFreeSpire : IGetRange
 {
     private readonly Workbook book = new Workbook();
     public void Dispose() => book.Dispose();

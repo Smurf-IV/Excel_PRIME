@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ExcelPRIME.RangeBench;
 
-public class GetRangeExcelPrime : IGetRange
+public class GRExcelPrime : IGetRange
 {
     private readonly Excel_PRIME _workbook = new();
 

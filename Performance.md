@@ -593,3 +593,20 @@ And then slightly different versions of the following dependent on date:
 | NumberCellAsyncExcel_Prime      | sampl(...).xlsx [30] | 1.38x slower | 184000.0000 |  1000.0000 |          - | 1469.73 MB |  5.00x more |
 ```
 -----
+
+# 2025-12-10
+- User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
+
+```
+.NET SDK 10.0.100
+  [Host]   : .NET 8.0.22 (8.0.22, 8.0.2225.52707), X64 RyuJIT x86-64-v3
+
+| Method      | ranger               | Mean     | Error    | StdDev   | Gen0         | Gen1        | Gen2       | Allocated   |
+|------------ |--------------------- |---------:|---------:|---------:|-------------:|------------:|-----------:|------------:|
+| Access100mb | Excel(...)Cells [35] |  9.723 s |  5.482 s | 0.3005 s |  175000.0000 |  98000.0000 |  7000.0000 |  1527.47 MB |
+| Access100mb | Excel(...)edXML [33] | 50.658 s | 50.775 s | 2.7831 s | 1248000.0000 | 382000.0000 |  6000.0000 | 10454.98 MB |
+| Access100mb | Excel(...)PPlus [30] | 13.308 s |  2.008 s | 0.1101 s |  550000.0000 | 188000.0000 | 13000.0000 |  6227.98 MB |
+| Access100mb | Excel(...)Prime [34] |  7.989 s |  2.612 s | 0.1432 s |  110000.0000 |  52000.0000 |  6000.0000 |   841.56 MB |
+| Access100mb | Excel(...)Spire [33] | 29.134 s | 10.542 s | 0.5778 s | 1181000.0000 | 448000.0000 |  6000.0000 | 10192.05 MB |
+```
+-----

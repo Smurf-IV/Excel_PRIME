@@ -6,7 +6,7 @@ using Aspose.Cells;
 
 namespace ExcelPRIME.RangeBench;
 
-public class GetRangeAsposeCells : IGetRange
+public class GRAsposeCells : IGetRange
 {
     private Workbook? _workbook;
 

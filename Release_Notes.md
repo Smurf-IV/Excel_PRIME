@@ -1,4 +1,8 @@
-﻿# 2025-12-07 - Beta V2
+﻿# 2025-12-10 - RC
+- User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
+  - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
+
+# 2025-12-07 - Beta V2
 - Investigate _memory usage_(s) 🧑‍💻
     - Removed finalizers from several classes
     - Added a lightweight Row pooling strategy
@@ -22,7 +26,6 @@
 - Implement usage of _commercial_ `Aspose.Cells`
 - Switch to `EPPlus-LPGL` (It's faster than v8.x ;-))
     - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
-
 
 # 2025-11-27 - Beta V2
 - Change benchmarks to use `ToString` to be fair on `ClosedXML`
@@ -53,6 +56,3 @@
 - Deal with Empty cells in a row 🗅
     - Return a `null` cell
 - Remove some warnings
-
-# 2025-11-14 - V1
-- 🚀 [Performance on 2025-11-12](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-12)

@@ -7,7 +7,7 @@ using OfficeOpenXml;
 
 namespace ExcelPRIME.RangeBench;
 
-public class GetRangeEPPlus : IGetRange
+public class GREPPlus : IGetRange
 {
     private ExcelPackage? excelPackage;
 
