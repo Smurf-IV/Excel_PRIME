@@ -13,7 +13,7 @@
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats (Binary later, _maybe_)
+- Open _Large_ 2007 (Onwards) XLS**X** file formats (and XLS**B** in V 3)
 
 ## Performant 🚀
 - _Try_ **to be** as fast as possible, i.e.
@@ -218,6 +218,7 @@ Lets take each of the above elements and explain:
 -----
 
 ## Phase 3 - XLS**B** 💾 - Alpha V3
+- ✅ Branch and beta yml
 - [ ] Implement Open / Dispose (Async)
     - [ ] Sheet Names
     - [ ] Shared Strings
