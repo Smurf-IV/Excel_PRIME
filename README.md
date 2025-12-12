@@ -219,6 +219,7 @@ Lets take each of the above elements and explain:
 
 ## Phase 3 - XLS**B** 💾 - Alpha V3
 - ✅ Branch and beta yml
+    - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
 - [ ] Implement Open / Dispose (Async)
     - [ ] Sheet Names
     - [ ] Shared Strings
