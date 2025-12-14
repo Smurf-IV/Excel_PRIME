@@ -130,7 +130,7 @@ internal class DefinedRangeTests
     }
 
     [Test]
-    public async Task A060_UserRanges()
+    public async Task A060_UserRangesAsync()
     {
         const string fileName = "Data/solver.xlsx";
         using Excel_PRIME workbook = new();
@@ -145,7 +145,7 @@ internal class DefinedRangeTests
         // Do not fallover with
         Func<Task> sutMethod = async () =>
         {
-            await workbook.GetUserRangeAsync("Try it Yourself", "C12:E12").FirstAsync();
+            object?[] _ = await workbook.GetUserRangeAsync("Try it Yourself", "C12:E12").FirstAsync();
         };
 
         await sutMethod.Should().ThrowAsync<KeyNotFoundException>()
@@ -164,12 +164,54 @@ internal class DefinedRangeTests
         orderSizeD.Should().HaveElementAt(2, 0);
 
         object?[] orderSizeU = await workbook.GetUserRangeAsync("C12", "Solution").FirstAsync();
-        orderSizeU.Should().HaveCount(1);
+        orderSizeU.Should().ContainSingle();
         orderSizeU.Should().HaveElementAt(0, 94);
 
         object?[] orderSizeC = await workbook.GetUserRangeAsync("$C$12", "Solution").FirstAsync();
-        orderSizeC.Should().HaveCount(1);
+        orderSizeC.Should().ContainSingle();
         orderSizeC.Should().HaveElementAt(0, 94);
     }
 
+    [Test]  // https://github.com/Smurf-IV/Excel_PRIME/issues/7
+    public void A061_UserRanges()
+    {
+        const string fileName = "Data/solver.xlsx";
+        using Excel_PRIME workbook = new();
+        workbook.Open(fileName,
+            options: new Options
+            {
+                CellConversionType = CellConversion.Number,
+                AccessExcelFileInForwardOnlyMode = false
+            }
+        );
+
+        // Do not fallover with
+        Action sutMethod = () =>
+        {
+            object?[] _ = workbook.GetUserRange("Try it Yourself", "C12:E12").First();
+        };
+
+        sutMethod.Should().Throw<KeyNotFoundException>()
+            .WithMessage("* does not exist");
+
+        object?[] orderSizeS = workbook.GetUserRange("C12:E12", "Solution").First();
+        orderSizeS.Should().HaveCount(3);
+        orderSizeS.Should().HaveElementAt(0, 94);
+        orderSizeS.Should().HaveElementAt(1, 54);
+        orderSizeS.Should().HaveElementAt(2, 0);
+
+        object?[] orderSizeD = workbook.GetUserRange("$C$12:$E$12", "Solution").First();
+        orderSizeD.Should().HaveCount(3);
+        orderSizeD.Should().HaveElementAt(0, 94);
+        orderSizeD.Should().HaveElementAt(1, 54);
+        orderSizeD.Should().HaveElementAt(2, 0);
+
+        object?[] orderSizeU = workbook.GetUserRange("C12", "Solution").First();
+        orderSizeU.Should().ContainSingle();
+        orderSizeU.Should().HaveElementAt(0, 94);
+
+        object?[] orderSizeC = workbook.GetUserRange("$C$12", "Solution").First();
+        orderSizeC.Should().ContainSingle();
+        orderSizeC.Should().HaveElementAt(0, 94);
+    }
 }

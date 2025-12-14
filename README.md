@@ -216,7 +216,12 @@ Lets take each of the above elements and explain:
     - ✅ Sacrificed a little speed ➡️ [Performance on 2025-12-07](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-07)
 - ✅ Release as Nuget V2.2512-10 💨
 -----
+## V2 Changes
+### 2025-12-14
+- Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
+  - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
 
+-----
 ## Phase 3 - XLS**B** 💾 - Alpha V3
 - [ ] Implement Open / Dispose (Async)
     - [ ] Sheet Names

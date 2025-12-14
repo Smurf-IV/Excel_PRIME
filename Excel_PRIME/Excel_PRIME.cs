@@ -309,11 +309,9 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         {
             yield break;
         }
-        (int rowMax, int colMax, ReadOnlyMemory<char> colName) = range.GetRowColNumbers();
-
         DefinedRange definedRange = new DefinedRange(range, sheetName);
 
-        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
             yield return rowCells.Select(cell => cell?.RawValue).ToArray();
         }
@@ -326,6 +324,12 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         if (targetSheet == null)
         {
             yield break;
+        }
+        DefinedRange definedRange = new DefinedRange(range, sheetName);
+
+        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        {
+            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
         }
     }
 
