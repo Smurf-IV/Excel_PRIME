@@ -8,7 +8,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Excel file access contract
 /// </summary>
-public interface IXmlWorkBookReader : IDisposable
+public interface IOpenXmlWorkBookReader : IDisposable
 {
     /// <summary>
     /// What it says on the tin
@@ -24,7 +24,7 @@ public interface IXmlWorkBookReader : IDisposable
 /// <summary>
 /// Excel file access contract
 /// </summary>
-public interface IXmlWorkBookReaderAsync : IXmlWorkBookReader
+public interface IOpenXmlWorkBookReaderAsync : IOpenXmlWorkBookReader
 {
     /// <summary>
     /// What it says on the tin

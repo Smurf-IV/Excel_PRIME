@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -9,10 +10,16 @@ using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME.XlsbImp;
 
-internal sealed class XmlReaderHelpersXlsbAsync : IOpenXmlReaderHelpersAsync
+internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisposable
 {
     private TempFile? _shareStrings;
-
+    public void Dispose()
+    {
+        // Dispose of the TempFile if it has been initialized
+        _shareStrings?.Dispose();
+        _shareStrings = null;
+    }
+    
     /// <InheritDoc />
     public async Task<ISharedString> GetSharedStringsAsync(IZipReaderAsync zipReader,
         bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
@@ -38,12 +45,11 @@ internal sealed class XmlReaderHelpersXlsbAsync : IOpenXmlReaderHelpersAsync
 #pragma warning restore CA2000
             }
         }
+
         // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new LazyLoadSharedStrings();
-        }
-        return new LazyLoadSharedStrings(sharedStringsStream, ct);
+        return sharedStringsStream == null
+            ? new XlsbLazyLoadSharedStrings()
+            : new XlsbLazyLoadSharedStrings(sharedStringsStream, ct);
     }
 
     /// <InheritDoc />
@@ -68,41 +74,40 @@ internal sealed class XmlReaderHelpersXlsbAsync : IOpenXmlReaderHelpersAsync
                 sharedStringsStream = _shareStrings.OpenForAsyncRead();
             }
         }
+
         // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new LazyLoadSharedStrings();
-        }
-        return new LazyLoadSharedStrings(sharedStringsStream, ct);
+        return sharedStringsStream == null
+            ? new XlsbLazyLoadSharedStrings()
+            : new XlsbLazyLoadSharedStrings(sharedStringsStream, ct);
     }
 
 
     /// <InheritDoc />
-    public async Task<IXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
         Stream? stream = await zipReader.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
-        return new XmlWorkBookReader(stream!, ct);
+        return new XlsbWorkBookReader(stream!, ct);
     }
 
     /// <InheritDoc />
-    public IXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
     {
         Stream? stream = zipReader.GetEntry("xl/workbook.bin");
-        return new XmlWorkBookReader(stream!, ct);
+        return new XlsbWorkBookReader(stream!, ct);
     }
 
 
     /// <InheritDoc />
-    public async IXmlSheetReaderAsync CreateSheetReader(Stream zipReader, InstanceContext instanceContext,
-        XmlNameTable sharedNameTable, CancellationToken ct)
+    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+        XmlNameTable _, CancellationToken ct)
     {
-        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
-        return new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
+        IOpenXmlSheetReaderAsync reader = new XlsbSheetReader(stream, instanceContext, ct);
+        return Task.FromResult(reader);
     }
 
     /// <InheritDoc />
-    public IXmlSheetReaderAsync CreateSheetReader(IZipReader zipReader, InstanceContext instanceContext,
-        XmlNameTable sharedNameTable, CancellationToken ct)
-        => new XmlSheetReader(zipReader.GetEntry("xl/workbook.xml")!, instanceContext, sharedNameTable, ct);
+    public IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+        XmlNameTable _, CancellationToken ct)
+        => new XlsbSheetReader(stream, instanceContext, ct);
 
 }

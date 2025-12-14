@@ -10,7 +10,7 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class XmlWorkBookReader : IXmlWorkBookReaderAsync
+internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
 {
     private readonly Stream _stream;
     private readonly XmlReader _reader;

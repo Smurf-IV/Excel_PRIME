@@ -37,12 +37,11 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 #pragma warning restore CA2000
             }
         }
+
         // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new LazyLoadSharedStrings();
-        }
-        return new LazyLoadSharedStrings(sharedStringsStream, ct);
+        return sharedStringsStream == null
+            ? new XmlLazyLoadSharedStrings()
+            : new XmlLazyLoadSharedStrings(sharedStringsStream, ct);
     }
 
     /// <InheritDoc />
@@ -67,24 +66,23 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
                 sharedStringsStream = _shareStrings.OpenForAsyncRead();
             }
         }
+
         // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new LazyLoadSharedStrings();
-        }
-        return new LazyLoadSharedStrings(sharedStringsStream, ct);
+        return sharedStringsStream == null
+            ? new XmlLazyLoadSharedStrings()
+            : new XmlLazyLoadSharedStrings(sharedStringsStream, ct);
     }
 
 
     /// <InheritDoc />
-    public async Task<IXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
         Stream? stream = await zipReader.GetEntryAsync("xl/workbook.xml", ct).ConfigureAwait(false);
         return new XmlWorkBookReader(stream!, ct);
     }
 
     /// <InheritDoc />
-    public IXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
     {
         Stream? stream = zipReader.GetEntry("xl/workbook.xml");
         return new XmlWorkBookReader(stream!, ct);
@@ -92,15 +90,15 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 
 
     /// <InheritDoc />
-    public Task<IXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        IXmlSheetReaderAsync reader = new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
+        IOpenXmlSheetReaderAsync reader = new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
         return Task.FromResult(reader);
     }
 
     /// <InheritDoc />
-    public IXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    public IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
         => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
 

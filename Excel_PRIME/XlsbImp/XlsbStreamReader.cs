@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace ExcelPRIME.XlsbImp;
@@ -22,6 +25,14 @@ internal class XlsbStreamReader
 {
     private readonly Stream _stream;
     private readonly Encoding _encoding = Encoding.Unicode; // use little endian byte order
+
+    /// <summary>
+    /// Empty stream for unknown files
+    /// </summary>
+    public XlsbStreamReader()
+    {
+        _stream = null!;
+    }
 
     /// <summary>
     /// Stream is NOT owned by this class and should be disposed by the caller.
@@ -132,7 +143,7 @@ internal class XlsbStreamReader
     }
     public string ReadString()
     {
-        var length = ReadInt32()*2;
+        int length = ReadInt32()*2;
 
         ArgumentOutOfRangeException.ThrowIfNegative(length);
 
@@ -285,5 +296,152 @@ internal class XlsbStreamReader
         }
         return buffer;
     }
+
+    public async Task<PooledRecordBuffer> ReadNextRecordAsync(CancellationToken ct)
+    {
+        if (!ReadRecordType(out RecordTypeIdentifier recordType)
+            || recordType == RecordTypeIdentifier.EOF 
+            || !ReadRecordLen(out uint recordLength)
+            )
+        {
+            return new PooledRecordBuffer(recordType, succeeded: recordType != RecordTypeIdentifier.EOF);
+        }
+
+        try
+        {
+            byte[] buffer = await RentAndReadAsync((int)recordLength, ct).ConfigureAwait(false);
+            return new PooledRecordBuffer(recordType, buffer, true);
+        }
+        catch
+        {
+            return new PooledRecordBuffer(RecordTypeIdentifier.EOF);
+        }
+    }
+
+    public PooledRecordBuffer ReadNextRecord()
+    {
+        if (!ReadRecordType(out RecordTypeIdentifier recordType)
+            || recordType == RecordTypeIdentifier.EOF
+            || !ReadRecordLen(out uint recordLength)
+            )
+        {
+            return new PooledRecordBuffer(recordType);
+        }
+
+        byte[] buffer = RentAndRead((int)recordLength);
+        return new PooledRecordBuffer(recordType, buffer, true);
+    }
+    
+    public bool ReadRecordType(out RecordTypeIdentifier recordType)
+    {
+        if (CarefulFieldRead( out uint value))
+        {
+            recordType = (RecordTypeIdentifier)(value);
+            return Enum.IsDefined(recordType);
+        }
+
+        recordType = RecordTypeIdentifier.EOF;
+        return false;
+    }
+
+    public bool ReadRecordLen(out uint recordLength) => CarefulFieldRead(out recordLength);
+
+    private bool CarefulFieldRead(out uint value)
+    {
+        value = 0u;
+        byte[] oneByteArray = new byte[1];
+
+        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        {
+            return false;
+        }
+
+        ref byte b1 = ref oneByteArray[0];
+        value = (uint)(b1 & 0x7F);
+
+        if ((b1 & 0x80) == 0)
+            return true;
+
+        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        {
+            return false;
+        }
+
+        ref byte b2 = ref oneByteArray[0];
+        value = ((uint)(b2 & 0x7F) << 7) | value;
+
+        if ((b2 & 0x80) == 0)
+            return true;
+
+        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        {
+            return false;
+        }
+
+        ref byte b3 = ref oneByteArray[0];
+        value = ((uint)(b3 & 0x7F) << 14) | value;
+
+        if ((b3 & 0x80) == 0)
+            return true;
+
+        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        {
+            return false;
+        }
+
+        ref byte b4 = ref oneByteArray[0];
+        value = ((uint)(b4 & 0x7F) << 21) | value;
+
+        return true;
+    }
 }
 
+internal sealed class PooledRecordBuffer : IDisposable
+{
+    private readonly byte[] _array;
+    private bool _isDisposed;
+    
+    public PooledRecordBuffer(RecordTypeIdentifier recordType, byte[]? array = null, bool succeeded = false)
+    {
+        RecordType = recordType;
+        _array = array!;
+        Succeeded = succeeded;
+    }
+
+    public ref readonly byte this[int index] => ref _array![index];
+
+    public RecordTypeIdentifier RecordType { get; }
+
+    public bool Succeeded { get; }
+
+    // Return the array to the ArrayPool
+    public void Dispose()
+    {
+        if (!_isDisposed)
+        {
+            _isDisposed = true;
+            if (_array != null!)
+            {
+                ArrayPool<byte>.Shared.Return(_array);
+            }
+        }
+    }
+
+    public string GetString(int offset)
+    {
+        int len = BitConverter.ToInt32(_array, offset);
+        return Encoding.Unicode.GetString(_array, offset + 4, len * 2);
+    }
+
+    public string? GetString(int offset, out int end)
+    {
+        int len = BitConverter.ToInt32(_array, offset);
+        if (len == -1)
+        {
+            end = offset + 4;
+            return null;
+        }
+        end = offset + 4 + len * 2;
+        return Encoding.Unicode.GetString(_array, offset + 4, len * 2);
+    }
+}

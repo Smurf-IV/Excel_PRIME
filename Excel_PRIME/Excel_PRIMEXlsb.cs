@@ -12,7 +12,7 @@ public sealed class Excel_PRIMEXlsb : Excel_PRIME
 {
     /// <InheritDoc />
     public Excel_PRIMEXlsb(IOpenXmlReaderHelpersAsync? xlsbReader = null, IZipReaderAsync? zipReader = null)
-    : base(xlsbReader ?? new XmlReaderHelpersXlsbAsync(), zipReader)
+    : base(xlsbReader ?? new XlsbReaderHelpersAsync(), zipReader)
     {
     }
 }

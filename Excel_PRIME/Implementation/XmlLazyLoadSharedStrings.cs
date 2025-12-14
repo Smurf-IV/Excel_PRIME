@@ -8,7 +8,7 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class LazyLoadSharedStrings : ISharedString
+internal sealed class XmlLazyLoadSharedStrings : ISharedString
 {
     private static readonly SemaphoreLocker _locker = new();
     private readonly Stream? _stream;
@@ -19,7 +19,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
     private readonly string _tRefAtom;
     private readonly StringBuilder _currentStNodeBuilder = new();
 
-    public LazyLoadSharedStrings()
+    public XmlLazyLoadSharedStrings()
     {
         _currentlyLoaded = [];
         _stream = null;
@@ -36,7 +36,7 @@ internal sealed class LazyLoadSharedStrings : ISharedString
         _tRefAtom = string.Empty;
     }
 
-    public LazyLoadSharedStrings(Stream stream, CancellationToken ct)
+    public XmlLazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
         _stream = stream;
         _reader = XmlReader.Create(stream, new XmlReaderSettings

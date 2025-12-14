@@ -115,14 +115,14 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
     private async Task GetSheetNamesAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        using IXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
+        using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
         _sheetNamesToOffsetSheetId = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
     }
 
     private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
     {
-        using IXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
+        using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
         _sheetNamesToOffsetSheetId = wbr.GetSheetNames(ct).ToDictionary();
     }
 
@@ -135,7 +135,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         if (_definedRanges == null)
         {
             // Lazy load on first use
-            using IXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(_zipReader, ct)
+            using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(_zipReader, ct)
                 .ConfigureAwait(false);
             _definedRanges = await wbr.GetDefinedRangesAsync(_sheetNamesToOffsetSheetId, ct).ConfigureAwait(false);
         }
@@ -192,7 +192,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         if (_definedRanges == null)
         {
             // Lazy load on first use
-            using IXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
+            using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
             _definedRanges = wbr.GetDefinedRanges(_sheetNamesToOffsetSheetId, ct);
         }
 
@@ -280,7 +280,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             {
                 if (!_sheetFiles.TryGetValue(offsetSheetId, out TempFile? sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
+                    sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
                     string sheetFileName = Sheet.GetFileName(offsetSheetId);
@@ -318,7 +318,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             {
                 if (!_sheetFiles.TryGetValue(offsetSheetId, out sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
+                    sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
                     string sheetFileName = Sheet.GetFileName(offsetSheetId);

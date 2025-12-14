@@ -2,6 +2,8 @@
 - ⛓️‍💥 **Breaking Change(s)
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
+    - `IXmlWorkBookReader` has become `IOpenXmlWorkBookReader`
+    - `IXmlSheetReader` has become `IOpenXmlSheetReader`
 
 
 # 2025-12-10 - RC

@@ -9,7 +9,7 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class XmlSheetReader : IXmlSheetReaderAsync
+internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
 {
     private readonly InstanceContext _instanceContext;
     private readonly XmlReader _reader;

@@ -24,7 +24,7 @@ public interface IOpenXmlReaderHelpers
     /// Create the interface implementation to get details out of the WorkBook
     /// Even tho this is not the Async, please create the Async class
     /// </summary>
-    IXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct);
+    IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct);
 
     /// <summary>
     /// Even tho this is not the Async, please create the Async class
@@ -34,7 +34,7 @@ public interface IOpenXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 }
 
@@ -56,7 +56,7 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// <summary>
     /// Create the interface implementation to get details out of the WorkBook
     /// </summary>
-    Task<IXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct);
+    Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct);
 
     /// <summary>
     /// 
@@ -66,6 +66,6 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 }
