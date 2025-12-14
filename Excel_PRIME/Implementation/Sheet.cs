@@ -13,7 +13,7 @@ namespace ExcelPRIME.Implementation;
 internal sealed class Sheet : ISheetAsync
 {
     private bool _isDisposed;
-    private readonly IXmlReaderHelpersAsync _xmlReaderHelper;
+    private readonly XmlReaderHelpersAsync _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
     private readonly Stream _stream;
@@ -24,7 +24,7 @@ internal sealed class Sheet : ISheetAsync
     /// </summary>
     internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
 
-    internal Sheet(Stream stream, IXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, XmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
         _stream = stream;
         _xmlReaderHelper = xmlReaderHelper;

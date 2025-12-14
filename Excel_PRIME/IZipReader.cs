@@ -44,4 +44,9 @@ public interface IZipReaderAsync : IZipReader
     /// </summary>
     /// <returns>true if exists</returns>
     Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct);
+
+    /// <summary>
+    /// Helper function to get the actual internal Zip stream of an entry
+    /// </summary>
+    Task<Stream?> GetEntryAsync(string entryName, CancellationToken ct);
 }

@@ -28,7 +28,7 @@ internal static class ExcelColumns
         {
             int modulo = (dividend - 1) % 26;
             columnName = string.Concat(Convert.ToChar(65 + modulo), columnName);
-            dividend = (int)((dividend - modulo) / 26);
+            dividend = (dividend - modulo) / 26;
         }
 
         return columnName;

@@ -2,28 +2,6 @@
 
 namespace ExcelPRIME;
 
-/// <summary>
-/// Specify the type of stream being opened / used
-/// </summary>
-public enum FileType
-{
-    /// <summary>
-    /// Do not use
-    /// </summary>
-    [Obsolete("Do not use")]
-    Unknown = 0,
-
-    /// <summary>
-    /// Current support
-    /// </summary>
-    Xlsx = 1,
-
-    /// <summary>
-    /// Do not use = Yet ;-)
-    /// </summary>
-    [Obsolete("Do not use = Yet ;-)")]
-    Xlsb
-}
 
 /// <summary>
 /// Specify how the internals will deal and expose the Cell type value

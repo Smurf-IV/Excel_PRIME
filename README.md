@@ -218,9 +218,12 @@ Lets take each of the above elements and explain:
 -----
 
 ## Phase 3 - XLS**B** 💾 - Alpha V3
+- ⛓️‍💥 **Breaking Change(s)**
+    - `FileType` has been removed, and Open via the Public class type
+    - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
 - ✅ Branch and beta yml
     - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
-- [ ] Implement Open / Dispose (Async)
+- [>] Implement Open / Dispose (Async)
     - [ ] Sheet Names
     - [ ] Shared Strings
 - [ ] Implement Sheet loading 

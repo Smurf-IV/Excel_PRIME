@@ -1,4 +1,10 @@
-﻿# 2025-12-10 - RC
+﻿# 2025-12-## - V3 Beta
+- ⛓️‍💥 **Breaking Change(s)
+    - `FileType` has been removed, and Open via the Public class type
+    - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
+
+
+# 2025-12-10 - RC
 - User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
   - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
 

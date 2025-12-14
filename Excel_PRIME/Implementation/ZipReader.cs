@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,6 +70,10 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
         await decompressor.FlushAsync(ct).ConfigureAwait(false);
         return true;
     }
+
+    // One day it will be async in the zipReader
+    public Task<Stream?> GetEntryAsync(string entryName, CancellationToken ct)
+        => Task.FromResult(GetEntry(entryName));
 
     public Stream? GetEntry(string entryName)
     {

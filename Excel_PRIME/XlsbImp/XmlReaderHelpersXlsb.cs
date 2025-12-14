@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
+using ExcelPRIME.Implementation;
 
 
-namespace ExcelPRIME.Implementation;
+namespace ExcelPRIME.XlsbImp;
 
-internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
+internal sealed class XmlReaderHelpersXlsbAsync : IOpenXmlReaderHelpersAsync
 {
     private TempFile? _shareStrings;
 
@@ -19,15 +20,15 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         Stream? sharedStringsStream = null;
         if (optionsAccessExcelFileInForwardOnlyMode)
         {
-            sharedStringsStream = await zipReader.GetEntryAsync("xl/sharedStrings.xml", ct).ConfigureAwait(false);
+            sharedStringsStream = await zipReader.GetEntryAsync("xl/sharedStrings.bin", ct).ConfigureAwait(false);
         }
         else
         {
-            _shareStrings = new TempFile("sharedStrings.xml");
+            _shareStrings = new TempFile("sharedStrings.bin");
             bool exists;
             using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
             {
-                exists = await zipReader.CopyToAsync("xl/sharedStrings.xml", targetStream, ct).ConfigureAwait(false);
+                exists = await zipReader.CopyToAsync("xl/sharedStrings.bin", targetStream, ct).ConfigureAwait(false);
             }
 
             if (exists)
@@ -51,15 +52,15 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         Stream? sharedStringsStream = null;
         if (optionsAccessExcelFileInForwardOnlyMode)
         {
-            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.xml");
+            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.bin");
         }
         else
         {
-            _shareStrings = new TempFile("sharedStrings.xml");
+            _shareStrings = new TempFile("sharedStrings.bin");
             bool exists;
             using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
             {
-                exists = zipReader.CopyTo("xl/sharedStrings.xml", targetStream, ct);
+                exists = zipReader.CopyTo("xl/sharedStrings.bin", targetStream, ct);
             }
 
             if (exists)
@@ -79,29 +80,29 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     /// <InheritDoc />
     public async Task<IXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.xml", ct).ConfigureAwait(false);
+        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
         return new XmlWorkBookReader(stream!, ct);
     }
 
     /// <InheritDoc />
     public IXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
     {
-        Stream? stream = zipReader.GetEntry("xl/workbook.xml");
+        Stream? stream = zipReader.GetEntry("xl/workbook.bin");
         return new XmlWorkBookReader(stream!, ct);
     }
 
 
     /// <InheritDoc />
-    public Task<IXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    public async IXmlSheetReaderAsync CreateSheetReader(Stream zipReader, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        IXmlSheetReaderAsync reader = new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
-        return Task.FromResult(reader);
+        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
+        return new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
     }
 
     /// <InheritDoc />
-    public IXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    public IXmlSheetReaderAsync CreateSheetReader(IZipReader zipReader, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
-        => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
+        => new XmlSheetReader(zipReader.GetEntry("xl/workbook.xml")!, instanceContext, sharedNameTable, ct);
 
 }

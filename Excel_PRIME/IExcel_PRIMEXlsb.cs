@@ -11,7 +11,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// This Libraries main Contract
 /// </summary>
-public interface IExcel_PRIME : IExcelImp
+public interface IExcel_PRIMEXlsb : IExcelImp
 {
     /// <summary>
     /// Opens the file, read-only, and will hold the stream open until disposed
@@ -34,7 +34,7 @@ public interface IExcel_PRIME : IExcelImp
 /// <summary>
 /// This Libraries main Contract
 /// </summary>
-public interface IExcel_PRIMEAsync : IExcel_PRIME, IExcelImpAsync
+public interface IExcel_PRIMEXlsbAsync : IExcel_PRIMEXlsb, IExcelImpAsync
 {
     /// <summary>
     /// Opens the file, read-only, and will hold the stream open until disposed
