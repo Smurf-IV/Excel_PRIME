@@ -64,7 +64,7 @@ internal class LoadingTestsXlsb
 
     [Test]
     [TestCase("Data/verysimple.xlsb")]
-    public async Task A040_DisposeRelasesFile(string fileName)
+    public async Task A040_DisposeReleasesFile(string fileName)
     {
         using (IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb())
         {

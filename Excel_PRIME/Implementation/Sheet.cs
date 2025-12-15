@@ -19,11 +19,6 @@ internal sealed class Sheet : ISheetAsync
     private readonly Stream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
-    /// <summary>
-    /// Get the internal file name of this worksheet
-    /// </summary>
-    internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
-
     internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
         _stream = stream;

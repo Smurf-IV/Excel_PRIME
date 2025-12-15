@@ -283,7 +283,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
                     sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = Sheet.GetFileName(offsetSheetId);
+                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
                     await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
                 }
 
@@ -293,7 +293,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            string sheetFileName = Sheet.GetFileName(offsetSheetId);
+            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
             stream = _zipReader.GetEntry(sheetFileName)!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
@@ -321,7 +321,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
                     sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = Sheet.GetFileName(offsetSheetId);
+                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
                     _zipReader.CopyTo(sheetFileName, targetStream, ct);
                 }
             });
@@ -329,7 +329,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            string sheetFileName = Sheet.GetFileName(offsetSheetId);
+            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
             stream = _zipReader.GetEntry(sheetFileName)!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);

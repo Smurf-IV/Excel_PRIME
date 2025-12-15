@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
+using System.Xml;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;
@@ -30,7 +32,13 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
         _stream = stream;
         _reader = new XlsbStreamReader(stream);
         // advance to the content
-        int count = 128;
+        using PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        if ( !nextRecord.Succeeded || nextRecord.RecordType != RecordTypeIdentifier.SSTBEGIN)
+        {
+            throw new InvalidDataException("The provided stream is not a valid XLSB shared strings stream.");
+        }
+        //int totalCount = nextRecord.GetInt32(0);
+        int count = nextRecord.GetInt32(4);
         _currentlyLoaded = new List<string>(count);
     }
 
@@ -53,8 +61,6 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
                 {
                     // Use additional offset to reduce locking intensity
                     LoadUntil(requestIndex+16);
-                    // The "requestIndex >= _currentlyLoaded.Count" is also done internally, so no need to check again after locking
-                    throw new NotImplementedException();
                 }
                 finally
                 {
@@ -78,7 +84,17 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
     private void LoadUntil(int untilIndex)
     {
         // Parse sequentially until we have loaded enough shared strings.
-        throw new NotImplementedException();
+        PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        while (untilIndex >= _currentlyLoaded.Count
+               && nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
+        {
+            //var flags = nextRecord.GetByte(0);
+            string str = nextRecord.GetString(1);
+
+            _currentlyLoaded.Add(str);
+            nextRecord = _reader.ReadNextRecord();
+        }
+        nextRecord.Dispose();
     }
 
     private void Dispose(bool isDisposing)

@@ -28,7 +28,8 @@ internal sealed class XlsbWorkBookReader : IOpenXmlWorkBookReaderAsync
 
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
         bool foundSheets = false;
-        while (nextRecord.Succeeded)
+        while (nextRecord.Succeeded
+               && !ct.IsCancellationRequested)
         {
             if (nextRecord.RecordType == RecordTypeIdentifier.BUNDLESHEET)
             {
@@ -55,11 +56,44 @@ internal sealed class XlsbWorkBookReader : IOpenXmlWorkBookReaderAsync
                 break;
             }
         }
+        nextRecord.Dispose();
     }
 
     public IEnumerable<KeyValuePair<string, int>> GetSheetNames([EnumeratorCancellation] CancellationToken ct)
     {
-        throw new NotImplementedException();
+        int relativeSheetId = 0;
+
+        PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        bool foundSheets = false;
+        while (nextRecord.Succeeded
+               && !ct.IsCancellationRequested)
+        {
+            if (nextRecord.RecordType == RecordTypeIdentifier.BUNDLESHEET)
+            {
+                foundSheets = true;
+                string? rel = nextRecord.GetString(8, out int next);
+                string name = nextRecord.GetString(next);
+                if (rel == null)
+                {
+                    // no sheet rel means it is a macro.
+                }
+                else
+                {
+                    relativeSheetId++;
+                    // `r:id` and `sheetId` are not to be trusted
+                    yield return new KeyValuePair<string, int>(name, relativeSheetId);
+                }
+            }
+
+            nextRecord = _reader.ReadNextRecord();
+            if (foundSheets
+                && nextRecord.RecordType != RecordTypeIdentifier.BUNDLESHEET
+               )
+            {
+                break;
+            }
+        }
+        nextRecord.Dispose();
     }
 
     public async Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(

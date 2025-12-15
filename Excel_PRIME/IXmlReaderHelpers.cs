@@ -68,4 +68,9 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// <returns></returns>
     Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
+
+    /// <summary>
+    /// Get the internal file name of this worksheet type
+    /// </summary>
+    string GetSheetFileName(int offsetSheetId);
 }

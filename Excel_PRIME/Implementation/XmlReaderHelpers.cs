@@ -97,6 +97,8 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         return Task.FromResult(reader);
     }
 
+    public string GetSheetFileName(int offsetSheetId) => $"xl/worksheets/sheet{offsetSheetId}.xml";
+
     /// <InheritDoc />
     public IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)

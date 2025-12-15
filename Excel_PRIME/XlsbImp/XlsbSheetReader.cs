@@ -14,7 +14,6 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private readonly XlsbStreamReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
-    private readonly string _rowRefAtom;
 
     // Pool of Row instances shared by this reader (concurrent for safety).
     private readonly ConcurrentBag<XlsbRow> _rowPool = new();

@@ -13,8 +13,8 @@ internal enum RecordTypeIdentifier
     BOOKBEGIN = 0x0083,     // 131: Start of WorkBook
     BOOKEND = 0x0084,       // 132: End of WorkBook
     SHEET = 0x0085,         // 133: Worksheet
+    BUNDLESHEET = 0x009c,   // 156: Bundle Sheet
     DIMENSIONS = 0x0200,    // 148: Dimensions (used range of rows and columns)
-    BUNDLESHEET = 156,      // 156: Bundle Sheet
     WINDOW1 = 0x003D,       // Window Information
     WINDOW2 = 0x023E,       // Sheet Window Information
     DATEMODE = 0x0022,      // Date Mode (1900 or 1904)
@@ -43,6 +43,9 @@ internal enum RecordTypeIdentifier
     PALETTE = 0x0092,       // Color Palette
     THEME = 0x00A1,         // Theme Information
     // Shared Data Records
+    STRINGITEM = 0x0013,    // Shared String
+    SSTBEGIN = 0x009f,      // 159: Start of Shared String Table
+    SSTEND = 0x00A0,        // 160: End of Shared String Table
     SHAREDSTRINGS = 0x00FC, // Shared Strings
     SST = 0x00FC,           // Shared String Table
     CONTINUE = 0x003C,      // Continuation Record
