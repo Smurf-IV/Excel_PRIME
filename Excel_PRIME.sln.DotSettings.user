@@ -37,6 +37,7 @@
     &lt;/And&gt;&#xD;
     &lt;TestAncestor&gt;&#xD;
       &lt;TestId&gt;NUnit3x::40FD0493-961D-44F2-94B7-52D818E01B1E::net9.0::ExcelPRIME.Tests.DefinedRangeTests.A052_ExcelPrime_PivotTable&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;NUnit3x::40FD0493-961D-44F2-94B7-52D818E01B1E::net8.0::ExcelPRIME.Tests.RowTestsXlsb.A010_EmptyXlsb&lt;/TestId&gt;&#xD;
     &lt;/TestAncestor&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String>

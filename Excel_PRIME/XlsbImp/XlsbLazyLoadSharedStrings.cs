@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
-using System.Xml;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;
@@ -94,7 +91,14 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
             _currentlyLoaded.Add(str);
             nextRecord = _reader.ReadNextRecord();
         }
-        nextRecord.Dispose();
+        if ( nextRecord.RecordType == RecordTypeIdentifier.STRINGITEM)
+        {
+            _reader.RollBackLastRecord(nextRecord);
+        }
+        else
+        {
+            nextRecord.Dispose();
+        }
     }
 
     private void Dispose(bool isDisposing)

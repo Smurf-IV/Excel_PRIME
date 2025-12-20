@@ -109,22 +109,15 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
         _readerAtoms = new ReaderAtoms(_reader);
     }
 
-    private Row CreateRowFromPool()
-    {
-        if (_rowPool.TryTake(out Row? r))
-        {
-            return r;
-        }
+    private Row CreateRowFromPool() =>
+        _rowPool.TryTake(out Row? r)
+            ? r
+            : Row.Rent();
 
-        return Row.Rent();
-    }
-
-    private void ReturnRowToPool(Row r)
-    {
+    private void ReturnRowToPool(Row r) =>
         // Row.Dispose handles returning to global pool; but we keep an internal pool for speed.
         // Reset any reader-specific state is handled by Row.Reset inside Return.
         _rowPool.Add(r);
-    }
 
     private bool ReadToNextStartRow(CancellationToken ct)
     {
@@ -171,10 +164,7 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
     /// </summary>
     public int CurrentRow { get; private set; }
 
-    public void Dispose()
-    {
-        Dispose(isDisposing: true);
-    }
+    public void Dispose() => Dispose(isDisposing: true);
 
 #pragma warning disable CA2213  // Do not call dispose, because they are being returned to the caller
     private NullRow? _lastNullRow;

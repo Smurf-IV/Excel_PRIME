@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 using ExcelPRIME.XlsbImp;
 
@@ -18,9 +15,8 @@ internal sealed class XlsbRow : IRowAsync
     private InstanceContext? _instanceContext;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
-    private Cell?[]? _cells;
+    private XlsbCell?[]? _cells;
     private bool _cellsLoaded;
-    private ReaderAtoms _readerAtomsRefForSafety;
 
     // Small object pool for Row instances to avoid allocating a new Row per XML row.
     private static readonly ConcurrentBag<XlsbRow> s_pool = new();
@@ -40,7 +36,7 @@ internal sealed class XlsbRow : IRowAsync
         return new XlsbRow();
     }
 
-    internal static void Return(XlsbRow row)
+    private static void Return(XlsbRow row)
     {
         // Reset state so next consumer sees a clean Row.
         row.Reset();
@@ -52,8 +48,13 @@ internal sealed class XlsbRow : IRowAsync
         _reader = rowElement;
         _instanceContext = instanceContext;
         _maxExcelColumnDimension = maxColumnDimension;
-
-        throw new NotImplementedException();
+        using (PooledRecordBuffer nextRecord = _reader.ReadNextRecord())
+        {
+            RowOffset = nextRecord.GetInt32(0) + 1; // Add 1, to resolve back to VBA 1-based index
+            //var ifx = nextRecord.GetInt32(4);
+            //var flags = nextRecord.GetByte(11);
+            //_isRowHidden = (flags & 0x10) != 0;
+        }
     }
 
     private void Reset()
@@ -92,8 +93,6 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     public int RowOffset { get; private set; }
 
-    private const int BufferSize = 512;
-
     /// <summary>
     /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
     /// Using an array avoids Dictionary overhead and reduces per-row allocations for typical sheet widths.
@@ -109,10 +108,66 @@ internal sealed class XlsbRow : IRowAsync
         {
             return;
         }
-
-        throw new NotImplementedException();
-
- 
+        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
+        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension + 1];
+        PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        try
+        {
+            while (nextRecord.Succeeded
+                   && !ct.IsCancellationRequested
+                   && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
+                   && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
+            {
+                switch (nextRecord.RecordType)
+                {
+                    case RecordTypeIdentifier.CELLBLANK:
+                    case RecordTypeIdentifier.CELLRK:
+                    case RecordTypeIdentifier.CELLERROR:
+                    case RecordTypeIdentifier.CELLBOOL:
+                    case RecordTypeIdentifier.CELLREAL:
+                    case RecordTypeIdentifier.CELLST:
+                    case RecordTypeIdentifier.CELLISST:
+                    case RecordTypeIdentifier.CELLFMLASTRING:
+                    case RecordTypeIdentifier.CELLFMLANUM:
+                    case RecordTypeIdentifier.CELLFMLABOOL:
+                    case RecordTypeIdentifier.CELLFMLAERROR:
+                        {
+                            XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                            int offset = cell?.ExcelColumnOffset ?? -1;
+                            if (offset > 0 && offset <= _maxExcelColumnDimension)
+                            {
+                                localCells[offset] = cell;
+                            }
+                            else
+                            {
+                                // If the parsed cell offset is outside expected width, skip storing it to avoid OOB.
+                                // (Should be rare, defensive programming.)
+                            }
+                        }
+                        break;
+                    default:
+                        // 37
+                        // BrtRwDescent
+                        // PRINTWIDTH
+                        break;
+                }
+                nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+            {
+                _reader.RollBackLastRecord(nextRecord);
+            }
+            else
+            {
+                nextRecord.Dispose();
+            }
+        }
+        // publish parsed cells once fully read to avoid partial-visible state
+        _cells = localCells;
+        _cellsLoaded = true;
     }
 
     internal void GetCells(CancellationToken ct)
@@ -126,9 +181,63 @@ internal sealed class XlsbRow : IRowAsync
         {
             return;
         }
-
-        throw new NotImplementedException();
-
+        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
+        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension + 1];
+        PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        try
+        {
+            while (nextRecord.Succeeded
+                   && !ct.IsCancellationRequested
+                   && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
+                   && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
+            {
+                switch (nextRecord.RecordType)
+                {
+                    case RecordTypeIdentifier.CELLBLANK:
+                    case RecordTypeIdentifier.CELLRK:
+                    case RecordTypeIdentifier.CELLERROR:
+                    case RecordTypeIdentifier.CELLBOOL:
+                    case RecordTypeIdentifier.CELLREAL:
+                    case RecordTypeIdentifier.CELLST:
+                    case RecordTypeIdentifier.CELLISST:
+                    case RecordTypeIdentifier.CELLFMLASTRING:
+                    case RecordTypeIdentifier.CELLFMLANUM:
+                    case RecordTypeIdentifier.CELLFMLABOOL:
+                    case RecordTypeIdentifier.CELLFMLAERROR:
+                        {
+                            XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                            int offset = cell?.ExcelColumnOffset ?? -1;
+                            if (offset > 0 && offset <= _maxExcelColumnDimension)
+                            {
+                                localCells[offset] = cell;
+                            }
+                            else
+                            {
+                                // If the parsed cell offset is outside expected width, skip storing it to avoid OOB.
+                                // (Should be rare, defensive programming.)
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                nextRecord = _reader.ReadNextRecord();
+            }
+        }
+        finally
+        {
+            if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+            {
+                _reader.RollBackLastRecord(nextRecord);
+            }
+            else
+            {
+                nextRecord.Dispose();
+            }
+        }
+        // publish parsed cells once fully read to avoid partial-visible state
+        _cells = localCells;
+        _cellsLoaded = true;
     }
 
     /// <InheritDoc />

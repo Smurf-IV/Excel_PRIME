@@ -97,15 +97,10 @@ internal sealed class XlsbWorkBookReader : IOpenXmlWorkBookReaderAsync
     }
 
     public async Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(
-        IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
-    {
+        IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct) =>
         throw new NotImplementedException();
-    }
 
-    public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
+    public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct) => throw new NotImplementedException();
 
     private void Dispose(bool isDisposing)
     {

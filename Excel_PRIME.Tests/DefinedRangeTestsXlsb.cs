@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 using AwesomeAssertions;
 
-using ExcelPRIME.RangeBench;
+using ExcelPRIMEXlsb.Bench;
+using ExcelPRIMEXlsb.RangeBench;
 
 using NUnit.Framework;
 
@@ -14,13 +15,14 @@ using NUnit.Framework;
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
-internal class DefinedRangeTests
+internal class DefinedRangeTestsXlsb
 {
     [Test]
+    [Explicit]
     public async Task A010_ReadNamedRange()
     {
-        const string fileName = "Data/named-range.xlsx";
-        using Excel_PRIME workbook = new();
+        const string fileName = "Data/named-range.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
         object?[] taxRate = await workbook.GetDefinedRangeAsync("TaxRate").FirstAsync();
         taxRate.FirstOrDefault().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
@@ -35,10 +37,11 @@ internal class DefinedRangeTests
     }
 
     [Test]
+    [Explicit]
     public async Task A020_DynamicNamedRange()
     {
-        const string fileName = "Data/dynamic-named-range.xlsx";
-        using Excel_PRIME workbook = new();
+        const string fileName = "Data/dynamic-named-range.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         // Do not fallover with <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
@@ -47,10 +50,11 @@ internal class DefinedRangeTests
     }
 
     [Test]
+    [Explicit]
     public async Task A030_LocalSheetID_NamedRange()
     {
-        const string fileName = "Data/solver.xlsx";
-        using Excel_PRIME workbook = new();
+        const string fileName = "Data/solver.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(fileName, 
             options: new Options 
                 { 
@@ -81,23 +85,13 @@ internal class DefinedRangeTests
         orderSizeT.Should().HaveElementAt(2, 0);
     }
 
-    public static Type[] Rangers = // for multiple arguments it's an IEnumerable of IGetRange's
-    [
-        typeof(GRExcelPrime),  //  8.8 
-        typeof(GRClosedXML),  // 44.1
-        typeof(GREPPlus),   // 15.2 ->  V8.3 | 14.1 V7.3.2
-        typeof(GRFreeSpire),   // 26.1
-        typeof(GRAsposeCells)
-    ];
-
     [Test]
-    [TestCaseSource(nameof(Rangers))]
     [Explicit("Long running tests of external libraries")]
-    public void A050_GetRangers100mb(Type ranger)
+    public void A050_GetRangers100mb()
     {
         const int expected = 1_418_304;
-        RangeBenchmarks aecB = new();
-        int cells = aecB.Access100mb(ranger);
+        XlsbRangeBenchmarks aecB = new();
+        int cells = aecB.Access100mb(typeof(GRExcelPrimeXlsb));
         cells.Should().Be(expected);
     }
 
@@ -113,12 +107,13 @@ internal class DefinedRangeTests
     //}
 
     [Test]
+    [Explicit]
     public void A052_ExcelPrime_PivotTable()
     {
         const int expected = 214 * 6 * 2; // Rows * Cols * twice -> Sheet1!$A$1:$F$214
         //int cells = aecB.AccessPivotTable(typeof(GetRangeExcelPrime));
-        using IGetRange getRanger = new GRExcelPrime();
-        getRanger.LoadFile("Data\\pivot-tables.xlsx");
+        using IGetRangeXlsb getRanger = new GRExcelPrimeXlsb();
+        getRanger.LoadFile("Data\\pivot-tables.xlsb");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
         IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
@@ -129,10 +124,11 @@ internal class DefinedRangeTests
     }
 
     [Test]
+    [Explicit]
     public async Task A060_UserRanges()
     {
-        const string fileName = "Data/solver.xlsx";
-        using Excel_PRIME workbook = new();
+        const string fileName = "Data/solver.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(fileName,
             options: new Options
             {

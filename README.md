@@ -13,7 +13,8 @@
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats (and XLS**B** in V 3)
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12) in V3.##
+- Zip Deflate format _Only_
 
 ## Performant 🚀
 - _Try_ **to be** as fast as possible, i.e.
@@ -22,7 +23,7 @@ Lets take each of the above elements and explain:
     - No attempt at "creating / using" datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
-- Now the fastest in Real world usage [2025-11-19](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
+- Now the fastest in Real world usage [2025-11-19 onwards](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
@@ -217,7 +218,7 @@ Lets take each of the above elements and explain:
 - ✅ Release as Nuget V2.2512-10 💨
 -----
 
-## Phase 3 - XLS**B** 💾 - Alpha V3
+## Phase 3 - XLS**B** 💾 (BIFF12) - Alpha V3
 - ⛓️‍💥 **Breaking Change(s)**
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
@@ -225,15 +226,15 @@ Lets take each of the above elements and explain:
     - `IXmlSheetReader` has become `IOpenXmlSheetReader`
 - ✅ Branch and beta yml
     - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
-- [>] Implement Open / Dispose (Async)
+- ✅ Implement Open / Dispose (Async)
     - ✅ Sheet Names
-    - [ ] Shared Strings
-- [ ] Implement Sheet loading 
-- [ ] Implement Row extraction 
-    - [ ] Skip
-    - [ ] Delayed read - until a cell is actually needed
-    - [ ] Deal with Null / Empty cells (Utilise sparse array?)
-- [ ] Cell object type 📅
+    - ✅ Shared Strings
+- ✅ Implement Sheet loading 
+- ✅ Implement Row extraction 
+    - ✅ Skip
+    - ✅ Delayed read - until a cell is actually needed
+    - ✅ Deal with Null / Empty cells
+- ✅ Cell object type 📅
 - [ ] Parallel Sheet threads Access
     - [ ] Multiple times (with locking)
 - [ ] Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇

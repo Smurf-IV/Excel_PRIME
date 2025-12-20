@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Text;
 
 namespace ExcelPRIME.XlsbImp;
 
+[DebuggerDisplay("RecordType {RecordType}")]
 internal sealed class PooledRecordBuffer : IDisposable
 {
     private readonly byte[] _array;
@@ -35,13 +37,13 @@ internal sealed class PooledRecordBuffer : IDisposable
         }
     }
 
-    public int GetInt32(int offset = 0) => BitConverter.ToInt32(_array, offset);
+    public int GetInt32(int offset) => BitConverter.ToInt32(_array, offset);
 
-    public double GetDouble(int offset = 0) => BitConverter.ToDouble(_array, offset);
+    public double GetDouble(int offset) => BitConverter.ToDouble(_array, offset);
 
-    public short GetInt16(int offset = 0) => BitConverter.ToInt16(_array, offset);
+    public short GetInt16(int offset) => BitConverter.ToInt16(_array, offset);
 
-    public short GetByte(int offset = 0) => _array[offset];
+    public short GetByte(int offset) => _array[offset];
 
     public string GetString(int offset)
     {

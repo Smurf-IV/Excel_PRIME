@@ -19,15 +19,8 @@ internal sealed class SemaphoreLocker : IDisposable
         {
             do
             {
-                try
-                {
-                }
-                finally
-                {
-                    isTaken = _semaphore.Wait(TimeSpan.FromMilliseconds(250));
-                }
-            }
-            while (!isTaken);
+                isTaken = _semaphore.Wait(TimeSpan.FromMilliseconds(250));
+            } while (!isTaken);
             worker();
         }
         finally
@@ -46,15 +39,8 @@ internal sealed class SemaphoreLocker : IDisposable
         {
             do
             {
-                try
-                {
-                }
-                finally
-                {
-                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
-                }
-            }
-            while (!isTaken);
+                isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
+            } while (!isTaken);
             await worker().ConfigureAwait(false);
         }
         finally
@@ -74,15 +60,8 @@ internal sealed class SemaphoreLocker : IDisposable
         {
             do
             {
-                try
-                {
-                }
-                finally
-                {
-                    isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
-                }
-            }
-            while (!isTaken);
+                isTaken = await _semaphore.WaitAsync(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
+            } while (!isTaken);
             return await worker().ConfigureAwait(false);
         }
         finally
@@ -95,15 +74,9 @@ internal sealed class SemaphoreLocker : IDisposable
     }
 
     // New non-allocating lock helpers
-    public void Enter()
-    {
-        _semaphore.Wait();
-    }
+    public void Enter() => _semaphore.Wait();
 
-    public void Exit()
-    {
-        _semaphore.Release();
-    }
+    public void Exit() => _semaphore.Release();
 
     private void Dispose(bool isDisposing)
     {
