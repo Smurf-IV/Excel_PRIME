@@ -8,8 +8,8 @@
 internal enum RecordTypeIdentifier
 {
     // Workbook and Worksheet Records
+    EOF = -1,           // End of File
     BOF = 0x0809,           // Beginning of File
-    EOF = 0x000A,           // End of File
     BOOKBEGIN = 0x0083,     // 131: Start of WorkBook
     BOOKEND = 0x0084,       // 132: End of WorkBook
     WSVIEWSSTART = 0x0085,  // 133: Worksheet Start
@@ -32,7 +32,6 @@ internal enum RecordTypeIdentifier
     WRITEACCESS = 0x005C,   // Write Access User Name
     FILEPASS = 0x002F,      // File Encryption Information
     PROTECT = 0x0012,       // Sheet Protection
-    PASSWORD = 0x0013,      // Password Protection
     SCENPROTECT = 0x00DD,   // Scenario Protection
     OBJECTPROTECT = 0x0063, // Object Protection
     COLUMNSBEGIN = 0x186,   // 390
@@ -45,18 +44,10 @@ internal enum RecordTypeIdentifier
     STRING = 0x0207,        // String Cell
     FORMULA = 0x0006,       // Formula Cell
     BOOLERR = 0x0205,       // Boolean or Error Cell
-    // Formatting Records
-    FORMAT = 0x041E,        // Format Record
-    XF = 0x00E0,            // Extended Format
-    STYLE = 0x0293,         // Style
-    FONT = 0x0031,          // Font
-    PALETTE = 0x0092,       // Color Palette
-    THEME = 0x00A1,         // Theme Information
     // Shared Data Records
     STRINGITEM = 0x0013,    // Shared String
     SSTBEGIN = 0x009f,      // 159: Start of Shared String Table
     SSTEND = 0x00A0,        // 160: End of Shared String Table
-    SHAREDSTRINGS = 0x00FC, // Shared Strings
     SST = 0x00FC,           // Shared String Table
     CONTINUE = 0x003C,      // Continuation Record
     // Row and Column Records

@@ -15,7 +15,7 @@ namespace ExcelPRIMEXlsb.Bench;
 
 
 [ExcludeFromCodeCoverage]
-public class AccessEveryCellBenchmarks
+public class AccessEveryCellBenchmarksXlsb
 {
     private const string RootFolder = @"Data\";
     [Params(
@@ -56,7 +56,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellAsyncExcel_Prime()
+    public async Task<int> AccessEveryCellAsyncExcel_PrimeXlsb()
     {
         int cells = 0;
         using Excel_PRIMEXlsb workbook = new();
@@ -85,7 +85,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellExcel_Prime()
+    public int AccessEveryCellExcel_PrimeXlsb()
     {
         int cells = 0;
         using Excel_PRIMEXlsb workbook = new();
@@ -110,7 +110,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> NumberCellAsyncExcel_Prime()
+    public async Task<int> NumberCellAsyncExcel_PrimeXlsb()
     {
         int cells = 0;
         using Excel_PRIMEXlsb workbook = new();
@@ -143,7 +143,7 @@ public class AccessEveryCellBenchmarks
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
     // Memory is between 80% and 110% more
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> ParallelEveryCellAsyncExcel_PrimeTwice()
+    public async Task<int> ParallelEveryCellAsyncExcel_PrimeXlsbTwice()
     {
         using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);

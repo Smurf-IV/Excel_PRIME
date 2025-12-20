@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace ExcelPRIME.XlsbImp;
 
@@ -37,7 +39,8 @@ internal class XlsbStreamReader
     public XlsbStreamReader(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        _stream = stream; // !stream.CanSeek ? new RewindableStream(stream, 512) : stream;
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        _stream = new BufferedStream(stream, 64 * 1024);
     }
 
     /// <summary>
@@ -51,12 +54,18 @@ internal class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int bytesRead = _stream.Read(buffer, 0, count);
-        if (bytesRead < count)
+        int read = 0;
+        while (read < count)
         {
-            ArrayPool<byte>.Shared.Return(buffer);
-            throw new EndOfStreamException();
+            int bytesRead = _stream.Read(buffer, read, count - read);
+            if (bytesRead == 0)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+                throw new EndOfStreamException();
+            }
+            read += bytesRead;
         }
+
         return buffer;
     }
 
@@ -65,12 +74,18 @@ internal class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int bytesRead = await _stream.ReadAsync(buffer.AsMemory(0, count), ct).ConfigureAwait(false);
-        if (bytesRead < count)
+        int read = 0;
+        while (read < count)
         {
-            ArrayPool<byte>.Shared.Return(buffer);
-            throw new EndOfStreamException();
+            int bytesRead = await _stream.ReadAsync(buffer.AsMemory(read, count- read), ct).ConfigureAwait(false);
+            if (bytesRead == 0)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+                throw new EndOfStreamException();
+            }
+            read += bytesRead;
         }
+
         return buffer;
     }
 
@@ -134,51 +149,51 @@ internal class XlsbStreamReader
     }
 
     private bool ReadRecordLen(out uint recordLength) => CarefulFieldRead(out recordLength);
+    private readonly byte[] _oneByteArray = new byte[1];
 
     private bool CarefulFieldRead(out uint value)
     {
         value = 0u;
-        byte[] oneByteArray = new byte[1];
 
-        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        if (_stream.Read(_oneByteArray, 0, 1) == 0)
         {
             return false;
         }
 
-        ref byte b1 = ref oneByteArray[0];
+        ref byte b1 = ref _oneByteArray[0];
         value = (uint)(b1 & 0x7F);
 
         if ((b1 & 0x80) == 0)
             return true;
 
-        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        if (_stream.Read(_oneByteArray, 0, 1) == 0)
         {
             return false;
         }
 
-        ref byte b2 = ref oneByteArray[0];
+        ref byte b2 = ref _oneByteArray[0];
         value = ((uint)(b2 & 0x7F) << 7) | value;
 
         if ((b2 & 0x80) == 0)
             return true;
 
-        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        if (_stream.Read(_oneByteArray, 0, 1) == 0)
         {
             return false;
         }
 
-        ref byte b3 = ref oneByteArray[0];
+        ref byte b3 = ref _oneByteArray[0];
         value = ((uint)(b3 & 0x7F) << 14) | value;
 
         if ((b3 & 0x80) == 0)
             return true;
 
-        if (_stream.Read(oneByteArray, 0, 1) == 0)
+        if (_stream.Read(_oneByteArray, 0, 1) == 0)
         {
             return false;
         }
 
-        ref byte b4 = ref oneByteArray[0];
+        ref byte b4 = ref _oneByteArray[0];
         value = ((uint)(b4 & 0x7F) << 21) | value;
 
         return true;

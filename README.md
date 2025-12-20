@@ -239,8 +239,10 @@ Lets take each of the above elements and explain:
     - [ ] Multiple times (with locking)
 - [ ] Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
     - [ ] Read from global
-- [ ] Benchmarks 🖲️
-    - [ ] Add "Excel readers" That support XLS**B** Extraction
+- [>] Benchmarks 🖲️
+    - [>] Add "Excel readers" That support XLS**B** Extraction
+    - [ ] 🚶‍➡️ [1st Pass Performance on 2025-12-20](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-20)
+    - [] Add "Excel readers" That support XLS**B** Range Extraction
 - [ ] Release as Nuget V3.yyMM.dd
 -----
 

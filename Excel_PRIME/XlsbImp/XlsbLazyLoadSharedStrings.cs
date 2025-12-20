@@ -15,7 +15,6 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
     private readonly XlsbStreamReader _reader;
     private readonly List<string> _currentlyLoaded;
     private bool _isDisposed;
-    private readonly StringBuilder _currentStNodeBuilder = new();
 
     public XlsbLazyLoadSharedStrings()
     {
