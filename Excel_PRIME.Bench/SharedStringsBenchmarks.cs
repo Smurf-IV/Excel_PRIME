@@ -65,7 +65,7 @@ public class SharedStringsBenchmarks
         archive?.Dispose();
     }
 
-    [Benchmark(Baseline = true)]
+    //[Benchmark(Baseline = true)]
     public int AccessFirstThousandSequential()
     {
         if (sharedStrings is null)
@@ -85,7 +85,7 @@ public class SharedStringsBenchmarks
         return total;
     }
 
-    [Benchmark]
+    //[Benchmark]
     public int AccessRandomThousand()
     {
         if (sharedStrings is null)

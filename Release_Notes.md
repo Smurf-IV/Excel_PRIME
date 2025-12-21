@@ -1,9 +1,16 @@
-﻿# 2025-12-## - V3 Beta
+﻿# 2025-12-21 - V3 XLSB-Beta
 - ⛓️‍💥 **Breaking Change(s)
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
     - `IXmlWorkBookReader` has become `IOpenXmlWorkBookReader`
     - `IXmlSheetReader` has become `IOpenXmlSheetReader`
+- ✅ Implement Sheet loading 
+- ✅ Implement Row extraction 
+    - ✅ Skip
+    - ✅ Delayed read - until a cell is actually needed
+    - ✅ Deal with Null / Empty cells
+- ✅ Cell object type 📅
+    - [>] 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
 
 
 # 2025-12-10 - RC

@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="../Excel.ico" />
+		<Content Include="../Excel.ico" />
 	</ItemGroup>
 
 
@@ -51,6 +51,9 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
+		<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+			<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		</PropertyGroup>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -61,10 +64,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="Package_ReadMe.md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+		<None Include="Package_ReadMe.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
