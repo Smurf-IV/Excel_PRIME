@@ -648,24 +648,24 @@ And then slightly different versions of the following dependent on date:
 ```
 | Method                              | FileName             | Ratio        | Gen0        | Gen1       | Gen2      | Allocated  | Alloc Ratio |
 |------------------------------------ |--------------------- |-------------:|------------:|-----------:|----------:|-----------:|------------:|
-| AccessEveryCellSylvan               | 100mb.xlsb           |     baseline |  43000.0000 | 41000.0000 | 5000.0000 |  335.55 MB |             |
-| AccessEveryCellAsyncExcel_PrimeXlsb | 100mb.xlsb           | 2.69x slower | 521000.0000 | 55000.0000 | 3000.0000 |  4148.6 MB | 12.36x more |
-| AccessEveryCellExcel_PrimeXlsb      | 100mb.xlsb           | 1.80x slower | 260000.0000 | 49000.0000 | 3000.0000 | 2064.87 MB |  6.15x more |
-| NumberCellAsyncExcel_PrimeXlsb      | 100mb.xlsb           | 2.71x slower | 524000.0000 | 58000.0000 | 6000.0000 | 4148.61 MB | 12.36x more |
+| AccessEveryCellSylvan               | 100mb.xlsb           |     baseline |  43000.0000 | 41000.0000 | 5000.0000 |  335.54 MB |             |
+| AccessEveryCellAsyncExcel_PrimeXlsb | 100mb.xlsb           | 2.51x slower | 524000.0000 | 58000.0000 | 6000.0000 | 4148.61 MB | 12.36x more |
+| AccessEveryCellExcel_PrimeXlsb      | 100mb.xlsb           | 1.69x slower | 260000.0000 | 49000.0000 | 3000.0000 | 2064.87 MB |  6.15x more |
+| NumberCellAsyncExcel_PrimeXlsb      | 100mb.xlsb           | 2.53x slower | 524000.0000 | 58000.0000 | 6000.0000 | 4148.61 MB | 12.36x more |
 |                                     |                      |              |             |            |           |            |             |
 | AccessEveryCellSylvan               | Blank(...).xlsb [30] |     baseline |  37000.0000 |  1000.0000 |         - |  301.88 MB |             |
-| AccessEveryCellAsyncExcel_PrimeXlsb | Blank(...).xlsb [30] | 3.48x slower | 579000.0000 |  1000.0000 |         - | 4622.46 MB | 15.31x more |
-| AccessEveryCellExcel_PrimeXlsb      | Blank(...).xlsb [30] | 1.99x slower | 268000.0000 |  1000.0000 |         - | 2144.04 MB |  7.10x more |
-| NumberCellAsyncExcel_PrimeXlsb      | Blank(...).xlsb [30] | 3.57x slower | 579000.0000 |  1000.0000 |         - | 4622.46 MB | 15.31x more |
+| AccessEveryCellAsyncExcel_PrimeXlsb | Blank(...).xlsb [30] | 3.77x slower | 579000.0000 |  1000.0000 |         - | 4622.46 MB | 15.31x more |
+| AccessEveryCellExcel_PrimeXlsb      | Blank(...).xlsb [30] | 2.01x slower | 268000.0000 |  1000.0000 |         - | 2144.04 MB |  7.10x more |
+| NumberCellAsyncExcel_PrimeXlsb      | Blank(...).xlsb [30] | 3.60x slower | 579000.0000 |  1000.0000 |         - | 4622.46 MB | 15.31x more |
 |                                     |                      |              |             |            |           |            |             |
 | AccessEveryCellSylvan               | sampl(...).xlsb [34] |     baseline |  32000.0000 |          - |         - |  262.23 MB |             |
-| AccessEveryCellAsyncExcel_PrimeXlsb | sampl(...).xlsb [34] | 2.86x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
-| AccessEveryCellExcel_PrimeXlsb      | sampl(...).xlsb [34] | 1.82x slower | 144000.0000 |  1000.0000 |         - | 1154.95 MB |  4.40x more |
-| NumberCellAsyncExcel_PrimeXlsb      | sampl(...).xlsb [34] | 2.85x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
+| AccessEveryCellAsyncExcel_PrimeXlsb | sampl(...).xlsb [34] | 2.90x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
+| AccessEveryCellExcel_PrimeXlsb      | sampl(...).xlsb [34] | 1.79x slower | 144000.0000 |  1000.0000 |         - | 1154.95 MB |  4.40x more |
+| NumberCellAsyncExcel_PrimeXlsb      | sampl(...).xlsb [34] | 2.86x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
 |                                     |                      |              |             |            |           |            |             |
 | AccessEveryCellSylvan               | sampl(...).xlsb [30] |     baseline |  32000.0000 |          - |         - |  262.23 MB |             |
-| AccessEveryCellAsyncExcel_PrimeXlsb | sampl(...).xlsb [30] | 2.83x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
-| AccessEveryCellExcel_PrimeXlsb      | sampl(...).xlsb [30] | 1.84x slower | 144000.0000 |  1000.0000 |         - | 1154.95 MB |  4.40x more |
-| NumberCellAsyncExcel_PrimeXlsb      | sampl(...).xlsb [30] | 2.82x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
+| AccessEveryCellAsyncExcel_PrimeXlsb | sampl(...).xlsb [30] | 2.78x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
+| AccessEveryCellExcel_PrimeXlsb      | sampl(...).xlsb [30] | 1.82x slower | 144000.0000 |  1000.0000 |         - | 1154.95 MB |  4.40x more |
+| NumberCellAsyncExcel_PrimeXlsb      | sampl(...).xlsb [30] | 2.84x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
 ```
 -----

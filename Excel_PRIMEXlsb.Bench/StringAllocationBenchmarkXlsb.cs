@@ -40,7 +40,10 @@ public class StringAllocationBenchmarkXlsb
             using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData())
             {
-                if (row == null) break;
+                if (row == null)
+                {
+                    break;
+                }
 
                 foreach (ICell? cell in row.GetAllCells())
                 {
@@ -52,10 +55,16 @@ public class StringAllocationBenchmarkXlsb
                 }
 
                 row.Dispose();
-                if (stringCellCount > 5000) break;
+                if (stringCellCount > 5000)
+                {
+                    break;
+                }
             }
 
-            if (stringCellCount > 5000) break;
+            if (stringCellCount > 5000)
+            {
+                break;
+            }
         }
 
         return totalChars;
@@ -76,7 +85,10 @@ public class StringAllocationBenchmarkXlsb
             using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData())
             {
-                if (row == null) break;
+                if (row == null)
+                {
+                    break;
+                }
 
                 foreach (ICell? cell in row.GetAllCells())
                 {
@@ -92,10 +104,16 @@ public class StringAllocationBenchmarkXlsb
                 }
 
                 row.Dispose();
-                if (stringCellCount > 5000) break;
+                if (stringCellCount > 5000)
+                {
+                    break;
+                }
             }
 
-            if (stringCellCount > 5000) break;
+            if (stringCellCount > 5000)
+            {
+                break;
+            }
         }
 
         return totalChars;

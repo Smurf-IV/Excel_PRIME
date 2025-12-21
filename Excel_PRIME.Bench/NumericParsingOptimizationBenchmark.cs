@@ -27,7 +27,7 @@ public class NumericParsingOptimizationBenchmark
         decimalSamples = new ReadOnlyMemory<char>[NumSamples];
         largeIntegerSamples = new ReadOnlyMemory<char>[NumSamples];
         sciNotationSamples = new ReadOnlyMemory<char>[NumSamples];
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
             // Hot path: single/double digit positive integers (most common in Excel)
@@ -79,7 +79,7 @@ public class NumericParsingOptimizationBenchmark
         object? result = null;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = integerSamples[i].Span;
             bool containsDecimal = span.Contains('.');
             if (!containsDecimal && span.Length < 12)
             {
@@ -105,10 +105,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseIntegersOptimized()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = integerSamples[i].Span;
             // Direct path for positive integers (no decimal check)
             if (span.Length < 12 && span[0] != '-')
             {
@@ -140,7 +140,7 @@ public class NumericParsingOptimizationBenchmark
         object? result = null;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = singleDigitSamples[i].Span;
+            ReadOnlySpan<char> span = singleDigitSamples[i].Span;
             // Single digit fast path
             if (span.Length == 1 && span[0] >= '0' && span[0] <= '9')
             {
@@ -161,7 +161,7 @@ public class NumericParsingOptimizationBenchmark
         object? result = null;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = doubleDigitSamples[i].Span;
+            ReadOnlySpan<char> span = doubleDigitSamples[i].Span;
             if (span.Length < 12 && span[0] != '-')
             {
                 result = CustomIntParse(span);
@@ -179,10 +179,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseNegativeIntegers()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = negativeSamples[i].Span;
+            ReadOnlySpan<char> span = negativeSamples[i].Span;
             if (span.Length < 12 && span[0] == '-')
             {
                 if (int.TryParse(span, NumberStyles.Integer, invariant, out int resultI))
@@ -203,10 +203,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseDecimalsDoubleFirst()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = decimalSamples[i].Span;
+            ReadOnlySpan<char> span = decimalSamples[i].Span;
             if (span.IndexOf('.') >= 0)
             {
                 if (double.TryParse(span, NumberStyles.Float, invariant, out double resultD))
@@ -231,10 +231,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseDecimalsDecimalFirst()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = decimalSamples[i].Span;
+            ReadOnlySpan<char> span = decimalSamples[i].Span;
             if (span.IndexOf('.') >= 0)
             {
                 if (decimal.TryParse(span, NumberStyles.Number, invariant, out decimal resultM))
@@ -259,10 +259,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseLargeIntegers()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = largeIntegerSamples[i].Span;
+            ReadOnlySpan<char> span = largeIntegerSamples[i].Span;
             if (span.Length < 20)
             {
                 if (long.TryParse(span, NumberStyles.Integer, invariant, out long resultL))
@@ -283,10 +283,10 @@ public class NumericParsingOptimizationBenchmark
     public object ParseScientificNotation()
     {
         object? result = null;
-        var invariant = CultureInfo.InvariantCulture;
+        CultureInfo invariant = CultureInfo.InvariantCulture;
         for (int i = 0; i < NumSamples; i++)
         {
-            var span = sciNotationSamples[i].Span;
+            ReadOnlySpan<char> span = sciNotationSamples[i].Span;
             if (double.TryParse(span, NumberStyles.Float, invariant, out double resultD))
             {
                 result = resultD;

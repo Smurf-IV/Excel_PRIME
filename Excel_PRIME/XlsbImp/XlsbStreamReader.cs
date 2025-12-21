@@ -173,7 +173,9 @@ internal class XlsbStreamReader
         value = (uint)(b1 & 0x7F);
 
         if ((b1 & 0x80) == 0)
+        {
             return true;
+        }
 
         if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
         {
@@ -184,7 +186,9 @@ internal class XlsbStreamReader
         value = ((uint)(b2 & 0x7F) << 7) | value;
 
         if ((b2 & 0x80) == 0)
+        {
             return true;
+        }
 
         if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
         {
@@ -195,7 +199,9 @@ internal class XlsbStreamReader
         value = ((uint)(b3 & 0x7F) << 14) | value;
 
         if ((b3 & 0x80) == 0)
+        {
             return true;
+        }
 
         if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
         {
