@@ -51,9 +51,9 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
-		<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-			<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-		</PropertyGroup>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
