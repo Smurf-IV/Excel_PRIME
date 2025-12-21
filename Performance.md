@@ -638,3 +638,10 @@ And then slightly different versions of the following dependent on date:
 | NumberCellAsyncExcel_PrimeXlsb      | sampl(...).xlsb [30] | 2.86x slower | 312000.0000 |  1000.0000 |         - | 2494.25 MB |  9.51x more |
 ```
 -----
+
+# 2025-12-21
+- Performance improvements:
+  - Switched from traditional switch statement to expression-based switch for more efficient dispatch
+  - Delayed cell object allocation until after record type validation, avoiding unnecessary object creation for invalid records
+  - Use of `[MethodImpl(MethodImplOptions.AggressiveInlining)]`
+  - 

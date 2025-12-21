@@ -43,7 +43,7 @@ internal sealed class PooledRecordBuffer : IDisposable
 
     public short GetInt16(int offset) => BitConverter.ToInt16(_array, offset);
 
-    public short GetByte(int offset) => _array[offset];
+    public byte GetByte(int offset) => _array[offset];
 
     public string GetString(int offset)
     {

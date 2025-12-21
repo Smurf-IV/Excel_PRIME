@@ -162,7 +162,10 @@ public record DefinedRange
             if (firstDollar >= 0)
             {
                 secondDollar = left.Slice(firstDollar + 1).IndexOf('$');
-                if (secondDollar >= 0) secondDollar += firstDollar + 1;
+                if (secondDollar >= 0)
+                {
+                    secondDollar += firstDollar + 1;
+                }
             }
 
             if (firstDollar >= 0 && secondDollar > firstDollar)
@@ -178,7 +181,10 @@ public record DefinedRange
             {
                 int i = 0; while (i < left.Length && !char.IsDigit(left[i])) i++;
                 ExcelColumnStart = left.Slice(0, i).GetColNumber();
-                if (i < left.Length) ExcelRowStart = left.Slice(i).IntParse();
+                if (i < left.Length)
+                {
+                    ExcelRowStart = left.Slice(i).IntParse();
+                }
             }
         }
 
@@ -190,7 +196,10 @@ public record DefinedRange
             if (firstDollar >= 0)
             {
                 secondDollar = right.Slice(firstDollar + 1).IndexOf('$');
-                if (secondDollar >= 0) secondDollar += firstDollar + 1;
+                if (secondDollar >= 0)
+                {
+                    secondDollar += firstDollar + 1;
+                }
             }
 
             if (firstDollar >= 0 && secondDollar > firstDollar)
@@ -206,7 +215,10 @@ public record DefinedRange
             {
                 int i = 0; while (i < right.Length && !char.IsDigit(right[i])) i++;
                 ExcelColumnEnd = right.Slice(0, i).GetColNumber();
-                if (i < right.Length) ExcelRowEnd = right.Slice(i).IntParse();
+                if (i < right.Length)
+                {
+                    ExcelRowEnd = right.Slice(i).IntParse();
+                }
             }
         }
     }

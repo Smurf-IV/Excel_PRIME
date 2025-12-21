@@ -309,7 +309,7 @@ internal sealed record Cell : ICell
             while (reader.Depth > startDepth)
             {
                 XmlNodeType nt = reader.NodeType;
-                bool isTextual = nt == XmlNodeType.Text || nt == XmlNodeType.CDATA || nt == XmlNodeType.Whitespace || nt == XmlNodeType.SignificantWhitespace;
+                bool isTextual = nt is XmlNodeType.Text or XmlNodeType.CDATA or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace;
                 if (isTextual)
                 {
                     // Read text content in chunks into buffer and append
@@ -336,7 +336,7 @@ internal sealed record Cell : ICell
 
         // Not positioned on an element - return value if textual
         XmlNodeType nodeType = reader.NodeType;
-        if (nodeType == XmlNodeType.Text || nodeType == XmlNodeType.CDATA || nodeType == XmlNodeType.Whitespace || nodeType == XmlNodeType.SignificantWhitespace)
+        if (nodeType is XmlNodeType.Text or XmlNodeType.CDATA or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace)
         {
             return reader.Value;
         }

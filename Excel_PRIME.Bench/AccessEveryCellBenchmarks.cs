@@ -44,7 +44,9 @@ public class AccessEveryCellBenchmarks
                 for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
                     if (!string.IsNullOrEmpty(reader.GetExcelValue(ordinal).ToString()))
+                    {
                         cells++;
+                    }
                 }
             }
         } while (await reader.NextResultAsync().ConfigureAwait(true));
@@ -66,7 +68,9 @@ public class AccessEveryCellBenchmarks
                 foreach (Cell cell in row.Cells)
                 {
                     if (!string.IsNullOrEmpty(cell.CellValue))
+                    {
                         cells++;
+                    }
                 }
             }
         }
@@ -120,7 +124,9 @@ public class AccessEveryCellBenchmarks
                 {
                     // Because this returns upto the dimension of the sheet width
                     if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                    {
                         cells++;
+                    }
                 }
                 row.Dispose();
             }
@@ -174,7 +180,9 @@ public class AccessEveryCellBenchmarks
                 {
                     // Because this returns upto the dimension of the sheet width
                     if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                    {
                         cells++;
+                    }
                 }
                 row.Dispose();
             }

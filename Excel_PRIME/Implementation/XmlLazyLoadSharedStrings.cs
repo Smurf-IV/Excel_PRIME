@@ -177,8 +177,7 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
                     // Collect all text-like nodes until we exit the <t> element
                     while (!_reader.EOF)
                     {
-                        if (_reader.NodeType == XmlNodeType.Text || _reader.NodeType == XmlNodeType.CDATA
-                            || _reader.NodeType == XmlNodeType.Whitespace || _reader.NodeType == XmlNodeType.SignificantWhitespace)
+                        if (_reader.NodeType is XmlNodeType.Text or XmlNodeType.CDATA or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace)
                         {
                             _currentStNodeBuilder.Append(_reader.Value);
                         }

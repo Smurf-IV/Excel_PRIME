@@ -115,24 +115,25 @@ internal sealed class XlsbRow : IRowAsync
                    && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
                    && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
             {
-                if (nextRecord.RecordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
-                {   // Break out early for non-cell records
+                // Fast path: skip non-cell records
+                RecordTypeIdentifier recordType = nextRecord.RecordType;
+                if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
+                {
                     nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
                     continue;
                 }
+
+                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                if (cell != null)
                 {
-                    XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
-                    int offset = cell?.ExcelColumnOffset ?? -1;
+                    int offset = cell.ExcelColumnOffset;
                     if (offset > 0 && offset <= _maxExcelColumnDimension)
                     {
                         localCells[offset] = cell;
                     }
-                    else
-                    {
-                        // If the parsed cell offset is outside expected width, skip storing it to avoid OOB.
-                        // (Should be rare, defensive programming.)
-                    }
+                    // Out-of-range cells are silently dropped (defensive programming)
                 }
+
                 nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
             }
         }
@@ -147,7 +148,8 @@ internal sealed class XlsbRow : IRowAsync
                 nextRecord.Dispose();
             }
         }
-        // publish parsed cells once fully read to avoid partial-visible state
+
+        // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
         _cellsLoaded = true;
     }
@@ -155,10 +157,11 @@ internal sealed class XlsbRow : IRowAsync
     internal void GetCells(CancellationToken ct)
     {
         if (_cellsLoaded
-        || _reader == null)
+            || _reader == null)
         {
             return;
         }
+
         // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
         XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension + 1];
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
@@ -169,22 +172,23 @@ internal sealed class XlsbRow : IRowAsync
                    && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
                    && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
             {
-                if (nextRecord.RecordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
-                {   // Break out early for non-cell records
+                // Fast path: skip non-cell records
+                RecordTypeIdentifier recordType = nextRecord.RecordType;
+                if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
+                {
                     nextRecord = _reader.ReadNextRecord();
                     continue;
                 }
 
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
-                int offset = cell?.ExcelColumnOffset ?? -1;
-                if (offset > 0 && offset <= _maxExcelColumnDimension)
+                if (cell != null)
                 {
-                    localCells[offset] = cell;
-                }
-                else
-                {
-                    // If the parsed cell offset is outside expected width, skip storing it to avoid OOB.
-                    // (Should be rare, defensive programming.)
+                    int offset = cell.ExcelColumnOffset;
+                    if (offset > 0 && offset <= _maxExcelColumnDimension)
+                    {
+                        localCells[offset] = cell;
+                    }
+                    // Out-of-range cells are silently dropped (defensive programming)
                 }
 
                 nextRecord = _reader.ReadNextRecord();
@@ -202,7 +206,7 @@ internal sealed class XlsbRow : IRowAsync
             }
         }
 
-        // publish parsed cells once fully read to avoid partial-visible state
+        // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
         _cellsLoaded = true;
     }
