@@ -152,7 +152,7 @@ public record DefinedRange
         ExcelRowStart = 1;
         int colon = range.IndexOf(':');
         ReadOnlySpan<char> left = colon >= 0 ? range.Slice(0, colon) : range;
-        ReadOnlySpan<char> right = colon >= 0 ? range.Slice(colon + 1) : ReadOnlySpan<char>.Empty;
+        ReadOnlySpan<char> right = colon >= 0 ? range.Slice(colon + 1) : [];
 
         // parse left
         if (left.Length > 0)

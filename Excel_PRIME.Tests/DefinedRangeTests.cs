@@ -17,7 +17,7 @@ namespace ExcelPRIME.Tests;
 internal class DefinedRangeTests
 {
     [Test]
-    public async Task A010_ReadNamedRange()
+    public async Task A010_ReadNamedRangeAsync()
     {
         const string fileName = "Data/named-range.xlsx";
         using Excel_PRIME workbook = new();
@@ -27,6 +27,24 @@ internal class DefinedRangeTests
 
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         object?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        prices.Should().HaveCount(4);
+        prices[0].Should().BeEquivalentTo(["5"]);
+        prices[1].Should().BeEquivalentTo(["4"]);
+        prices[2].Should().BeEquivalentTo(["15"]);
+        prices[3].Should().BeEquivalentTo(["9"]);
+    }
+
+    [Test]
+    public void A011_ReadNamedRange()
+    {
+        const string fileName = "Data/named-range.xlsx";
+        using Excel_PRIME workbook = new();
+        workbook.Open(fileName);
+        object?[] taxRate = workbook.GetDefinedRange("TaxRate").First();
+        taxRate.FirstOrDefault().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+
+        // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
+        object?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
         prices.Should().HaveCount(4);
         prices[0].Should().BeEquivalentTo(["5"]);
         prices[1].Should().BeEquivalentTo(["4"]);

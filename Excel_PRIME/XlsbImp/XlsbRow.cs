@@ -69,34 +69,7 @@ internal sealed class XlsbRow : IRowAsync
         RowOffset = 0;
     }
 
-    private void DisposeManagedState()
-    {
-        // Release references to allow GC of contained cells
-        _cells = null;
-        _cellsLoaded = false;
-    }
-
-    public void Dispose()
-    {
-        if (_isDisposed)
-        {
-            return;
-        }
-
-        _isDisposed = true;
-        DisposeManagedState();
-
-        // Return to pool for reuse
-        Return(this);
-    }
-
-    /// <InheritDoc />
-    public int RowOffset { get; private set; }
-
-    /// <summary>
-    /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
-    /// Using an array avoids Dictionary overhead and reduces per-row allocations for typical sheet widths.
-    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -122,7 +95,6 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
                     continue;
                 }
-
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
@@ -133,7 +105,6 @@ internal sealed class XlsbRow : IRowAsync
                     }
                     // Out-of-range cells are silently dropped (defensive programming)
                 }
-
                 nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
             }
         }
@@ -154,6 +125,7 @@ internal sealed class XlsbRow : IRowAsync
         _cellsLoaded = true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void GetCells(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -179,7 +151,6 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = _reader.ReadNextRecord();
                     continue;
                 }
-
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
@@ -190,7 +161,6 @@ internal sealed class XlsbRow : IRowAsync
                     }
                     // Out-of-range cells are silently dropped (defensive programming)
                 }
-
                 nextRecord = _reader.ReadNextRecord();
             }
         }
@@ -210,6 +180,27 @@ internal sealed class XlsbRow : IRowAsync
         _cells = localCells;
         _cellsLoaded = true;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DisposeManagedState()
+    {
+        _cells = null;
+        _cellsLoaded = false;
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+        _isDisposed = true;
+        DisposeManagedState();
+        Return(this);
+    }
+
+    /// <InheritDoc />
+    public int RowOffset { get; private set; }
 
     /// <InheritDoc />
     public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)

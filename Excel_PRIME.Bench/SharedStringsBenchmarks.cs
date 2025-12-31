@@ -49,7 +49,7 @@ public class SharedStringsBenchmarks
                 MethodInfo? getSharedStringsAsync = helperType.GetMethod("GetSharedStringsAsync", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                 if (getSharedStringsAsync != null)
                 {
-                    Task<ISharedString> task = (System.Threading.Tasks.Task<ISharedString>)getSharedStringsAsync.Invoke(helper, new object[] { sharedStringsStream, CancellationToken.None })!;
+                    Task<ISharedString> task = (Task<ISharedString>)getSharedStringsAsync.Invoke(helper, new object[] { sharedStringsStream, CancellationToken.None })!;
                     task.Wait();
                     sharedStrings = task.Result;
                 }

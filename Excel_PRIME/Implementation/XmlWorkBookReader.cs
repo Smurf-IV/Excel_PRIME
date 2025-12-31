@@ -154,7 +154,7 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
                 // Handle this situation-> <definedName name="DışVeri_2" localSheetId="3" hidden="1">Worksheet!$A$952351:$H$985351</definedName>
                 if (definedRanges[keyName].SheetName == sheetRef)
                 {
-                    definedRanges.TryAdd(name, new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef });
+                    definedRanges.TryAdd(name, definedRanges[keyName]);
                 }
             }
         }
@@ -224,7 +224,7 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
                 // Handle this situation-> <definedName name="DışVeri_2" localSheetId="3" hidden="1">Worksheet!$A$952351:$H$985351</definedName>
                 if (definedRanges[keyName].SheetName == sheetRef)
                 {
-                    definedRanges.TryAdd(name, new DefinedRange(_reader.Value) { Name = name, SheetIdReference = sheetRef });
+                    definedRanges.TryAdd(name, definedRanges[keyName]);
                 }
             }
         }

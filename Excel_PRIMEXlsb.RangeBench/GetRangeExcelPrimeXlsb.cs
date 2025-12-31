@@ -9,7 +9,7 @@ namespace ExcelPRIMEXlsb.RangeBench;
 
 public class GRExcelPrimeXlsb : IGetRangeXlsb
 {
-    private readonly Excel_PRIME _workbook = new();
+    private readonly Excel_PRIMEXlsb _workbook = new();
 
     public void Dispose() => _workbook.Dispose();
 

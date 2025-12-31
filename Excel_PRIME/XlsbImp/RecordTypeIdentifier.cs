@@ -9,7 +9,12 @@ internal enum RecordTypeIdentifier
 {
     // Workbook and Worksheet Records
     EOF = -1,           // End of File
-    BOF = 0x0809,           // Beginning of File
+    PROTECT = 0x0012,       // Sheet Protection
+    DATEMODE = 0x0022,      // Date Mode (1900 or 1904)
+    BRTNAME = 0x0027,       // 39: Defined Name
+    FILEPASS = 0x002F,      // File Encryption Information
+    BACKUP = 0x0040,        // Backup Flag
+    CODEPAGE = 0x0042,      // Code Page
     BOOKBEGIN = 0x0083,     // 131: Start of WorkBook
     BOOKEND = 0x0084,       // 132: End of WorkBook
     WSVIEWSSTART = 0x0085,  // 133: Worksheet Start
@@ -22,20 +27,16 @@ internal enum RecordTypeIdentifier
     DIMENSION = 0x0094,     // 148: Dimension
     SELECTION = 0x0098,     // 152: 
     BUNDLESHEET = 0x009c,   // 156: Bundle Sheet
-    DIMENSIONS = 0x0200,    // : Dimensions (used range of rows and columns)
     WINDOW1 = 0x003D,       // Window Information
+    DIMENSIONS = 0x0200,    // : Dimensions (used range of rows and columns)
     WINDOW2 = 0x023E,       // Sheet Window Information
-    DATEMODE = 0x0022,      // Date Mode (1900 or 1904)
-    CODEPAGE = 0x0042,      // Code Page
-    BACKUP = 0x0040,        // Backup Flag
     FILESHARING = 0x005B,   // File Sharing Information
     WRITEACCESS = 0x005C,   // Write Access User Name
-    FILEPASS = 0x002F,      // File Encryption Information
-    PROTECT = 0x0012,       // Sheet Protection
-    SCENPROTECT = 0x00DD,   // Scenario Protection
     OBJECTPROTECT = 0x0063, // Object Protection
+    SCENPROTECT = 0x00DD,   // Scenario Protection
     COLUMNSBEGIN = 0x186,   // 390
     SHEETFORMATPR = 0x01E5, // 485: Sheet Format Pr
+    BOF = 0x0809,           // Beginning of File
     // Cell Records
     BLANK = 0x0201,         // Blank Cell
     INTEGER = 0x027E,       // Integer Cell

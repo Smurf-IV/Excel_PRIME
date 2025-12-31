@@ -18,8 +18,7 @@ namespace ExcelPRIME.Tests;
 internal class DefinedRangeTestsXlsb
 {
     [Test]
-    [Explicit]
-    public async Task A010_ReadNamedRange()
+    public async Task A010_ReadNamedRangeAsync()
     {
         const string fileName = "Data/named-range.xlsb";
         using Excel_PRIMEXlsb workbook = new();
@@ -30,14 +29,31 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         object?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
-        prices[0].Should().BeEquivalentTo(["5"]);
-        prices[1].Should().BeEquivalentTo(["4"]);
-        prices[2].Should().BeEquivalentTo(["15"]);
-        prices[3].Should().BeEquivalentTo(["9"]);
+        prices[0][0].Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0].Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0].Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0].Should().BeOfType<double>().Which.Should().Be(9);
     }
 
     [Test]
-    [Explicit]
+    public void A011_ReadNamedRange()
+    {
+        const string fileName = "Data/named-range.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
+        workbook.Open(fileName);
+        object?[] taxRate = workbook.GetDefinedRange("TaxRate").First();
+        taxRate.FirstOrDefault().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+
+        // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
+        object?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
+        prices.Should().HaveCount(4);
+        prices[0][0].Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0].Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0].Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0].Should().BeOfType<double>().Which.Should().Be(9);
+    }
+
+    [Test]
     public async Task A020_DynamicNamedRange()
     {
         const string fileName = "Data/dynamic-named-range.xlsb";
@@ -50,7 +66,6 @@ internal class DefinedRangeTestsXlsb
     }
 
     [Test]
-    [Explicit]
     public async Task A030_LocalSheetID_NamedRange()
     {
         const string fileName = "Data/solver.xlsb";
@@ -107,7 +122,6 @@ internal class DefinedRangeTestsXlsb
     //}
 
     [Test]
-    [Explicit]
     public void A052_ExcelPrime_PivotTable()
     {
         const int expected = 214 * 6 * 2; // Rows * Cols * twice -> Sheet1!$A$1:$F$214
@@ -116,15 +130,16 @@ internal class DefinedRangeTestsXlsb
         getRanger.LoadFile("Data\\pivot-tables.xlsb");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        // In the Xlsb, the `_xlnm.` portion of the name is dropped
+        //<definedName name="_FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_FilterDatabase", 2);
         int cells = filterDatabaseSheet.Sum(row => row.Count());
-        IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
+        IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());
         cells.Should().Be(expected);
     }
 
     [Test]
-    [Explicit]
     public async Task A060_UserRanges()
     {
         const string fileName = "Data/solver.xlsb";

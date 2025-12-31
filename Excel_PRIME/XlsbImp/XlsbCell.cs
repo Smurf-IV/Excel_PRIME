@@ -8,7 +8,7 @@ using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{RawValue.ToString(),raw}")]
+[DebuggerDisplay("{RawValue}")]
 internal sealed record XlsbCell : ICell
 {
     // Static cache for column letter arrays to avoid repeated allocations
@@ -46,7 +46,7 @@ internal sealed record XlsbCell : ICell
                 break;
             case RecordTypeIdentifier.CELLERROR:
             case RecordTypeIdentifier.CELLFMLAERROR:
-                (cellType, cellValue) = (CellType.Error, reader.GetByte(8));
+                (cellType, cellValue) = (CellType.Error, (ExcelErrorCode)reader.GetByte(8));
                 break;
             default:
                 (cellType, cellValue) = (CellType.Unknown, null);
@@ -54,7 +54,8 @@ internal sealed record XlsbCell : ICell
         }
 
         // Return null for unhandled record types
-        if (cellType == CellType.Unknown && recordType != RecordTypeIdentifier.CELLRK)
+        if (cellType == CellType.Unknown 
+            && recordType != RecordTypeIdentifier.CELLRK)
         {
             return null;
         }
@@ -92,7 +93,7 @@ internal sealed record XlsbCell : ICell
             d = rk >> 2;
         }
 
-        // Check if scaled by 100
+            // Check if scaled by 100
         if ((rk & 0x01) != 0)
         {
             d /= 100.0;  // Explicit double to ensure double division
@@ -114,21 +115,23 @@ internal sealed record XlsbCell : ICell
         get
         {
             int offset = ExcelColumnOffset;
+            if (offset <= 0)
+            {
+                return Array.Empty<char>();
+            }
             // Check cache first for common column ranges
-            if (offset > 0 && offset < s_columnLetterCache.Length)
+            if (offset < s_columnLetterCache.Length)
             {
                 char[]? cached = s_columnLetterCache[offset];
                 if (cached != null)
                 {
                     return cached;
                 }
-
                 // Compute and cache the column letters
                 char[] result = offset.GetExcelColumnName().ToCharArray();
                 s_columnLetterCache[offset] = result;
                 return result;
             }
-
             // Fallback for out-of-range offsets
             return offset.GetExcelColumnName().ToCharArray();
         }
@@ -136,5 +139,4 @@ internal sealed record XlsbCell : ICell
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }
-
 }

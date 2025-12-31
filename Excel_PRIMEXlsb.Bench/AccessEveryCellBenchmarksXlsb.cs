@@ -43,7 +43,8 @@ public class AccessEveryCellBenchmarksXlsb
             {
                 for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
-                    if (!string.IsNullOrEmpty(reader.GetExcelValue(ordinal).ToString()))
+                    string? value = reader.GetExcelValue(ordinal).ToString();
+                    if (!string.IsNullOrEmpty(value))
                     {
                         cells++;
                     }
@@ -76,7 +77,8 @@ public class AccessEveryCellBenchmarksXlsb
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                    string? value = cell?.RawValue?.ToString();
+                    if (!string.IsNullOrEmpty(value))
                     {
                         cells++;
                     }
@@ -104,7 +106,11 @@ public class AccessEveryCellBenchmarksXlsb
                     break;
                 }
 
-                cells += row.GetAllCells().Count(cell => !string.IsNullOrEmpty(cell?.RawValue?.ToString()));
+                cells += row.GetAllCells().Count(cell =>
+                {
+                    string? value = cell?.RawValue?.ToString();
+                    return !string.IsNullOrEmpty(value);
+                });
                 row.Dispose();
             }
         }
@@ -132,7 +138,8 @@ public class AccessEveryCellBenchmarksXlsb
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                    string? value = cell?.RawValue?.ToString();
+                    if (!string.IsNullOrEmpty(value))
                     {
                         cells++;
                     }
@@ -176,7 +183,8 @@ public class AccessEveryCellBenchmarksXlsb
                     await foreach (ICell? cell in row.GetAllCellsAsync(ct))
                     {
                         // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        string? value = cell?.RawValue?.ToString();
+                        if (!string.IsNullOrEmpty(value))
                         {
                             Interlocked.Increment(ref cells);
                         }
@@ -203,7 +211,8 @@ public class AccessEveryCellBenchmarksXlsb
                     await foreach (ICell? cell in row.GetAllCellsAsync(ct))
                     {
                         // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        string? value = cell?.RawValue?.ToString();
+                        if (!string.IsNullOrEmpty(value))
                         {
                             Interlocked.Increment(ref cells);
                         }

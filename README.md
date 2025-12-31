@@ -235,14 +235,14 @@ Lets take each of the above elements and explain:
     - ✅ Delayed read - until a cell is actually needed
     - ✅ Deal with Null / Empty cells
 - ✅ Cell object type 📅
-- [>] Benchmarks 🖲️
-    - [>] Add "Excel readers" That support XLS**B** Extraction
-    - [ ] 🚶‍➡️ [1st Pass Performance on 2025-12-20](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-20)
-    - [ ] 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
+- ✅ Benchmarks 🖲️
+    - ✅ Add "Excel readers" That support XLS**B** Extraction
+    - ✅ 🚶‍➡️ [1st Pass Performance on 2025-12-20](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-20)
+    - ✅ 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
+- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+    - ✅ Read from global
 - [ ] Parallel Sheet threads Access
     - [ ] Multiple times (with locking)
-- [ ] Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
-    - [ ] Read from global
 - [>] Range Benchmarks 🖲️
     - [] Add "Excel readers" That support XLS**B** Range Extraction
 - [ ] Release as Nuget V3.yyMM.dd
@@ -250,10 +250,11 @@ Lets take each of the above elements and explain:
 
 ## Phase 4 - Specific Cell value type(s) #️⃣
 - [ ] Cell object type 📅
+    - [ ] Strongly-typed accessors (GetInt32, GetDateTime, etc)
+    - [ ] `Operator` based conversion
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
-    - [ ] `Operator` based conversion
     - [ ] Investigate if the `XmlConvert` classes are efficient
 - [ ] Benchmarks
 -----
