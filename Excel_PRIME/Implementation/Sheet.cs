@@ -16,12 +16,13 @@ internal sealed class Sheet : ISheetAsync
     private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
-    private readonly Stream _stream;
+    private readonly BufferedStream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
     internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
-        _stream = stream;
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        _stream = new BufferedStream(stream, 64 * 1024);
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
@@ -189,9 +190,9 @@ internal sealed class Sheet : ISheetAsync
                 }
                 else
                 {
-                    _stream.Position = 0;
-                }
+                _stream.Position = 0;
             }
+        }
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _instanceContext, _sharedNameTable, ct).ConfigureAwait(false);
         }
@@ -241,6 +242,7 @@ internal sealed class Sheet : ISheetAsync
             {
                 _sheetReader?.Dispose();
                 _stream.Dispose();
+                _xmlReaderHelper.Dispose();
             }
 
             _isDisposed = true;

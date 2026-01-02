@@ -77,7 +77,7 @@ public class AccessEveryCellBenchmarksXlsb
                 await foreach (ICell? cell in row.GetAllCellsAsync())
                 {
                     // Because this returns upto the dimension of the sheet width
-                    string? value = cell?.RawValue?.ToString();
+                    string? value = cell?.CellValue.ToString();
                     if (!string.IsNullOrEmpty(value))
                     {
                         cells++;
@@ -106,39 +106,9 @@ public class AccessEveryCellBenchmarksXlsb
                     break;
                 }
 
-                cells += row.GetAllCells().Count(cell =>
+                foreach (ICell? cell in row.GetAllCells())
                 {
-                    string? value = cell?.RawValue?.ToString();
-                    return !string.IsNullOrEmpty(value);
-                });
-                row.Dispose();
-            }
-        }
-
-        return cells;
-    }
-
-    [Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> NumberCellAsyncExcel_PrimeXlsb()
-    {
-        int cells = 0;
-        using Excel_PRIMEXlsb workbook = new();
-        await workbook.OpenAsync(RootFolder + FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
-        foreach (string sheetName in workbook.SheetNames())
-        {
-            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
-            {
-                if (row == null)
-                {   // Because this returns upto the dimension of the sheet Height
-                    break;
-                }
-
-                await foreach (ICell? cell in row.GetAllCellsAsync())
-                {
-                    // Because this returns upto the dimension of the sheet width
-                    string? value = cell?.RawValue?.ToString();
+                    string? value = cell?.CellValue.ToString();
                     if (!string.IsNullOrEmpty(value))
                     {
                         cells++;
@@ -147,6 +117,7 @@ public class AccessEveryCellBenchmarksXlsb
                 row.Dispose();
             }
         }
+
         return cells;
     }
 
@@ -183,7 +154,7 @@ public class AccessEveryCellBenchmarksXlsb
                     await foreach (ICell? cell in row.GetAllCellsAsync(ct))
                     {
                         // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.RawValue?.ToString();
+                        string? value = cell?.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
                             Interlocked.Increment(ref cells);
@@ -211,7 +182,7 @@ public class AccessEveryCellBenchmarksXlsb
                     await foreach (ICell? cell in row.GetAllCellsAsync(ct))
                     {
                         // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.RawValue?.ToString();
+                        string? value = cell?.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
                             Interlocked.Increment(ref cells);

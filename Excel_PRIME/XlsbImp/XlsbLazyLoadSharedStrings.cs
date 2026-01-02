@@ -11,7 +11,7 @@ namespace ExcelPRIME.Implementation;
 internal sealed class XlsbLazyLoadSharedStrings : ISharedString
 {
     private static readonly SemaphoreLocker _locker = new();
-    private readonly Stream? _stream;
+    private readonly BufferedStream? _stream;
     private readonly XlsbStreamReader _reader;
     private readonly List<string> _currentlyLoaded;
     private bool _isDisposed;
@@ -25,8 +25,9 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
 
     public XlsbLazyLoadSharedStrings(Stream stream, CancellationToken ct)
     {
-        _stream = stream;
-        _reader = new XlsbStreamReader(stream);
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        _stream = new BufferedStream(stream, 64 * 1024);
+        _reader = new XlsbStreamReader(_stream);
         // advance to the content
         using PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
         if ( !nextRecord.Succeeded || nextRecord.RecordType != RecordTypeIdentifier.SSTBEGIN)

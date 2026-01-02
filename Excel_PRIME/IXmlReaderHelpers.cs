@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -8,7 +9,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Allow other implementations of Xml readers
 /// </summary>
-public interface IOpenXmlReaderHelpers
+public interface IOpenXmlReaderHelpers : IDisposable
 {
     /// <summary>
     /// 
@@ -34,7 +35,7 @@ public interface IOpenXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    IOpenXmlSheetReader CreateSheetReader(BufferedStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 }
 
@@ -66,7 +67,7 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(BufferedStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 
     /// <summary>

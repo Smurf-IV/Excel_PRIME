@@ -8,7 +8,7 @@ using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{RawValue}")]
+[DebuggerDisplay("{CellValue}")]
 internal sealed record XlsbCell : ICell
 {
     // Static cache for column letter arrays to avoid repeated allocations
@@ -22,40 +22,36 @@ internal sealed record XlsbCell : ICell
         RecordTypeIdentifier recordType = reader.RecordType;
 
         // Use expression-based switch for efficient dispatch
-        CellType cellType;
-        object? cellValue;
+        CellType cellType = CellType.Unknown;
+        CellValue? cellValue = null;
         switch (recordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, MagicConvertRK(reader));
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader)));
                 break;
-            case RecordTypeIdentifier.CELLREAL:
-            case RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, reader.GetDouble(8));
+            case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8)));
                 break;
-            case RecordTypeIdentifier.CELLBOOL:
-            case RecordTypeIdentifier.CELLFMLABOOL:
-                (cellType, cellValue) = (CellType.Boolean, reader.GetByte(8) != 0);
+            case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
+                (cellType, cellValue) = (CellType.Boolean, new CellValue(reader.GetByte(8) != 0));
                 break;
-            case RecordTypeIdentifier.CELLST:
-            case RecordTypeIdentifier.CELLFMLASTRING:
-                (cellType, cellValue) = (CellType.InlineString, reader.GetString(8));
+            case RecordTypeIdentifier.CELLST or RecordTypeIdentifier.CELLFMLASTRING:
+                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8)));
                 break;
             case RecordTypeIdentifier.CELLISST:
-                (cellType, cellValue) = (CellType.SharedString, GetSharedString(instanceContext, reader));
+                (cellType, cellValue) = (CellType.SharedString,
+                    new CellValue(GetSharedString(instanceContext, reader)));
                 break;
-            case RecordTypeIdentifier.CELLERROR:
-            case RecordTypeIdentifier.CELLFMLAERROR:
-                (cellType, cellValue) = (CellType.Error, (ExcelErrorCode)reader.GetByte(8));
-                break;
-            default:
-                (cellType, cellValue) = (CellType.Unknown, null);
+            case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
+                (cellType, cellValue) = (CellType.Error, new CellValue((ExcelErrorCode)reader.GetByte(8)));
                 break;
         }
 
         // Return null for unhandled record types
         if (cellType == CellType.Unknown 
-            && recordType != RecordTypeIdentifier.CELLRK)
+            || cellValue == null
+            //|| recordType != RecordTypeIdentifier.CELLRK
+            )
         {
             return null;
         }
@@ -64,7 +60,7 @@ internal sealed record XlsbCell : ICell
         {
             ExcelColumnOffset = columnOffset,
             RawExcelType = cellType,
-            RawValue = cellValue
+            CellValue = cellValue.Value
         };
     }
 
@@ -103,7 +99,7 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public object? RawValue { get; private init; }
+    public CellValue CellValue { get; private init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }

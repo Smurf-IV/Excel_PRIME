@@ -7,10 +7,12 @@ using AwesomeAssertions;
 
 using NUnit.Framework;
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8629 // Nullable value type may be null.
 
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 public class RowCellTestsXlsb
 {
     [Test]
@@ -33,7 +35,7 @@ public class RowCellTestsXlsb
                         break;
                     }
 
-                    Console.WriteLine(cell.RawValue!.ToString());
+                    Console.WriteLine(cell.CellValue.ToString());
                 }
             }
         }
@@ -44,7 +46,7 @@ public class RowCellTestsXlsb
     public async Task A020_StyleAndFormattedFile(string fileName)
     {
         using Excel_PRIMEXlsb workbook = new();
-        await workbook.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number} ).ConfigureAwait(false);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         string[][] workSheet1Content =
         [
@@ -70,7 +72,7 @@ public class RowCellTestsXlsb
                     break;
                 }
 
-                cell.RawValue.Should().Be(workSheet1Content[r][c]);
+                cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                 c++;
             }
 
@@ -112,7 +114,7 @@ public class RowCellTestsXlsb
                     break;
                 }
 
-                cell?.RawValue.Should().Be(workSheet2Content[r][c]);
+                cell?.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                 c++;
             }
 
@@ -128,7 +130,7 @@ public class RowCellTestsXlsb
     public async Task A021_ParallelStyleAndFormattedFile(string fileName)
     {
         using Excel_PRIMEXlsb workbook1 = new();
-        await workbook1.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(false);
+        await workbook1.OpenAsync(fileName).ConfigureAwait(false);
 
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
         return;
@@ -158,7 +160,7 @@ public class RowCellTestsXlsb
                         break;
                     }
 
-                    cell.RawValue.Should().Be(workSheet1Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                     c++;
                 }
 
@@ -202,7 +204,7 @@ public class RowCellTestsXlsb
                         break;
                     }
 
-                    cell?.RawValue.Should().Be(workSheet2Content[r][c]);
+                    cell?.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }
 
@@ -219,7 +221,7 @@ public class RowCellTestsXlsb
     {
         const string fileName = "Data/solver.xlsb";
         using Excel_PRIMEXlsb workbook = new();
-        await workbook.OpenAsync(fileName, options: new Options{ CellConversionType = CellConversion.Number}).ConfigureAwait(true);
+        await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         object?[][] workSheet2Content =
         [
@@ -249,7 +251,7 @@ public class RowCellTestsXlsb
                     continue;
                 }
 
-                cell.RawValue.Should().Be(workSheet2Content[r][c]);
+                cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                 c++;
             }
 
@@ -274,28 +276,28 @@ public class RowCellTestsXlsb
         ISheetAsync? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(0, RowCellGet.PreGet).FirstAsync();
         ICell? cell = await row.GetCellAsync(1).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<int>().And.Be(1);
+        cell.CellValue.BoxedValue.Should().BeOfType<int>().And.Be(1);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(2.3);
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(2.3);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<string>().And.Be("abc");
+        cell.CellValue.BoxedValue.Should().BeOfType<string>().And.Be("abc");
         cell = await row.GetCellAsync(3).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<bool>().And.Be(true);
+        cell.CellValue.BoxedValue.Should().BeOfType<bool>().And.Be(true);
         cell = await row.GetCellAsync(4).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<bool>().And.Be(false);
+        cell.CellValue.BoxedValue.Should().BeOfType<bool>().And.Be(false);
         cell = await row.GetCellAsync(5).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
         cell = await row.GetCellAsync(6).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
         cell = await row.GetCellAsync(7).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
         cell = await row.GetCellAsync(8).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
         cell = await row.GetCellAsync(9).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
         cell = await row.GetCellAsync(10).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
         cell = await row.GetCellAsync(11).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
+        cell.CellValue.BoxedValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
     }
 }

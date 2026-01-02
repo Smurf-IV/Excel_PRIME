@@ -22,19 +22,19 @@ public class GRExcelPrimeXlsb : IGetRangeXlsb
 
     public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
     {
-        IEnumerable<object?[]> rangeRows = localSheetId.HasValue
+        IEnumerable<CellValue?[]> rangeRows = localSheetId.HasValue
                 ? _workbook.GetDefinedRange(definedName, localSheetId.Value)
                 : _workbook.GetDefinedRange(definedName);
-        foreach (object?[] rangeRow in rangeRows)
+        foreach (CellValue?[] rangeRow in rangeRows)
         {
-            yield return rangeRow;
+            yield return rangeRow.Select(cell => cell?.ToString());
         }
     }
 
     public IEnumerable<IEnumerable<object?>> GetRange(string userRange, string sheetName)
     {
-        IEnumerable<object?[]> rangeRows = _workbook.GetDefinedRange(userRange, sheetName);
-        foreach (object?[] rangeRow in rangeRows)
+        IEnumerable<CellValue?[]> rangeRows = _workbook.GetDefinedRange(userRange, sheetName);
+        foreach (CellValue?[] rangeRow in rangeRows)
         {
             yield return rangeRow.Select(cell => cell?.ToString());
         }

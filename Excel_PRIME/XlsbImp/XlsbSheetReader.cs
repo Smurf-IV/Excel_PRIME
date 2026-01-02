@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     // Pool of Row instances shared by this reader (concurrent for safety).
     private readonly ConcurrentBag<XlsbRow> _rowPool = new();
 
-    public XlsbSheetReader(Stream stream, InstanceContext instanceContext, CancellationToken ct)
+    public XlsbSheetReader(BufferedStream stream, InstanceContext instanceContext, CancellationToken ct)
     {
         _instanceContext = instanceContext;
         _reader = new XlsbStreamReader(stream);
@@ -44,6 +45,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
                 case RecordTypeIdentifier.DIMENSION:
                     {
                         // Read dimensions
+                        _startRow = nextRecord.GetInt32(0);
                         int lastRow = nextRecord.GetInt32(4);
                         int lastCol = nextRecord.GetInt32(12);
                         SheetDimensions = (lastRow + 1, lastCol + 1); // Make them VBA Excel references

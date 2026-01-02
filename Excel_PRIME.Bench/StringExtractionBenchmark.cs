@@ -162,7 +162,7 @@ public class StringExtractionBenchmark
         return result;
     }
 
-    [Benchmark]
+    //[Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public string OptimizedUnicodeStringsWithFastPath()
     {

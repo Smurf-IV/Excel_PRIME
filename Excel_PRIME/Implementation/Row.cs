@@ -30,17 +30,9 @@ internal sealed class Row : IRowAsync
         // Private ctor for pooling. Keep lightweight.
     }
 
-    internal static Row Rent()
-    {
-        if (s_pool.TryTake(out Row? item))
-        {
-            return item;
-        }
+    internal static Row Rent() => s_pool.TryTake(out Row? item) ? item : new Row();
 
-        return new Row();
-    }
-
-    internal static void Return(Row row)
+    private static void Return(Row row)
     {
         // Reset state so next consumer sees a clean Row.
         row.Reset();
@@ -124,7 +116,7 @@ internal sealed class Row : IRowAsync
     /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
     /// Using an array avoids Dictionary overhead and reduces per-row allocations for typical sheet widths.
     /// </summary>
-    internal async Task GetCellsAsync(CancellationToken ct)
+    internal async ValueTask GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded)
         {

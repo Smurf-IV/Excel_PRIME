@@ -1,5 +1,10 @@
-﻿# 2025-12-31 - V3 XLSB-Beta
-- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+﻿# 2026-01-02 - V3 XLSB-Beta
+- ⛓️‍💥 **Breaking Change(s)
+    - Removal of the Conversion options `Number###`
+- Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+- Implement "On Demand" conversion
+    - Slightly slower, but less memory pressure `xslb`
+    - [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
 
 # 2025-12-21 - V3 XLSB-Beta
 - ⛓️‍💥 **Breaking Change(s)

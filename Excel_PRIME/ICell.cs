@@ -25,12 +25,12 @@ public enum CellType
 public interface ICell
 {
     /// <summary>
-    /// Gets the value as read from the file
+    /// Gets the value as read from the file, wrapped in a CellValue.
     /// </summary>
     /// <remarks>
     /// Could be the actual value type if specified, otherwise `string?`
     /// </remarks>
-    object? RawValue { get; }
+    CellValue CellValue { get; }
 
     /// <summary>
     /// Returns the type as specified in the Excel file attribute

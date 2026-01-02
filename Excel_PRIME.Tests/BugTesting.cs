@@ -9,6 +9,7 @@ namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
 [NonParallelizable]
+[TestFixture]
 internal class BugTesting
 {
     [Test]

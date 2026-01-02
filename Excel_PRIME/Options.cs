@@ -19,16 +19,6 @@ public enum CellConversion
     /// </summary>
     /// 
     None,
-    /// <summary>
-    /// Will attempt to convert to the nearest integral signed number type, i.e. int -> long -> decimal -> double. Dates will be converted from ISO 8601.
-    /// </summary>
-    Number,
-
-    /// <summary>
-    /// As number and will also "Have a go" at detecting the date type (DateTime, DateOnly, TimeOnly, TimeSpan)
-    /// </summary>
-    [Obsolete("Not Implemented yet!")]
-    NumberAndDates,
 
     /// <summary>
     /// As NumberAndDates, and also takes into account the number of decimal places etc. from the style when converting / formatting

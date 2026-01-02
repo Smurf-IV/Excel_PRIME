@@ -23,6 +23,7 @@ Lets take each of the above elements and explain:
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
 - Now the fastest in Real world usage [2025-11-19 onwards](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
+- Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
@@ -67,7 +68,7 @@ Lets take each of the above elements and explain:
 - Only load the shared strings upto the current request number
 ### Q & A's
 - Q: Sometimes the `Async` _await_ s add too much overhead
-- A: true, that is why there are also the equivalent base interfaces that perform the same functionality without the need for the `async await` overheads.
+- A: true, that is why there are also the equivalent base interfaces that perform the same functionality without the need for the `async await` overheads, and still with `ConcellationToken` usage(s).
 
 
 ## Etc. 🔧

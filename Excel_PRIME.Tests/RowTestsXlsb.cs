@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 using AwesomeAssertions;
 
@@ -6,6 +7,8 @@ using NUnit.Framework;
 
 namespace ExcelPRIME.Tests;
 
+[ExcludeFromCodeCoverage]
+[TestFixture]
 internal class RowTestsXlsb
 {
     [Test]

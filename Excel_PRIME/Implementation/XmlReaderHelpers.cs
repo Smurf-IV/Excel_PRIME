@@ -90,7 +90,7 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 
 
     /// <InheritDoc />
-    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(BufferedStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
     {
         IOpenXmlSheetReaderAsync reader = new XmlSheetReader(stream!, instanceContext, sharedNameTable, ct);
@@ -100,8 +100,9 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     public string GetSheetFileName(int offsetSheetId) => $"xl/worksheets/sheet{offsetSheetId}.xml";
 
     /// <InheritDoc />
-    public IOpenXmlSheetReader CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    public IOpenXmlSheetReader CreateSheetReader(BufferedStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
         => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
 
+    public void Dispose() => _shareStrings?.Dispose();
 }

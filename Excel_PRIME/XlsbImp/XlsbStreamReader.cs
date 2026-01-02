@@ -19,7 +19,7 @@ namespace ExcelPRIME.XlsbImp;
 /// <exception cref="EndOfStreamException"></exception>
 internal class XlsbStreamReader
 {
-    private readonly Stream _stream;
+    private readonly BufferedStream _stream;
     private PooledRecordBuffer? _rollBackRecord;
     
     // Reusable single-byte buffer to reduce allocations and improve cache locality
@@ -37,11 +37,10 @@ internal class XlsbStreamReader
     /// Stream is NOT owned by this class and should be disposed by the caller.
     /// </summary>
     /// <param name="stream"></param>
-    public XlsbStreamReader(Stream stream)
+    public XlsbStreamReader(BufferedStream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
-        _stream = new BufferedStream(stream, 64 * 1024);
+        _stream = stream;
     }
 
     /// <summary>
@@ -100,12 +99,12 @@ internal class XlsbStreamReader
             return record;
         }
         if (!ReadRecordType(out RecordTypeIdentifier recordType)
-            || recordType == RecordTypeIdentifier.EOF 
+            || recordType == RecordTypeIdentifier.EOF
             || !ReadRecordLen(out uint recordLength)
             )
         {
             return new PooledRecordBuffer(recordType, succeeded: recordType != RecordTypeIdentifier.EOF);
-        }
+    }
 
         try
         {

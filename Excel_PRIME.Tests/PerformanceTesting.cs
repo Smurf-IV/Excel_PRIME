@@ -12,6 +12,7 @@ using NUnit.Framework;
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 internal class PerformanceTesting
 {
     [Test]

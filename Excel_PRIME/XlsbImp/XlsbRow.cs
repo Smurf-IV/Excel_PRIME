@@ -26,15 +26,7 @@ internal sealed class XlsbRow : IRowAsync
         // Private ctor for pooling. Keep lightweight.
     }
 
-    internal static XlsbRow Rent()
-    {
-        if (s_pool.TryTake(out XlsbRow? item))
-        {
-            return item;
-        }
-
-        return new XlsbRow();
-    }
+    internal static XlsbRow Rent() => s_pool.TryTake(out XlsbRow? item) ? item : new XlsbRow();
 
     private static void Return(XlsbRow row)
     {

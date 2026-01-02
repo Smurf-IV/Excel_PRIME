@@ -14,13 +14,14 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class XlsbWorkBookReader : IOpenXmlWorkBookReaderAsync
 {
-    private readonly Stream _stream;
+    private readonly BufferedStream _stream;
     private readonly XlsbStreamReader _reader;
     private bool _isDisposed;
 
-    public XlsbWorkBookReader(Stream? stream, CancellationToken _)
+    public XlsbWorkBookReader(Stream stream, CancellationToken _)
     {
-        _stream = stream!;
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        _stream = new BufferedStream(stream!, 64 * 1024);
         _reader = new XlsbStreamReader(_stream);
     }
 
@@ -214,7 +215,7 @@ internal sealed class XlsbWorkBookReader : IOpenXmlWorkBookReaderAsync
         return new ReadOnlyDictionary<string, DefinedRange>(definedRanges);
     }
 
-    private (string columnStart, string columnEnd, int rowStart, int rowEnd, bool isNumber, short sheetRef) DecodeNameParsedFormula(PooledRecordBuffer nextRecord, int formulaBegin)
+    private static (string columnStart, string columnEnd, int rowStart, int rowEnd, bool isNumber, short sheetRef) DecodeNameParsedFormula(PooledRecordBuffer nextRecord, int formulaBegin)
     {
         int cce = nextRecord.GetInt32(formulaBegin);
         // PtgRef -> 0x24

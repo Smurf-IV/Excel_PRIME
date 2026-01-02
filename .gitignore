@@ -56,3 +56,4 @@ nunit-*.xml
 *.bak
 /.idea
 *.log
+/Excel_PRIME/XlsbImp/.~lock.[MS-XLSB].pdf#

@@ -22,12 +22,12 @@ namespace ExcelPRIME;
 public class Excel_PRIME : IExcel_PRIMEAsync
 {
     private bool _isDisposed;
-    internal readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
-    internal readonly IZipReaderAsync _zipReader;
-    internal Stream? _fs;
+    private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
+    private readonly IZipReaderAsync _zipReader;
+    private Stream? _fs;
     private readonly Dictionary<int, TempFile> _sheetFiles = [];
     private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>().AsReadOnly();
-    internal readonly InstanceContext _instanceContext = new();
+    private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
 
@@ -130,7 +130,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     public IEnumerable<string> SheetNames() => _sheetNamesToOffsetSheetId.Keys;
 
     /// <InheritDoc />
-    public virtual async IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual async IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -147,7 +147,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [definedRange.ConstValue];
+            yield return [new CellValue(definedRange.ConstValue)];
             yield break;
         }
 
@@ -169,12 +169,12 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public virtual IEnumerable<object?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
     {
         string? useThisSheetName = null;
         int valueOffset = useLocalSheetId + 1;
@@ -187,7 +187,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     }
 
     /// <InheritDoc />
-    public IEnumerable<object?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -214,7 +214,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [definedRange.ConstValue];
+            yield return [new CellValue(definedRange.ConstValue)];
             yield break;
         }
 
@@ -229,31 +229,29 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<object?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<CellValue?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
         if (targetSheet == null)
         {
             yield break;
         }
-        (int rowMax, int colMax, ReadOnlyMemory<char> colName) = range.GetRowColNumbers();
-
         DefinedRange definedRange = new DefinedRange(range, sheetName);
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<object?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
         if (targetSheet == null)
@@ -263,16 +261,15 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     }
 
     /// <InheritDoc />
-    public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
+    public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
-        // Find Id
         if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
 
         Stream stream;
-        if (!OverrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
+        if (!overrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
             && !_instanceContext.Options.AccessExcelFileInForwardOnlyMode
            )
         {
@@ -300,7 +297,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     }
 
     /// <InheritDoc />
-    public ISheet? GetSheet(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
+    public ISheet? GetSheet(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
         // Find Id
         if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
@@ -309,7 +306,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
 
         Stream stream;
-        if (!OverrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
+        if (!overrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
             && !_instanceContext.Options.AccessExcelFileInForwardOnlyMode
            )
         {
@@ -335,7 +332,15 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
     }
 
-    private void Dispose(bool isDisposing)
+    /// <summary>
+    /// Releases the resources used by the <see cref="Excel_PRIME"/> class.
+    /// </summary>
+    /// <param name="isDisposing">
+    /// A value indicating whether the method is being called explicitly 
+    /// to release both managed and unmanaged resources (<c>true</c>), 
+    /// or by the finalizer to release only unmanaged resources (<c>false</c>).
+    /// </param>
+    protected virtual void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {

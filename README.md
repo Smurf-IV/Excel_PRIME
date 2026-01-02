@@ -241,6 +241,9 @@ Lets take each of the above elements and explain:
     - ✅ 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
 - ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
     - ✅ Read from global
+- ✅ Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
+    - Slightly slower, but less memory pressure for `xslb`
+    - ✅ [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
 - [ ] Parallel Sheet threads Access
     - [ ] Multiple times (with locking)
 - [>] Range Benchmarks 🖲️
@@ -250,7 +253,6 @@ Lets take each of the above elements and explain:
 
 ## Phase 4 - Specific Cell value type(s) #️⃣
 - [ ] Cell object type 📅
-    - [ ] Strongly-typed accessors (GetInt32, GetDateTime, etc)
     - [ ] `Operator` based conversion
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
