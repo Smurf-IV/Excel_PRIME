@@ -22,7 +22,7 @@ public struct CellValue : IEquatable<CellValue>
         DateTime
     }
 
-    private string? _strValue; // Has to be on it's own due to reference type
+    private string? _strValue; // Has to be on its own due to reference type
     private readonly CellValueType _type;
     private readonly BclValue _value;
 
@@ -87,7 +87,8 @@ public struct CellValue : IEquatable<CellValue>
             CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
             CellValueType.Numeric => _value._doubleValue.ToString(CultureInfo.InvariantCulture),
             CellValueType.DateTime => _value._dateTimeValue.ToString(CultureInfo.InvariantCulture),
-            CellValueType.Error => ((ExcelErrorCode)_value._doubleValue).ToString()
+            CellValueType.Error => ((ExcelErrorCode)_value._doubleValue).ToString(),
+            _ => _strValue
         };
 
         return _strValue;
@@ -191,7 +192,7 @@ public struct CellValue : IEquatable<CellValue>
                         return asSpan[0] != '-'
                             ? asSpan.IntParse()
                             : int.Parse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                    };
+                    }
             }
         }
     }
@@ -217,7 +218,7 @@ public struct CellValue : IEquatable<CellValue>
                 case CellValueType.Numeric:
                     return (long)_value._doubleValue;
                 default:
-                    return long.Parse(_strValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
+                    return long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture);
             }
         }
     }
@@ -243,7 +244,7 @@ public struct CellValue : IEquatable<CellValue>
                 case CellValueType.Numeric:
                     return _value._doubleValue;
                 default:
-                    return double.Parse(_strValue, NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture);
             }
         }
     }
@@ -269,7 +270,7 @@ public struct CellValue : IEquatable<CellValue>
                 case CellValueType.Numeric:
                     return (decimal)_value._doubleValue;
                 default:
-                    return decimal.Parse(_strValue, NumberStyles.Currency, CultureInfo.InvariantCulture);
+                    return decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture);
             }
         }
     }

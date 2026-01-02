@@ -16,13 +16,12 @@ internal sealed class Sheet : ISheetAsync
     private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
-    private readonly BufferedStream _stream;
+    private readonly NonClosingStream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
     internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
-        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
-        _stream = new BufferedStream(stream, 64 * 1024);
+        _stream = new NonClosingStream(stream);
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
@@ -37,7 +36,15 @@ internal sealed class Sheet : ISheetAsync
     public int Index { get; }
 
     /// <inheritdoc/>
-    public (int Height, int Width) SheetDimensions => _sheetReader!.SheetDimensions;
+    public (int Height, int Width) SheetDimensions
+    {
+        get
+        {
+            _sheetReader ??= (IOpenXmlSheetReaderAsync)_xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
+
+            return _sheetReader.SheetDimensions;
+        }
+    }
 
     /// <inheritdoc/>
     public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
@@ -190,9 +197,9 @@ internal sealed class Sheet : ISheetAsync
                 }
                 else
                 {
-                _stream.Position = 0;
+                    _stream.Position = 0;
+                }
             }
-        }
 
             _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _instanceContext, _sharedNameTable, ct).ConfigureAwait(false);
         }

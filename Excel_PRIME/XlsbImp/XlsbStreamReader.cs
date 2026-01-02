@@ -17,7 +17,7 @@ namespace ExcelPRIME.XlsbImp;
 /// </remarks>
 /// <exception cref="ArgumentOutOfRangeException"></exception>
 /// <exception cref="EndOfStreamException"></exception>
-internal class XlsbStreamReader
+internal sealed class XlsbStreamReader
 {
     private readonly BufferedStream _stream;
     private PooledRecordBuffer? _rollBackRecord;

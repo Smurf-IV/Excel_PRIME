@@ -98,18 +98,20 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisp
 
 
     /// <InheritDoc />
-    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(BufferedStream stream, InstanceContext instanceContext,
+    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
+        InstanceContext instanceContext,
         XmlNameTable _, CancellationToken ct)
     {
-        IOpenXmlSheetReaderAsync reader = new XlsbSheetReader(stream, instanceContext, ct);
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        IOpenXmlSheetReaderAsync reader = new XlsbSheetReader(new BufferedStream(stream, 64 * 1024), instanceContext, ct);
         return Task.FromResult(reader);
     }
 
     public string GetSheetFileName(int offsetSheetId) => $"xl/worksheets/sheet{offsetSheetId}.bin";
 
     /// <InheritDoc />
-    public IOpenXmlSheetReader CreateSheetReader(BufferedStream stream, InstanceContext instanceContext,
+    public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable _, CancellationToken ct)
-        => new XlsbSheetReader(stream, instanceContext, ct);
+        => new XlsbSheetReader(new BufferedStream(stream, 64 * 1024), instanceContext, ct);
 
 }

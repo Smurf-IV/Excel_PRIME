@@ -19,7 +19,7 @@ internal sealed class XlsbRow : IRowAsync
     private bool _cellsLoaded;
 
     // Small object pool for Row instances to avoid allocating a new Row per XML row.
-    private static readonly ConcurrentBag<XlsbRow> s_pool = new();
+    private static readonly ConcurrentBag<XlsbRow> s_pool = [];
 
     private XlsbRow()
     {
@@ -253,4 +253,21 @@ internal sealed class XlsbRow : IRowAsync
 
     /// <InheritDoc />
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        GetCells(ct);
+
+        if (_cells == null)
+        {
+            throw new InvalidOperationException("Cells are not initialized.");
+        }
+
+        int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
+        for (int ordinal = 0; ordinal < minLength; ++ordinal)
+        {
+            values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;
+        }
+    }
 }

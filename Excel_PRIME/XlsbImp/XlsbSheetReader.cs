@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private readonly int _startRow;
 
     // Pool of Row instances shared by this reader (concurrent for safety).
-    private readonly ConcurrentBag<XlsbRow> _rowPool = new();
+    private readonly ConcurrentBag<XlsbRow> _rowPool = [];
 
     public XlsbSheetReader(BufferedStream stream, InstanceContext instanceContext, CancellationToken ct)
     {

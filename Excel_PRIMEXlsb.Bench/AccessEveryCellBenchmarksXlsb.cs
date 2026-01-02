@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Aspose.Cells;
+
 using BenchmarkDotNet.Attributes;
 
-using ExcelPRIME;
+using ExcelDataReader;
 
-using Sylvan.Data.Excel;
+using ExcelPRIME;
 
 namespace ExcelPRIMEXlsb.Bench;
 
@@ -17,6 +20,14 @@ namespace ExcelPRIMEXlsb.Bench;
 [ExcludeFromCodeCoverage]
 public class AccessEveryCellBenchmarksXlsb
 {
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public AccessEveryCellBenchmarksXlsb()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    {
+        // Needed to make the ExcelDataReaderWork !
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
     private const string RootFolder = @"Data\";
     [Params(
         "Blank Data 1 Million Rows.xlsb",
@@ -35,7 +46,7 @@ public class AccessEveryCellBenchmarksXlsb
     {
         int cells = 0;
         // ReSharper disable once MethodHasAsyncOverload
-        using ExcelDataReader reader = ExcelDataReader.Create(RootFolder + FileName);
+        using Sylvan.Data.Excel.ExcelDataReader reader = Sylvan.Data.Excel.ExcelDataReader.Create(RootFolder + FileName);
         //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(RootFolder + FileName).ConfigureAwait(true);
         do
         {
@@ -55,7 +66,84 @@ public class AccessEveryCellBenchmarksXlsb
         return cells;
     }
 
- 
+
+    //[Benchmark]
+    /*
+     * Benchmarks with issues:
+       AccessEveryCellBenchmarksXlsb.AccessEveryCellExcelDataReader: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3) [FileName=Blank(...).xlsb [30]]
+       AccessEveryCellBenchmarksXlsb.AccessEveryCellExcelDataReader: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3) [FileName=sampl(...).xlsb [34]]
+       AccessEveryCellBenchmarksXlsb.AccessEveryCellExcelDataReader: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3) [FileName=sampl(...).xlsb [30]]
+     */
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public int AccessEveryCellExcelDataReader()
+    {
+        int cells = 0;
+        using FileStream stream = File.Open(RootFolder + FileName, FileMode.Open, FileAccess.Read);
+        // Auto-detect format, supports:
+        //  - Binary Excel files (2.0-2003 format; *.xls)
+        //  - OpenXml Excel files (2007 format; *.xlsx, *.xlsb)
+        using IExcelDataReader? reader = ExcelReaderFactory.CreateReader(stream);
+        while (reader.Read())
+        {
+            int cols = reader.FieldCount;
+            for (int c = 0; c < cols; c++)
+            {
+                object cell = reader.GetValue(c);
+                string? value = cell.ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    cells++;
+                }
+            }
+        }
+
+        return cells;
+    }
+
+
+    [Benchmark]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public int AccessEveryCellAspose()
+    {
+        int cells = 0;
+        Workbook wb = new Workbook(RootFolder + FileName);
+        foreach (Worksheet? ws in wb.Worksheets)
+        {
+            Cells? wsCells = ws.Cells;
+
+            int maxRow = wsCells.MaxDataRow;      // highest row index with data
+            int maxCol = wsCells.MaxDataColumn;   // highest column index with data
+
+            for (int r = 0; r <= maxRow; r++)
+            {
+                // Optionally skip fully empty rows
+                bool rowHasData = false;
+                for (int c = 0; c <= maxCol; c++)
+                {
+                    Cell cell = wsCells[r, c];
+                    if (cell.Value != null)
+                    {
+                        rowHasData = true;
+                        break;
+                    }
+                }
+                if (!rowHasData)
+                    continue;
+
+                // Process row r
+                for (int c = 0; c <= maxCol; c++)
+                {
+                    Cell cell = wsCells[r, c];
+                    string? value = cell.ToString();
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        cells++;
+                    }
+                }
+            }
+        }
+        return cells;
+    }
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]

@@ -1,4 +1,11 @@
-﻿# 2026-01-02 - V3 XLSB-Beta
+﻿# 2026-01-04 - V3 XLSB-Beta
+- Add `NonClosingStream` to  make it self documenting
+- Remove `BufferedStream` usage from xlsx
+- Add more XLSB readers
+    - [2026-01-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-04)
+- Remove some compile warnings
+
+# 2026-01-02 - V3 XLSB-Beta
 - ⛓️‍💥 **Breaking Change(s)
     - Removal of the Conversion options `Number###`
 - Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,5 +41,13 @@ internal sealed class NullRow(int rowOffset) : IRowAsync
     }
 
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => null;
-
+    
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        for (int ordinal = 0; ordinal < values.Length; ++ordinal)
+        {
+            values[ordinal] = null;
+        }
+    }
 }

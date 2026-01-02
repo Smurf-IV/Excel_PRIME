@@ -246,8 +246,6 @@ Lets take each of the above elements and explain:
     - ✅ [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
 - [ ] Parallel Sheet threads Access
     - [ ] Multiple times (with locking)
-- [>] Range Benchmarks 🖲️
-    - [] Add "Excel readers" That support XLS**B** Range Extraction
 - [ ] Release as Nuget V3.yyMM.dd
 -----
 

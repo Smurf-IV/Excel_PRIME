@@ -113,7 +113,7 @@ internal sealed record XlsbCell : ICell
             int offset = ExcelColumnOffset;
             if (offset <= 0)
             {
-                return Array.Empty<char>();
+                return [];
             }
             // Check cache first for common column ranges
             if (offset < s_columnLetterCache.Length)

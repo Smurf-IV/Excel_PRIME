@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,9 +18,9 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
     private readonly ReaderAtoms _readerAtoms;
 
     // Pool of Row instances shared by this reader (concurrent for safety).
-    private readonly ConcurrentBag<Row> _rowPool = new();
+    private readonly ConcurrentBag<Row> _rowPool = [];
 
-    public XmlSheetReader(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
+    public XmlSheetReader(NonClosingStream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
         _instanceContext = instanceContext;
         _reader = XmlReader.Create(stream, new XmlReaderSettings

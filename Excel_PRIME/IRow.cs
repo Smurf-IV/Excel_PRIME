@@ -37,6 +37,17 @@ public interface IRow : IRowBase
     /// Retrieves (If exists) the cell data
     /// </summary>
     ICell? GetCell(string columnLetters, CancellationToken ct = default);
+
+    /// <summary>
+    /// Copies the boxed values of all cells in the row to the specified array.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if the <paramref name="values"/> array is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown if the length of the <paramref name="values"/> array is less than the number of cells in the row.
+    /// </exception>
+    void CopyBoxedToArray(object?[] values, CancellationToken ct = default);
 }
 
 /// <summary>
