@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -120,14 +121,19 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                await foreach (ICell? cell in row.GetAllCellsAsync())
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                if (rowCells != null)
                 {
-                    // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                    foreach (ICell? cell in rowCells)
                     {
-                        cells++;
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        {
+                            cells++;
+                        }
                     }
                 }
+
                 row.Dispose();
             }
         }
@@ -151,7 +157,11 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                cells += row.GetAllCells().Count(cell => !string.IsNullOrEmpty(cell?.CellValue.ToString()));
+                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                if (rowCells != null)
+                {
+                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue.ToString()));
+                }
                 row.Dispose();
             }
         }
@@ -159,7 +169,7 @@ public class AccessEveryCellBenchmarks
         return cells;
     }
 
-    //[Benchmark]
+    [Benchmark]
     // Between 5 -> 10% slower than running through in ForwardOnlyMode*2.
     // Not bad considering it is using the HDD for the passes ;-)
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
@@ -189,12 +199,16 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 
@@ -216,12 +230,16 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -162,15 +163,20 @@ public class AccessEveryCellBenchmarksXlsb
                     break;
                 }
 
-                await foreach (ICell? cell in row.GetAllCellsAsync())
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                if (rowCells != null)
                 {
-                    // Because this returns upto the dimension of the sheet width
-                    string? value = cell?.CellValue.ToString();
-                    if (!string.IsNullOrEmpty(value))
+                    foreach (ICell? cell in rowCells)
                     {
-                        cells++;
+                        // Because this returns upto the dimension of the sheet width
+                        string? value = cell?.CellValue.ToString();
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            cells++;
+                        }
                     }
                 }
+
                 row.Dispose();
             }
         }
@@ -194,14 +200,20 @@ public class AccessEveryCellBenchmarksXlsb
                     break;
                 }
 
-                foreach (ICell? cell in row.GetAllCells())
+                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                if (rowCells != null)
                 {
-                    string? value = cell?.CellValue.ToString();
-                    if (!string.IsNullOrEmpty(value))
+                    foreach (ICell? cell in rowCells)
                     {
-                        cells++;
+                        // Because this returns upto the dimension of the sheet width
+                        string? value = cell?.CellValue.ToString();
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            cells++;
+                        }
                     }
                 }
+
                 row.Dispose();
             }
         }
@@ -209,7 +221,7 @@ public class AccessEveryCellBenchmarksXlsb
         return cells;
     }
 
-    //[Benchmark]
+    [Benchmark]
     // Between 5 -> 10% slower than running through in ForwardOnlyMode*2.
     // Not bad considering it is using the HDD for the passes ;-)
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
@@ -239,13 +251,17 @@ public class AccessEveryCellBenchmarksXlsb
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.CellValue.ToString();
-                        if (!string.IsNullOrEmpty(value))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            string? value = cell?.CellValue.ToString();
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 
@@ -267,13 +283,17 @@ public class AccessEveryCellBenchmarksXlsb
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.CellValue.ToString();
-                        if (!string.IsNullOrEmpty(value))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            string? value = cell?.CellValue.ToString();
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 

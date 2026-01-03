@@ -58,7 +58,7 @@ Lets take each of the above elements and explain:
 - Q: It appears that this uses more memory than other implementations
 - A: Currently yes, but it is being optimised for `Range Extraction`, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
-    - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
 
 ## Efficiency 📦
@@ -218,12 +218,15 @@ Lets take each of the above elements and explain:
 - ✅ Release as Nuget V2.2512-10 💨
 -----
 
-## Phase 3 - XLS**B** 💾 (BIFF12) - Alpha V3
+## Phase 3 - XLS**B** 💾 (BIFF12) - Beta V3
 - ⛓️‍💥 **Breaking Change(s)**
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
     - `IXmlWorkBookReader` has become `IOpenXmlWorkBookReader`
     - `IXmlSheetReader` has become `IOpenXmlSheetReader`
+    - Removal of the Conversion options `Number###`
+    - Changed `GetAllCells` to return `IReadOnlyList<ICell?>?`
+        - Watch out for those null rows !
 - ✅ Branch and beta yml
     - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
 - ✅ Implement Open / Dispose (Async)
@@ -244,9 +247,11 @@ Lets take each of the above elements and explain:
 - ✅ Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
     - Slightly slower, but less memory pressure for `xslb`
     - ✅ [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
-- [ ] Parallel Sheet threads Access
-    - [ ] Multiple times (with locking)
-- [ ] Release as Nuget V3.yyMM.dd
+- ✅ Parallel Sheet threads Access
+    - ✅ Multiple times (with locking)
+- [>] Release as Nuget V3.yyMM.dd
+    - 🎊 Released **Beta** as Nuget `V3.2601.04`
+    - [ ] Investigate Performance and edge cases, then Release as Stable
 -----
 
 ## Phase 4 - Specific Cell value type(s) #️⃣

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
@@ -29,8 +30,15 @@ internal class BugTesting
                     break;
                 }
 
-                foreach (ICell? cell in row.GetAllCells())
+                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                row.Dispose();
+                if ( rowCells == null)
                 {
+                    continue;
+                }
+                foreach (ICell? cell in rowCells)
+                {
+                    // Because this returns upto the dimension of the sheet width
                     cells++;
                     if (cells >= 216017)
                     {
@@ -38,7 +46,6 @@ internal class BugTesting
                         //cell.RawValue.ToString().Should().NotBeNullOrWhiteSpace();
                     }
                 }
-                row.Dispose();
             }
         }
 

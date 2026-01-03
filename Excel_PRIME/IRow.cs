@@ -26,7 +26,10 @@ public interface IRow : IRowBase
     /// <summary>
     /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
     /// </summary>
-    IEnumerable<ICell?> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
+    /// <remarks>
+    /// Cell 0 will be null, as this is indexing is Excel Based (1 Based)
+    /// </remarks>
+    IReadOnlyList<ICell?>? GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
@@ -56,9 +59,9 @@ public interface IRow : IRowBase
 public interface IRowAsync : IRow
 {
     /// <summary>
-    /// Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
+    /// Retrieves _All_ cells within the row, `0` indexed
     /// </summary>
-    IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
+    Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data

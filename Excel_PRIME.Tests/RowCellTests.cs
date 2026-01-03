@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,12 +28,14 @@ public class RowCellTests
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
-                await foreach (ICell? cell in row.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (cell == null)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        break;
+                        continue;
                     }
 
                     Console.WriteLine(cell.CellValue.ToString());
@@ -65,8 +68,10 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (ICell? cell in rowCells)
             {
+                // Because this returns upto the dimension of the sheet width
                 if (cell == null) // Because this returns upto the dimension of the sheet width
                 {
                     break;
@@ -107,8 +112,10 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (ICell? cell in rowCells)
             {
+                // Because this returns upto the dimension of the sheet width
                 if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                 {
                     break;
@@ -165,8 +172,10 @@ public class RowCellTests
             await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (cell == null) // Because this returns upto the dimension of the sheet width
                     {
                         break;
@@ -209,8 +218,10 @@ public class RowCellTests
             await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                     {
                         break;
@@ -267,15 +278,20 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            if (rowCells != null)
             {
-                if (cell == null) // Because this returns upto the dimension of the sheet width
+                foreach (ICell? cell in rowCells)
                 {
-                    continue;
-                }
+                    // Because this returns upto the dimension of the sheet width
+                    if (cell == null) // Because this returns upto the dimension of the sheet width
+                    {
+                        continue;
+                    }
 
-                cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
-                c++;
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    c++;
+                }
             }
 
             c.Should().Be(workSheet2Content[r].Length);

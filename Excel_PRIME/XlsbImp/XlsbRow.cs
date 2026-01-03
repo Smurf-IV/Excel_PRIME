@@ -71,7 +71,7 @@ internal sealed class XlsbRow : IRowAsync
         }
 
         // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension + 1];
+        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
         try
         {
@@ -90,8 +90,8 @@ internal sealed class XlsbRow : IRowAsync
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
-                    int offset = cell.ExcelColumnOffset;
-                    if (offset > 0 && offset <= _maxExcelColumnDimension)
+                    int offset = cell.ExcelColumnOffset-1;
+                    if (offset >= 0 && offset < _maxExcelColumnDimension)
                     {
                         localCells[offset] = cell;
                     }
@@ -127,7 +127,7 @@ internal sealed class XlsbRow : IRowAsync
         }
 
         // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension + 1];
+        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
         try
         {
@@ -146,8 +146,8 @@ internal sealed class XlsbRow : IRowAsync
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
-                    int offset = cell.ExcelColumnOffset;
-                    if (offset > 0 && offset <= _maxExcelColumnDimension)
+                    int offset = cell.ExcelColumnOffset-1;
+                    if (offset >= 0 && offset < _maxExcelColumnDimension)
                     {
                         localCells[offset] = cell;
                     }
@@ -173,13 +173,6 @@ internal sealed class XlsbRow : IRowAsync
         _cellsLoaded = true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void DisposeManagedState()
-    {
-        _cells = null;
-        _cellsLoaded = false;
-    }
-
     public void Dispose()
     {
         if (_isDisposed)
@@ -187,7 +180,6 @@ internal sealed class XlsbRow : IRowAsync
             return;
         }
         _isDisposed = true;
-        DisposeManagedState();
         Return(this);
     }
 
@@ -195,57 +187,48 @@ internal sealed class XlsbRow : IRowAsync
     public int RowOffset { get; private set; }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public async Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
-        if (_cells == null)
-        {
-            yield break;
-        }
-
-        for (int i = 1; i <= _maxExcelColumnDimension; i++)
-        {
-            yield return _cells[i];
-        }
+        return _cells?.AsReadOnly();
     }
 
     /// <InheritDoc />
-    public IEnumerable<ICell?> GetAllCells(CancellationToken ct = default)
+    public IReadOnlyList<ICell?>? GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);
-        if (_cells == null)
-        {
-            yield break;
-        }
-
-        for (int i = 1; i <= _maxExcelColumnDimension; i++)
-        {
-            yield return _cells[i];
-        }
+        return _cells?.AsReadOnly();
     }
 
     /// <InheritDoc />
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
-        if (_cells == null || excelColumnIndex < 1 || excelColumnIndex > _maxExcelColumnDimension)
+        if (_cells == null
+            || excelColumnIndex < 1
+            || excelColumnIndex > _maxExcelColumnDimension)
         {
             return null;
         }
 
-        return _cells[excelColumnIndex];
+        return _cells[excelColumnIndex-1];
     }
 
     /// <InheritDoc />
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public ICell? GetCell(int excelColumnIndex, CancellationToken ct = default)
     {
         GetCells(ct);
-        if (_cells == null || excelColumnIndex < 1 || excelColumnIndex > _maxExcelColumnDimension)
+        if (_cells == null
+            || excelColumnIndex < 1
+            || excelColumnIndex > _maxExcelColumnDimension)
         {
             return null;
         }
 
-        return _cells[excelColumnIndex];
+        return _cells[excelColumnIndex-1];
     }
 
     /// <InheritDoc />
@@ -254,6 +237,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(values);

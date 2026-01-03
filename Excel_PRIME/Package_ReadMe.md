@@ -58,7 +58,7 @@ Lets take each of the above elements and explain:
 - Q: It appears that this uses more memory than other implementations
 - A: Currently yes, but it is being optimised for `Range Extraction`, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
-    - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
 
 ## Efficiency 📦
