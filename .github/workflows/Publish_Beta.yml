@@ -19,7 +19,7 @@ jobs:
       with:
         # lfs: true
         fetch-depth: 0
-        ref: 'V3-XLSB'
+        #ref: 'main'
 
     # - name: Checkout LFS objects
     #   run: git lfs checkout
