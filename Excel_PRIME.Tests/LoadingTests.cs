@@ -10,6 +10,7 @@ using NUnit.Framework;
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 internal class LoadingTests
 {
     [Test]
@@ -64,7 +65,7 @@ internal class LoadingTests
 
     [Test]
     [TestCase("Data/verysimple.xlsx")]
-    public async Task A040_DisposeRelasesFile(string fileName)
+    public async Task A040_DisposeReleasesFile(string fileName)
     {
         using (IExcel_PRIMEAsync workbook = new Excel_PRIME())
         {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,32 +14,26 @@ internal sealed class NullRow(int rowOffset) : IRowAsync
 
     public int RowOffset { get; } = rowOffset;
 
-    public async IAsyncEnumerable<ICell?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
-    {
-        await Task.Yield();
-        yield break;
-    }
+    public Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default) => Task.FromResult<IReadOnlyList<ICell?>?>(null);
 
-    public IEnumerable<ICell?> GetAllCells(CancellationToken ct = default)
-    {
-        yield break;
-    }
+    public IReadOnlyList<ICell?>? GetAllCells(CancellationToken ct = default) => null;
 
-    public Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
-    {
-        ICell? nullCell = null;
-        return Task.FromResult(nullCell);
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default) => Task.FromResult<ICell?>(null);
 
     public ICell? GetCell(int excelColumnIndex, CancellationToken ct = default) => null;
 
-    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
-    {
-        ICell? nullCell = null;
-        return Task.FromResult(nullCell);
-    }
+    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => Task.FromResult<ICell?>(null);
 
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => null;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        for (int ordinal = 0; ordinal < values.Length; ++ordinal)
+        {
+            values[ordinal] = null;
+        }
+    }
 }

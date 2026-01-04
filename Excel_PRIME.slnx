@@ -23,4 +23,6 @@
   <Project Path="Excel_PRIME.RangeBench/Excel_PRIME.RangeBench.csproj" />
   <Project Path="Excel_PRIME.Tests/Excel_PRIME.Tests.csproj" Id="40fd0493-961d-44f2-94b7-52d818e01b1e" />
   <Project Path="Excel_PRIME/Excel_PRIME.csproj" />
+  <Project Path="Excel_PRIMEXlsb.Bench/Excel_PRIMEXlsb.Bench.csproj" />
+  <Project Path="Excel_PRIMEXlsb.RangeBench/Excel_PRIMEXlsb.RangeBench.csproj" />
 </Solution>

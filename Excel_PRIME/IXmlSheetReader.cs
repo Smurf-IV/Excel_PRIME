@@ -7,7 +7,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Sheet internal access contract
 /// </summary>
-public interface IXmlSheetReader : IDisposable
+public interface IOpenXmlSheetReader : IDisposable
 {
 
     /// <summary>
@@ -30,7 +30,7 @@ public interface IXmlSheetReader : IDisposable
 /// <summary>
 /// Sheet internal access contract
 /// </summary>
-public interface IXmlSheetReaderAsync : IXmlSheetReader
+public interface IOpenXmlSheetReaderAsync : IOpenXmlSheetReader
 {
     /// <summary>
     /// Get the row(s), and populate the cells via `cellGetMode`

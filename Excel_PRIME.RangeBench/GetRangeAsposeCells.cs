@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Aspose.Cells;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 
 namespace ExcelPRIME.RangeBench;

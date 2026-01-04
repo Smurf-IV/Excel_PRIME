@@ -12,7 +12,8 @@
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats (Binary later, _maybe_)
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** in V3.##
+- Zip Deflate format _Only_
 
 ## Performant 🚀
 - _Try_ **to be** as fast as possible, i.e.
@@ -21,13 +22,15 @@ Lets take each of the above elements and explain:
     - No attempt at "creating / using" datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
+- Now the fastest in Real world usage [2025-11-19 onwards](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
+- Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
-    - They do not have range extraction.
+    - They do **not** have range extraction.
     - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
-    - Or re-use of already extracted (massive) sheets
-    - Or allow multiple sheets to be read at the same time 
+    - Or **re-use** of already extracted (massive) sheets
+    - Or allow multiple sheets to be read at the **same** time 
         - because others use global memory to represent the current row
         - Or have a single access into the Zip Excel file
 
@@ -55,7 +58,7 @@ Lets take each of the above elements and explain:
 - Q: It appears that this uses more memory than other implementations
 - A: Currently yes, but it is being optimised for `Range Extraction`, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
-    - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
 
 ## Efficiency 📦
@@ -64,8 +67,8 @@ Lets take each of the above elements and explain:
 - Only unzip the sheet(s) when they are asked for
 - Only load the shared strings upto the current request number
 ### Q & A's
-- Q: 
-- A:
+- Q: Sometimes the `Async` _await_ s add too much overhead
+- A: true, that is why there are also the equivalent base interfaces that perform the same functionality without the need for the `async await` overheads, and still with `ConcellationToken` usage(s).
 
 
 ## Etc. 🔧

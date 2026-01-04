@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -44,7 +45,9 @@ public class AccessEveryCellBenchmarks
                 for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
                     if (!string.IsNullOrEmpty(reader.GetExcelValue(ordinal).ToString()))
+                    {
                         cells++;
+                    }
                 }
             }
         } while (await reader.NextResultAsync().ConfigureAwait(true));
@@ -66,7 +69,9 @@ public class AccessEveryCellBenchmarks
                 foreach (Cell cell in row.Cells)
                 {
                     if (!string.IsNullOrEmpty(cell.CellValue))
+                    {
                         cells++;
+                    }
                 }
             }
         }
@@ -116,12 +121,19 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                await foreach (ICell? cell in row.GetAllCellsAsync())
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                if (rowCells != null)
                 {
-                    // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
-                        cells++;
+                    foreach (ICell? cell in rowCells)
+                    {
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        {
+                            cells++;
+                        }
+                    }
                 }
+
                 row.Dispose();
             }
         }
@@ -145,7 +157,11 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                cells += row.GetAllCells().Count(cell => !string.IsNullOrEmpty(cell?.RawValue?.ToString()));
+                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                if (rowCells != null)
+                {
+                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue.ToString()));
+                }
                 row.Dispose();
             }
         }
@@ -154,35 +170,6 @@ public class AccessEveryCellBenchmarks
     }
 
     [Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> NumberCellAsyncExcel_Prime()
-    {
-        int cells = 0;
-        using Excel_PRIME workbook = new();
-        await workbook.OpenAsync(RootFolder + FileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(true);
-        foreach (string sheetName in workbook.SheetNames())
-        {
-            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
-            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
-            {
-                if (row == null)
-                {   // Because this returns upto the dimension of the sheet Height
-                    break;
-                }
-
-                await foreach (ICell? cell in row.GetAllCellsAsync())
-                {
-                    // Because this returns upto the dimension of the sheet width
-                    if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
-                        cells++;
-                }
-                row.Dispose();
-            }
-        }
-        return cells;
-    }
-
-    //[Benchmark]
     // Between 5 -> 10% slower than running through in ForwardOnlyMode*2.
     // Not bad considering it is using the HDD for the passes ;-)
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
@@ -212,12 +199,16 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 
@@ -239,12 +230,16 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    await foreach (ICell? cell in row.GetAllCellsAsync(ct))
+                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    if (rowCells != null)
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.RawValue?.ToString()))
+                        foreach (ICell? cell in rowCells)
                         {
-                            Interlocked.Increment(ref cells);
+                            // Because this returns upto the dimension of the sheet width
+                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            {
+                                Interlocked.Increment(ref cells);
+                            }
                         }
                     }
 

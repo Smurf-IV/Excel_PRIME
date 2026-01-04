@@ -70,6 +70,10 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
         return true;
     }
 
+    // One day it will be async in the zipReader
+    public Task<Stream?> GetEntryAsync(string entryName, CancellationToken ct)
+        => Task.FromResult(GetEntry(entryName));
+
     public Stream? GetEntry(string entryName)
     {
         ZipArchiveEntry? entry = _archive!.GetEntry(entryName);

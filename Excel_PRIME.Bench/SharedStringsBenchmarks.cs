@@ -18,24 +18,26 @@ public class SharedStringsBenchmarks
         "100mb.xlsx",
         "sampledocs-50mb-xlsx-file-sst.xlsx"
     )]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public string FileName { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-    private ZipArchive? archive;
-    private Stream? sharedStringsStream;
-    private ISharedString? sharedStrings;
+    private ZipArchive? _archive;
+    private Stream? _sharedStringsStream;
+    private ISharedString? _sharedStrings;
 
     [GlobalSetup]
     public void Setup()
     {
         string path = Path.Combine(RootFolder, FileName);
         FileStream fs = File.OpenRead(path);
-        archive = new ZipArchive(fs, ZipArchiveMode.Read, leaveOpen: false);
-        ZipArchiveEntry? entry = archive.GetEntry("xl/sharedStrings.xml");
+        _archive = new ZipArchive(fs, ZipArchiveMode.Read, leaveOpen: false);
+        ZipArchiveEntry? entry = _archive.GetEntry("xl/sharedStrings.xml");
         if (entry == null)
         {
             return;
         }
-        sharedStringsStream = entry.Open();
+        _sharedStringsStream = entry.Open();
 
         // Instantiate internal XmlReaderHelpersAsync via reflection and call GetSharedStringsAsync
         Assembly asm = Assembly.Load("Excel_PRIME");
@@ -49,9 +51,9 @@ public class SharedStringsBenchmarks
                 MethodInfo? getSharedStringsAsync = helperType.GetMethod("GetSharedStringsAsync", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
                 if (getSharedStringsAsync != null)
                 {
-                    Task<ISharedString> task = (System.Threading.Tasks.Task<ISharedString>)getSharedStringsAsync.Invoke(helper, new object[] { sharedStringsStream, CancellationToken.None })!;
+                    Task<ISharedString> task = (Task<ISharedString>)getSharedStringsAsync.Invoke(helper, [_sharedStringsStream, CancellationToken.None])!;
                     task.Wait();
-                    sharedStrings = task.Result;
+                    _sharedStrings = task.Result;
                 }
             }
         }
@@ -60,15 +62,15 @@ public class SharedStringsBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        sharedStrings?.Dispose();
-        sharedStringsStream?.Dispose();
-        archive?.Dispose();
+        _sharedStrings?.Dispose();
+        _sharedStringsStream?.Dispose();
+        _archive?.Dispose();
     }
 
     //[Benchmark(Baseline = true)]
     public int AccessFirstThousandSequential()
     {
-        if (sharedStrings is null)
+        if (_sharedStrings is null)
         {
             return 0;
         }
@@ -76,7 +78,7 @@ public class SharedStringsBenchmarks
         int total = 0;
         for (int i = 0; i < 1000; i++)
         {
-            string? s = sharedStrings[i];
+            string? s = _sharedStrings[i];
             if (s != null)
             {
                 total += s.Length;
@@ -88,7 +90,7 @@ public class SharedStringsBenchmarks
     //[Benchmark]
     public int AccessRandomThousand()
     {
-        if (sharedStrings is null)
+        if (_sharedStrings is null)
         {
             return 0;
         }
@@ -98,7 +100,7 @@ public class SharedStringsBenchmarks
         for (int i = 0; i < 1000; i++)
         {
             int idx = rnd.Next(0, 5000);
-            string? s = sharedStrings[idx];
+            string? s = _sharedStrings[idx];
             if (s != null)
             {
                 total += s.Length;

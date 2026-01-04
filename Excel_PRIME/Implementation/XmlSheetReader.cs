@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -9,7 +8,7 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class XmlSheetReader : IXmlSheetReaderAsync
+internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
 {
     private readonly InstanceContext _instanceContext;
     private readonly XmlReader _reader;
@@ -19,9 +18,9 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
     private readonly ReaderAtoms _readerAtoms;
 
     // Pool of Row instances shared by this reader (concurrent for safety).
-    private readonly ConcurrentBag<Row> _rowPool = new();
+    private readonly ConcurrentBag<Row> _rowPool = [];
 
-    public XmlSheetReader(Stream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
+    public XmlSheetReader(NonClosingStream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
         _instanceContext = instanceContext;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
@@ -109,22 +108,15 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
         _readerAtoms = new ReaderAtoms(_reader);
     }
 
-    private Row CreateRowFromPool()
-    {
-        if (_rowPool.TryTake(out Row? r))
-        {
-            return r;
-        }
+    private Row CreateRowFromPool() =>
+        _rowPool.TryTake(out Row? r)
+            ? r
+            : Row.Rent();
 
-        return Row.Rent();
-    }
-
-    private void ReturnRowToPool(Row r)
-    {
+    private void ReturnRowToPool(Row r) =>
         // Row.Dispose handles returning to global pool; but we keep an internal pool for speed.
         // Reset any reader-specific state is handled by Row.Reset inside Return.
         _rowPool.Add(r);
-    }
 
     private bool ReadToNextStartRow(CancellationToken ct)
     {
@@ -171,10 +163,7 @@ internal sealed class XmlSheetReader : IXmlSheetReaderAsync
     /// </summary>
     public int CurrentRow { get; private set; }
 
-    public void Dispose()
-    {
-        Dispose(isDisposing: true);
-    }
+    public void Dispose() => Dispose(isDisposing: true);
 
 #pragma warning disable CA2213  // Do not call dispose, because they are being returned to the caller
     private NullRow? _lastNullRow;

@@ -19,7 +19,8 @@ jobs:
       with:
         # lfs: true
         fetch-depth: 0
-        
+        ref: 'V3-XLSB'
+
     # - name: Checkout LFS objects
     #   run: git lfs checkout
 
@@ -50,7 +51,7 @@ jobs:
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release --version-suffix Beta
+      run: dotnet pack --no-build --configuration Release --version-suffix XLSB-RC1
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}

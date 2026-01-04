@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,29 +9,50 @@ using AwesomeAssertions;
 using ExcelPRIME.RangeBench;
 
 using NUnit.Framework;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8629 // Nullable value type may be null.
 
 
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 internal class DefinedRangeTests
 {
     [Test]
-    public async Task A010_ReadNamedRange()
+    public async Task A010_ReadNamedRangeAsync()
     {
         const string fileName = "Data/named-range.xlsx";
         using Excel_PRIME workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
-        object?[] taxRate = await workbook.GetDefinedRangeAsync("TaxRate").FirstAsync();
-        taxRate.FirstOrDefault().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+        CellValue?[] taxRate = await workbook.GetDefinedRangeAsync("TaxRate").FirstAsync();
+        taxRate.First().ToString().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
 
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
-        object?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        CellValue?[][] prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
-        prices[0].Should().BeEquivalentTo(["5"]);
-        prices[1].Should().BeEquivalentTo(["4"]);
-        prices[2].Should().BeEquivalentTo(["15"]);
-        prices[3].Should().BeEquivalentTo(["9"]);
+        prices[0].First().Value.ToString().Should().Be("5");
+        prices[1].First().Value.ToString().Should().Be("4");
+        prices[2].First().Value.ToString().Should().Be("15");
+        prices[3].First().Value.ToString().Should().Be("9");
+    }
+
+    [Test]
+    public void A011_ReadNamedRange()
+    {
+        const string fileName = "Data/named-range.xlsx";
+        using Excel_PRIME workbook = new();
+        workbook.Open(fileName);
+        CellValue?[] taxRate = workbook.GetDefinedRange("TaxRate").First();
+        taxRate.First().ToString().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+
+        // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
+        CellValue?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
+        prices.Should().HaveCount(4);
+        prices[0].First().Value.ToString().Should().Be("5");
+        prices[1].First().Value.ToString().Should().Be("4");
+        prices[2].First().Value.ToString().Should().Be("15");
+        prices[3].First().Value.ToString().Should().Be("9");
     }
 
     [Test]
@@ -43,7 +63,7 @@ internal class DefinedRangeTests
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         // Do not fallover with <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
-        object?[][] prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
+        CellValue?[][] prices = await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().BeNullOrEmpty();
     }
 
@@ -52,34 +72,28 @@ internal class DefinedRangeTests
     {
         const string fileName = "Data/solver.xlsx";
         using Excel_PRIME workbook = new();
-        await workbook.OpenAsync(fileName, 
-            options: new Options 
-                { 
-                    CellConversionType = CellConversion.Number, 
-                    AccessExcelFileInForwardOnlyMode = false
-                }
-            ).ConfigureAwait(true);
+        await workbook.OpenAsync(fileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 
         // Do not fallover with
         // <definedName name="OrderSize" localSheetId="0">'Try it Yourself'!$C$12:$E$12</definedName>
         // <definedName name="OrderSize">Solution!$C$12:$E$12</definedName>
-        object?[] orderSizeS = await workbook.GetDefinedRangeAsync("OrderSize").FirstAsync();
+        CellValue?[] orderSizeS = await workbook.GetDefinedRangeAsync("OrderSize").FirstAsync();
         orderSizeS.Should().HaveCount(3);
-        orderSizeS.Should().HaveElementAt(0, 94);
-        orderSizeS.Should().HaveElementAt(1, 54);
-        orderSizeS.Should().HaveElementAt(2, 0);
+        orderSizeS[0].Value.AsInt32.Should().Be(94);
+        orderSizeS[1].Value.AsInt32.Should().Be(54);
+        orderSizeS[2].Value.AsInt32.Should().Be(0);
 
-        object?[] orderSizeU = await workbook.GetDefinedRangeAsync("OrderSize", "Try it Yourself").FirstAsync();
+        CellValue?[] orderSizeU = await workbook.GetDefinedRangeAsync("OrderSize", "Try it Yourself").FirstAsync();
         orderSizeU.Should().HaveCount(3);
-        orderSizeU.Should().HaveElementAt(0, 0);
-        orderSizeU.Should().HaveElementAt(1, 0);
-        orderSizeU.Should().HaveElementAt(2, 0);
+        orderSizeU[0].Value.BoxedValue.Should().Be("0");
+        orderSizeU[1].Value.BoxedValue.Should().Be("0");
+        orderSizeU[2].Value.BoxedValue.Should().Be("0");
 
-        object?[] orderSizeT = await workbook.GetDefinedRangeAsync("OrderSize (Try it Yourself)").FirstAsync();
+        CellValue?[] orderSizeT = await workbook.GetDefinedRangeAsync("OrderSize (Try it Yourself)").FirstAsync();
         orderSizeT.Should().HaveCount(3);
-        orderSizeT.Should().HaveElementAt(0, 0);
-        orderSizeT.Should().HaveElementAt(1, 0);
-        orderSizeT.Should().HaveElementAt(2, 0);
+        orderSizeT[0].Value.AsDouble.Should().Be(0);
+        orderSizeT[1].Value.AsDouble.Should().Be(0);
+        orderSizeT[2].Value.AsDouble.Should().Be(0);
     }
 
     public static Type[] Rangers = // for multiple arguments it's an IEnumerable of IGetRange's
@@ -130,88 +144,41 @@ internal class DefinedRangeTests
     }
 
     [Test]
-    public async Task A060_UserRangesAsync()
+    public async Task A060_UserRanges()
     {
         const string fileName = "Data/solver.xlsx";
         using Excel_PRIME workbook = new();
         await workbook.OpenAsync(fileName,
-            options: new Options
-            {
-                CellConversionType = CellConversion.Number,
-                AccessExcelFileInForwardOnlyMode = false
-            }
-        ).ConfigureAwait(true);
+            options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 
         // Do not fallover with
         Func<Task> sutMethod = async () =>
         {
-            object?[] _ = await workbook.GetUserRangeAsync("Try it Yourself", "C12:E12").FirstAsync();
+            await workbook.GetUserRangeAsync("Try it Yourself", "C12:E12").FirstAsync();
         };
 
         await sutMethod.Should().ThrowAsync<KeyNotFoundException>()
             .WithMessage("* does not exist").ConfigureAwait(false);
 
-        object?[] orderSizeS = await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync();
+        CellValue?[] orderSizeS = await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync();
         orderSizeS.Should().HaveCount(3);
-        orderSizeS.Should().HaveElementAt(0, 94);
-        orderSizeS.Should().HaveElementAt(1, 54);
-        orderSizeS.Should().HaveElementAt(2, 0);
+        orderSizeS[0].Value.BoxedValue.Should().Be("94");
+        orderSizeS[1].Value.BoxedValue.Should().Be("54");
+        orderSizeS[2].Value.BoxedValue.Should().Be("0");
 
-        object?[] orderSizeD = await workbook.GetUserRangeAsync("$C$12:$E$12", "Solution").FirstAsync();
+        CellValue?[] orderSizeD = await workbook.GetUserRangeAsync("$C$12:$E$12", "Solution").FirstAsync();
         orderSizeD.Should().HaveCount(3);
-        orderSizeD.Should().HaveElementAt(0, 94);
-        orderSizeD.Should().HaveElementAt(1, 54);
-        orderSizeD.Should().HaveElementAt(2, 0);
+        orderSizeD[0].Value.ToString().Should().Be("94");
+        orderSizeD[1].Value.ToString().Should().Be("54");
+        orderSizeD[2].Value.ToString().Should().Be("0");
 
-        object?[] orderSizeU = await workbook.GetUserRangeAsync("C12", "Solution").FirstAsync();
-        orderSizeU.Should().ContainSingle();
-        orderSizeU.Should().HaveElementAt(0, 94);
+        CellValue?[] orderSizeU = await workbook.GetUserRangeAsync("C12", "Solution").FirstAsync();
+        orderSizeU.Should().HaveCount(1);
+        orderSizeU[0].Value.AsInt32.Should().Be(94);
 
-        object?[] orderSizeC = await workbook.GetUserRangeAsync("$C$12", "Solution").FirstAsync();
-        orderSizeC.Should().ContainSingle();
-        orderSizeC.Should().HaveElementAt(0, 94);
+        CellValue?[] orderSizeC = await workbook.GetUserRangeAsync("$C$12", "Solution").FirstAsync();
+        orderSizeC.Should().HaveCount(1);
+        orderSizeC[0].Value.AsInt64.Should().Be(94);
     }
 
-    [Test]  // https://github.com/Smurf-IV/Excel_PRIME/issues/7
-    public void A061_UserRanges()
-    {
-        const string fileName = "Data/solver.xlsx";
-        using Excel_PRIME workbook = new();
-        workbook.Open(fileName,
-            options: new Options
-            {
-                CellConversionType = CellConversion.Number,
-                AccessExcelFileInForwardOnlyMode = false
-            }
-        );
-
-        // Do not fallover with
-        Action sutMethod = () =>
-        {
-            object?[] _ = workbook.GetUserRange("Try it Yourself", "C12:E12").First();
-        };
-
-        sutMethod.Should().Throw<KeyNotFoundException>()
-            .WithMessage("* does not exist");
-
-        object?[] orderSizeS = workbook.GetUserRange("C12:E12", "Solution").First();
-        orderSizeS.Should().HaveCount(3);
-        orderSizeS.Should().HaveElementAt(0, 94);
-        orderSizeS.Should().HaveElementAt(1, 54);
-        orderSizeS.Should().HaveElementAt(2, 0);
-
-        object?[] orderSizeD = workbook.GetUserRange("$C$12:$E$12", "Solution").First();
-        orderSizeD.Should().HaveCount(3);
-        orderSizeD.Should().HaveElementAt(0, 94);
-        orderSizeD.Should().HaveElementAt(1, 54);
-        orderSizeD.Should().HaveElementAt(2, 0);
-
-        object?[] orderSizeU = workbook.GetUserRange("C12", "Solution").First();
-        orderSizeU.Should().ContainSingle();
-        orderSizeU.Should().HaveElementAt(0, 94);
-
-        object?[] orderSizeC = workbook.GetUserRange("$C$12", "Solution").First();
-        orderSizeC.Should().ContainSingle();
-        orderSizeC.Should().HaveElementAt(0, 94);
-    }
 }

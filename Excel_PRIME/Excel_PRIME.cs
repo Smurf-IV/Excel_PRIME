@@ -17,15 +17,14 @@ namespace ExcelPRIME;
 // ReSharper disable InconsistentNaming
 #pragma warning disable CA1707 // Underscores
 /// <summary>
-/// Main entry point into the `Excel_PRIME` API's
+/// Main entry point into the `Excel_PRIME` XLSX handler API's
 /// </summary>
-public sealed class Excel_PRIME : IExcel_PRIMEAsync
+public class Excel_PRIME : IExcel_PRIMEAsync
 {
     private bool _isDisposed;
-    private readonly IXmlReaderHelpersAsync _xmlReaderHelper;
+    private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly IZipReaderAsync _zipReader;
     private Stream? _fs;
-    private readonly Dictionary<string, TempFile> _baseFiles = [];
     private readonly Dictionary<int, TempFile> _sheetFiles = [];
     private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>().AsReadOnly();
     private readonly InstanceContext _instanceContext = new();
@@ -33,7 +32,7 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
 
     /// <InheritDoc />
-    public Excel_PRIME(IXmlReaderHelpersAsync? xmlReader = null, IZipReaderAsync? zipReader = null)
+    public Excel_PRIME(IOpenXmlReaderHelpersAsync? xmlReader = null, IZipReaderAsync? zipReader = null)
     {
         _xmlReaderHelper = xmlReader ?? new XmlReaderHelpersAsync();
         _zipReader = zipReader ?? new ZipReaderAsync();
@@ -43,33 +42,33 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
     /// Asynchronously opens an Excel file for processing.
     /// </summary>
     /// <param name="fileName">The full path to the Excel file to be opened.</param>
-    /// <param name="fileType">The type of the file to be opened. Defaults to <see cref="FileType.Xlsx"/>.</param>
     /// <param name="options">Optional parameters for configuring the file opening process.</param>
     /// <param name="ct">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
     /// <exception cref="IOException">Thrown when the file cannot be accessed or opened.</exception>
     /// <exception cref="InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
-    public Task OpenAsync(string fileName, FileType fileType = FileType.Xlsx, Options? options = null,
+    public Task OpenAsync(string fileName, Options? options = null,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
         FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
-        return OpenAsync(fs, fileType, options, ct);
+        return OpenAsync(fs, options, ct);
     }
     /// <InheritDoc />
-    public void Open(string fileName, FileType fileType = FileType.Xlsx, Options? options = null,
+    public void Open(string fileName, Options? options = null,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
         FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
-        Open(fs, fileType, options, ct);
+        Open(fs, options, ct);
     }
 
     /// <InheritDoc />
-    public async Task OpenAsync(Stream fileStream, FileType fileType, Options? options = null, CancellationToken ct = default)
+    public async Task OpenAsync(Stream fileStream, Options? options = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileStream);
+        _fs = fileStream;
         if (!fileStream.CanSeek)
         {
             throw new EndOfStreamException("'fileStream' _must_ be seekable!");
@@ -78,20 +77,19 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         options ??= new Options();
         _instanceContext.Options = options;
 
-        _fs = fileStream;
         await _zipReader.OpenArchiveAsync(fileStream, ct).ConfigureAwait(false);
         // Check and get the Shared strings
         await GetSharedStringsAsync(ct).ConfigureAwait(false);
 
         // Now perform the Getting of the base data
-        Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
-        await GetSheetNamesAsync(workBookStream, ct).ConfigureAwait(false);
+        await GetSheetNamesAsync(_zipReader, ct).ConfigureAwait(false);
     }
 
     /// <InheritDoc />
-    public void Open(Stream fileStream, FileType fileType, Options? options = null, CancellationToken ct = default)
+    public void Open(Stream fileStream, Options? options = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileStream);
+        _fs = fileStream;
         if (!fileStream.CanSeek)
         {
             throw new EndOfStreamException("'fileStream' _must_ be seekable!");
@@ -100,94 +98,31 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         options ??= new Options();
         _instanceContext.Options = options;
 
-        _fs = fileStream;
         _zipReader.OpenArchive(fileStream, ct);
         // Check and get the Shared strings
         GetSharedStrings(ct);
 
         // Now perform the Getting of the base data
-        Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
-        GetSheetNames(workBookStream, ct);
+        GetSheetNames(_zipReader, ct);
     }
 
     private async Task GetSharedStringsAsync(CancellationToken ct)
-    {
-        _instanceContext.SharedStrings = new LazyLoadSharedStrings();
-
-        // Check that the shared string actually exists
-        if (_instanceContext.Options.AccessExcelFileInForwardOnlyMode)
-        {
-            Stream? sharedStringsStream = _zipReader.GetEntry("xl/sharedStrings.xml");
-            if (sharedStringsStream != null)
-            {
-                _instanceContext.SharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(sharedStringsStream, ct)
-                    .ConfigureAwait(false);
-            }
-        }
-        else
-        {
-            TempFile shareStrings = new("sharedStrings.xml");
-            _baseFiles["xl/sharedStrings.xml"] = shareStrings;
-            bool exists;
-            using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
-            {
-                exists = await _zipReader.CopyToAsync("xl/sharedStrings.xml", targetStream, ct).ConfigureAwait(false);
-            }
-
-            if (exists)
-            {
-#pragma warning disable CA2000 // <param name="stream">This _is_ owned by the `ISharedString`</param>
-                FileStream fileStream = shareStrings.OpenForAsyncRead();
-#pragma warning restore CA2000
-                _instanceContext.SharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(fileStream, ct)
-                    .ConfigureAwait(false);
-            }
-        }
-    }
+        => _instanceContext.SharedStrings = await _xmlReaderHelper.GetSharedStringsAsync(_zipReader, _instanceContext.Options.AccessExcelFileInForwardOnlyMode, ct)
+                                            .ConfigureAwait(false);
 
     private void GetSharedStrings(CancellationToken ct)
+        => _instanceContext.SharedStrings = _xmlReaderHelper.GetSharedStrings(_zipReader, _instanceContext.Options.AccessExcelFileInForwardOnlyMode, ct);
+
+    private async Task GetSheetNamesAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        _instanceContext.SharedStrings = new LazyLoadSharedStrings();
-
-        // Check that the shared string actually exists
-        if (_instanceContext.Options.AccessExcelFileInForwardOnlyMode)
-        {
-            Stream? sharedStringsStream = _zipReader.GetEntry("xl/sharedStrings.xml");
-            if (sharedStringsStream != null)
-            {
-                _instanceContext.SharedStrings = _xmlReaderHelper.GetSharedStrings(sharedStringsStream, ct);
-            }
-        }
-        else
-        {
-            TempFile shareStrings = new("sharedStrings.xml");
-            _baseFiles["xl/sharedStrings.xml"] = shareStrings;
-            bool exists;
-            using (FileStream targetStream = shareStrings.OpenForAsyncWrite())
-            {
-                exists = _zipReader.CopyTo("xl/sharedStrings.xml", targetStream, ct);
-            }
-
-            if (exists)
-            {
-#pragma warning disable CA2000 // <param name="stream">This _is_ owned by the `ISharedString`</param>
-                FileStream fileStream = shareStrings.OpenForAsyncRead();
-#pragma warning restore CA2000
-                _instanceContext.SharedStrings = _xmlReaderHelper.GetSharedStrings(fileStream, ct);
-            }
-        }
-    }
-
-    private async Task GetSheetNamesAsync(Stream? workBookStream, CancellationToken ct)
-    {
-        using IXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(workBookStream, ct)
+        using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
         _sheetNamesToOffsetSheetId = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
     }
 
-    private void GetSheetNames(Stream? workBookStream, CancellationToken ct)
+    private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
     {
-        using IXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(workBookStream, ct);
+        using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
         _sheetNamesToOffsetSheetId = wbr.GetSheetNames(ct).ToDictionary();
     }
 
@@ -195,13 +130,12 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
     public IEnumerable<string> SheetNames() => _sheetNamesToOffsetSheetId.Keys;
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<object?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual async IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
             // Lazy load on first use
-            Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
-            using IXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(workBookStream, ct)
+            using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(_zipReader, ct)
                 .ConfigureAwait(false);
             _definedRanges = await wbr.GetDefinedRangesAsync(_sheetNamesToOffsetSheetId, ct).ConfigureAwait(false);
         }
@@ -213,7 +147,7 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [definedRange.ConstValue];
+            yield return [new CellValue(definedRange.ConstValue)];
             yield break;
         }
 
@@ -235,12 +169,12 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<object?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
     {
         string? useThisSheetName = null;
         int valueOffset = useLocalSheetId + 1;
@@ -253,13 +187,12 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
     }
 
     /// <InheritDoc />
-    public IEnumerable<object?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
             // Lazy load on first use
-            Stream workBookStream = _zipReader.GetEntry("xl/workbook.xml")!;
-            using IXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(workBookStream, ct);
+            using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
             _definedRanges = wbr.GetDefinedRanges(_sheetNamesToOffsetSheetId, ct);
         }
 
@@ -281,7 +214,7 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [definedRange.ConstValue];
+            yield return [new CellValue(definedRange.ConstValue)];
             yield break;
         }
 
@@ -296,13 +229,13 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<object?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<CellValue?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
         if (targetSheet == null)
@@ -313,12 +246,12 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<object?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
         if (targetSheet == null)
@@ -329,21 +262,20 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
+    public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
-        // Find Id
         if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
 
         Stream stream;
-        if (!OverrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
+        if (!overrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
             && !_instanceContext.Options.AccessExcelFileInForwardOnlyMode
            )
         {
@@ -351,10 +283,10 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
             {
                 if (!_sheetFiles.TryGetValue(offsetSheetId, out TempFile? sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
+                    sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = Sheet.GetFileName(offsetSheetId);
+                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
                     await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
                 }
 
@@ -364,14 +296,14 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            string sheetFileName = Sheet.GetFileName(offsetSheetId);
+            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
             stream = _zipReader.GetEntry(sheetFileName)!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
     }
 
     /// <InheritDoc />
-    public ISheet? GetSheet(string sheetName, TernaryBool OverrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
+    public ISheet? GetSheet(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
         // Find Id
         if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
@@ -380,7 +312,7 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         }
 
         Stream stream;
-        if (!OverrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
+        if (!overrideOptionsAndUseSheetOnlyOnce.GetValueOrDefault(true)
             && !_instanceContext.Options.AccessExcelFileInForwardOnlyMode
            )
         {
@@ -389,10 +321,10 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
             {
                 if (!_sheetFiles.TryGetValue(offsetSheetId, out sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}.xml");
+                    sheetFile = new TempFile($"sheet{offsetSheetId}");
                     _sheetFiles[offsetSheetId] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = Sheet.GetFileName(offsetSheetId);
+                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
                     _zipReader.CopyTo(sheetFileName, targetStream, ct);
                 }
             });
@@ -400,13 +332,21 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            string sheetFileName = Sheet.GetFileName(offsetSheetId);
+            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
             stream = _zipReader.GetEntry(sheetFileName)!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
     }
 
-    private void Dispose(bool isDisposing)
+    /// <summary>
+    /// Releases the resources used by the <see cref="Excel_PRIME"/> class.
+    /// </summary>
+    /// <param name="isDisposing">
+    /// A value indicating whether the method is being called explicitly 
+    /// to release both managed and unmanaged resources (<c>true</c>), 
+    /// or by the finalizer to release only unmanaged resources (<c>false</c>).
+    /// </param>
+    protected virtual void Dispose(bool isDisposing)
     {
         if (!_isDisposed)
         {
@@ -418,12 +358,7 @@ public sealed class Excel_PRIME : IExcel_PRIMEAsync
                 {
                     tf.Dispose();
                 }
-                foreach (TempFile tf in _baseFiles.Values)
-                {
-                    tf.Dispose();
-                }
                 _zipReader.Dispose();
-                _baseFiles.Clear();
                 _fs?.Dispose();
                 _fs = null;
                 _locker.Dispose();

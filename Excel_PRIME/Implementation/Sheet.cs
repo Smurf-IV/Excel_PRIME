@@ -13,20 +13,15 @@ namespace ExcelPRIME.Implementation;
 internal sealed class Sheet : ISheetAsync
 {
     private bool _isDisposed;
-    private readonly IXmlReaderHelpersAsync _xmlReaderHelper;
+    private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
-    private readonly Stream _stream;
-    private IXmlSheetReaderAsync? _sheetReader;
+    private readonly NonClosingStream _stream;
+    private IOpenXmlSheetReaderAsync? _sheetReader;
 
-    /// <summary>
-    /// Get the internal file name of this worksheet
-    /// </summary>
-    internal static string GetFileName(int index) => $"xl/worksheets/sheet{index}.xml";
-
-    internal Sheet(Stream stream, IXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
     {
-        _stream = stream;
+        _stream = new NonClosingStream(stream);
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
@@ -41,7 +36,15 @@ internal sealed class Sheet : ISheetAsync
     public int Index { get; }
 
     /// <inheritdoc/>
-    public (int Height, int Width) SheetDimensions => _sheetReader!.SheetDimensions;
+    public (int Height, int Width) SheetDimensions
+    {
+        get
+        {
+            _sheetReader ??= (IOpenXmlSheetReaderAsync)_xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
+
+            return _sheetReader.SheetDimensions;
+        }
+    }
 
     /// <inheritdoc/>
     public int CurrentRow => _sheetReader?.CurrentRow ?? 1;
@@ -228,7 +231,7 @@ internal sealed class Sheet : ISheetAsync
                 }
             }
 
-            _sheetReader = _xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, ct);
+            _sheetReader = (IOpenXmlSheetReaderAsync)_xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, ct);
         }
         while (_sheetReader.CurrentRow < startRow
                && !ct.IsCancellationRequested)
@@ -246,6 +249,7 @@ internal sealed class Sheet : ISheetAsync
             {
                 _sheetReader?.Dispose();
                 _stream.Dispose();
+                _xmlReaderHelper.Dispose();
             }
 
             _isDisposed = true;

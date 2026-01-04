@@ -13,7 +13,8 @@
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats (Binary later, _maybe_)
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12) in V3.##
+- Zip Deflate format _Only_
 
 ## Performant 🚀
 - _Try_ **to be** as fast as possible, i.e.
@@ -22,7 +23,7 @@ Lets take each of the above elements and explain:
     - No attempt at "creating / using" datatables with headers etc.
     - Use `IEnumerable`s with initial offset starts (Row / Column)
     - Allow `CancellationToken`s to be used to allow page transitioning cancellation (More on this later)
-- Now the fastest in Real world usage [2025-11-19](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
+- Now the fastest in Real world usage [2025-11-19 onwards](https://github.com/Smurf-IV/Excel_PRIME/discussions/2#discussioncomment-15013658)
 ### Q & A's
 - Q: There are others that are faster
 - A: Agreed, but then 
@@ -57,7 +58,7 @@ Lets take each of the above elements and explain:
 - Q: It appears that this uses more memory than other implementations
 - A: Currently yes, but it is being optimised for `Range Extraction`, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
-    - AND there is work in place to allow multiple sheets to be read at the same time (Unlike some to of the others that use global memory to represent a row)
+    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
 
 ## Efficiency 📦
@@ -221,32 +222,48 @@ Lets take each of the above elements and explain:
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
   - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
 
------
-## Phase 3 - XLS**B** 💾 - Alpha V3
-- [ ] Implement Open / Dispose (Async)
-    - [ ] Sheet Names
-    - [ ] Shared Strings
-- [ ] Implement Sheet loading 
-- [ ] Implement Row extraction 
-    - [ ] Skip
-    - [ ] Delayed read - until a cell is actually needed
-    - [ ] Deal with Null / Empty cells (Utilise sparse array?)
-- [ ] Cell object type 📅
-- [ ] Parallel Sheet threads Access
-    - [ ] Multiple times (with locking)
-- [ ] Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
-    - [ ] Read from global
-- [ ] Benchmarks 🖲️
-    - [ ] Add "Excel readers" That support XLS**B** Extraction
-- [ ] Release as Nuget V3.yyMM.dd
+## Phase 3 - XLS**B** 💾 (BIFF12) - Beta V3
+- ⛓️‍💥 **Breaking Change(s)**
+    - `FileType` has been removed, and Open via the Public class type
+    - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
+    - `IXmlWorkBookReader` has become `IOpenXmlWorkBookReader`
+    - `IXmlSheetReader` has become `IOpenXmlSheetReader`
+    - Removal of the Conversion options `Number###`
+    - Changed `GetAllCells` to return `IReadOnlyList<ICell?>?`
+        - Watch out for those null rows !
+- ✅ Branch and beta yml
+    - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
+- ✅ Implement Open / Dispose (Async)
+    - ✅ Sheet Names
+    - ✅ Shared Strings
+- ✅ Implement Sheet loading 
+- ✅ Implement Row extraction 
+    - ✅ Skip
+    - ✅ Delayed read - until a cell is actually needed
+    - ✅ Deal with Null / Empty cells
+- ✅ Cell object type 📅
+- ✅ Benchmarks 🖲️
+    - ✅ Add "Excel readers" That support XLS**B** Extraction
+    - ✅ 🚶‍➡️ [1st Pass Performance on 2025-12-20](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-20)
+    - ✅ 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
+- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+    - ✅ Read from global
+- ✅ Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
+    - Slightly slower, but less memory pressure for `xslb`
+    - ✅ [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
+- ✅ Parallel Sheet threads Access
+    - ✅ Multiple times (with locking)
+- [>] Release as Nuget V3.yyMM.dd
+    - 🎊 Released **RC1** as Nuget `V3.2601.04-RC1`
+    - [ ] Investigate Performance and edge cases, then Release as Stable
 -----
 
 ## Phase 4 - Specific Cell value type(s) #️⃣
 - [ ] Cell object type 📅
+    - [ ] `Operator` based conversion
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
-    - [ ] `Operator` based conversion
     - [ ] Investigate if the `XmlConvert` classes are efficient
 - [ ] Benchmarks
 -----

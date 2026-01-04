@@ -1,30 +1,32 @@
-﻿using System.IO;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME;
 
 /// <summary>
 /// Allow other implementations of Xml readers
 /// </summary>
-public interface IXmlReaderHelpers
+public interface IOpenXmlReaderHelpers : IDisposable
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="stream">This _is_ owned by the `ISharedString`</param>
+    /// <param name="zipReader"></param>
+    /// <param name="optionsAccessExcelFileInForwardOnlyMode"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ISharedString GetSharedStrings(Stream stream, CancellationToken ct);
+    ISharedString GetSharedStrings(IZipReader zipReader, bool optionsAccessExcelFileInForwardOnlyMode,
+        CancellationToken ct);
 
     /// <summary>
     /// Create the interface implementation to get details out of the WorkBook
     /// Even tho this is not the Async, please create the Async class
     /// </summary>
-    /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
-    /// <param name="ct"></param>
-    IXmlWorkBookReaderAsync CreateWorkBookReader(Stream? stream, CancellationToken ct);
+    IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct);
 
     /// <summary>
     /// Even tho this is not the Async, please create the Async class
@@ -34,29 +36,29 @@ public interface IXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IXmlSheetReaderAsync CreateSheetReader(Stream stream, InstanceContext instanceContext,
+    IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
 }
 
 /// <summary>
 /// Allow other implementations of Xml readers
 /// </summary>
-public interface IXmlReaderHelpersAsync : IXmlReaderHelpers
+public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="stream">This _is_ owned by the `ISharedString`</param>
+    /// <param name="zipReader"></param>
+    /// <param name="optionsAccessExcelFileInForwardOnlyMode"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<ISharedString> GetSharedStringsAsync(Stream stream, CancellationToken ct);
+    Task<ISharedString> GetSharedStringsAsync(IZipReaderAsync zipReader, bool optionsAccessExcelFileInForwardOnlyMode,
+        CancellationToken ct);
 
     /// <summary>
     /// Create the interface implementation to get details out of the WorkBook
     /// </summary>
-    /// <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
-    /// <param name="ct"></param>
-    Task<IXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(Stream? stream, CancellationToken ct);
+    Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct);
 
     /// <summary>
     /// 
@@ -66,6 +68,11 @@ public interface IXmlReaderHelpersAsync : IXmlReaderHelpers
     /// <param name="sharedNameTable"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task<IXmlSheetReaderAsync> CreateSheetReaderAsync(Stream stream, InstanceContext instanceContext,
+    Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
+
+    /// <summary>
+    /// Get the internal file name of this worksheet type
+    /// </summary>
+    string GetSheetFileName(int offsetSheetId);
 }

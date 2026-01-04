@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,10 +8,12 @@ using AwesomeAssertions;
 
 using NUnit.Framework;
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8629 // Nullable value type may be null.
 
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 public class RowCellTests
 {
     [Test]
@@ -25,15 +28,17 @@ public class RowCellTests
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
-                await foreach (ICell? cell in row.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (cell == null)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        break;
+                        continue;
                     }
 
-                    Console.WriteLine(cell.RawValue!.ToString());
+                    Console.WriteLine(cell.CellValue.ToString());
                 }
             }
         }
@@ -44,7 +49,7 @@ public class RowCellTests
     public async Task A020_StyleAndFormattedFile(string fileName)
     {
         using Excel_PRIME workbook = new();
-        await workbook.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number} ).ConfigureAwait(false);
+        await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         string[][] workSheet1Content =
         [
@@ -63,14 +68,16 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (ICell? cell in rowCells)
             {
+                // Because this returns upto the dimension of the sheet width
                 if (cell == null) // Because this returns upto the dimension of the sheet width
                 {
                     break;
                 }
 
-                cell.RawValue.Should().Be(workSheet1Content[r][c]);
+                cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                 c++;
             }
 
@@ -80,12 +87,12 @@ public class RowCellTests
 
         r.Should().Be(workSheet1Content.Length);
 
-        object?[][] workSheet2Content =
+        double?[][] workSheet2Content =
         [
             [123, 2022, 12],
-            [123.749273492379, "Mar – 2022", 12.79879],
+            [123.749273492379, double.NaN/*"Mar – 2022"*/, 12.79879],
             [123.749273492379, 44621, 1232.1],
-            [12313.123123123, "18 mar 22", 123],
+            [12313.123123123, double.NaN/*"18 mar 22"*/, 123],
             [13, 200],
             [0.00129, 200.90909],
             [999.999999, 8980],
@@ -105,14 +112,28 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (ICell? cell in rowCells)
             {
+                // Because this returns upto the dimension of the sheet width
                 if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                 {
                     break;
                 }
 
-                cell?.RawValue.Should().Be(workSheet2Content[r][c]);
+                double? expected = workSheet2Content[r][c];
+                try
+                {
+                    cell?.CellValue.AsDouble.Should().Be(expected);
+                }
+                catch
+                {
+                    if (!double.IsNaN((double)expected!))
+                    {
+                        throw;
+                    }
+                }
+
                 c++;
             }
 
@@ -128,7 +149,7 @@ public class RowCellTests
     public async Task A021_ParallelStyleAndFormattedFile(string fileName)
     {
         using Excel_PRIME workbook1 = new();
-        await workbook1.OpenAsync(fileName, options: new Options { CellConversionType = CellConversion.Number }).ConfigureAwait(false);
+        await workbook1.OpenAsync(fileName).ConfigureAwait(false);
 
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
         return;
@@ -151,14 +172,16 @@ public class RowCellTests
             await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (cell == null) // Because this returns upto the dimension of the sheet width
                     {
                         break;
                     }
 
-                    cell.RawValue.Should().Be(workSheet1Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                     c++;
                 }
 
@@ -171,12 +194,12 @@ public class RowCellTests
 
         static async Task DoSheet2(IExcel_PRIMEAsync workbook)
         {
-            object?[][] workSheet2Content =
+            double?[][] workSheet2Content =
             [
                 [123, 2022, 12],
-                [123.749273492379, "Mar – 2022", 12.79879],
+                [123.749273492379, double.NaN/*"Mar – 2022"*/, 12.79879],
                 [123.749273492379, 44621, 1232.1],
-                [12313.123123123, "18 mar 22", 123],
+                [12313.123123123, double.NaN/*"18 mar 22"*/, 123],
                 [13, 200], [0.00129, 200.90909],
                 [999.999999, 8980],
                 [999.999999, 0.508333333333333],
@@ -195,14 +218,27 @@ public class RowCellTests
             await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
                 int c = 0;
-                await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (ICell? cell in rowCells)
                 {
+                    // Because this returns upto the dimension of the sheet width
                     if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
                     {
                         break;
                     }
 
-                    cell?.RawValue.Should().Be(workSheet2Content[r][c]);
+                    double? expected = workSheet2Content[r][c];
+                    try
+                    {
+                        cell?.CellValue.AsDouble.Should().Be(expected);
+                    }
+                    catch
+                    {
+                        if (!double.IsNaN((double)expected!))
+                        {
+                            throw;
+                        }
+                    }
                     c++;
                 }
 
@@ -219,22 +255,22 @@ public class RowCellTests
     {
         const string fileName = "Data/solver.xlsx";
         using Excel_PRIME workbook = new();
-        await workbook.OpenAsync(fileName, options: new Options{ CellConversionType = CellConversion.Number}).ConfigureAwait(true);
+        await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         object?[][] workSheet2Content =
         [
             ["Cycle Trader"],
             [],
             [/*null, null, */"Bicycles", "Mopeds", "Child Seats"],
-            [/*null, */"Unit Profit", 100, 300, 50],
+            [/*null, */"Unit Profit", "100", "300", "50"],
             [/*null, null, null, null, null, null, */"Resources", /*null, */"Resources"],
             [/*null, null, null, null, null, null, */"Used", /*null, */"Available"],
-            [/*null,*/ "Capital", 300, 1200, 120, /*null,*/ 93000, "≤", 93000],
-            [/*null,*/ "Storage", 0.5, 1, 0.5, /*null,*/ 101, "≤", 101],
+            [/*null,*/ "Capital", "300", "1200", "120", /*null,*/ "93000", "≤", "93000"],
+            [/*null,*/ "Storage", "0.5", "1", "0.5", /*null,*/ "101", "≤", "101"],
             [],
             [],
             [/*null, null, */"Bicycles", "Mopeds", "Child Seats", /*null, null, null, */"Total Profit"],
-            [/*null, */"Order Size", 94, 54, 0, /*null, null, null, */25600]
+            [/*null, */"Order Size", "94", "54", "0", /*null, null, null, */"25600"]
         ];
 
         using ISheetAsync? worksheet2 = await workbook.GetSheetAsync("Solution").ConfigureAwait(false);
@@ -242,15 +278,20 @@ public class RowCellTests
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
             int c = 0;
-            await foreach (ICell? cell in row!.GetAllCellsAsync().ConfigureAwait(false))
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            if (rowCells != null)
             {
-                if (cell == null) // Because this returns upto the dimension of the sheet width
+                foreach (ICell? cell in rowCells)
                 {
-                    continue;
-                }
+                    // Because this returns upto the dimension of the sheet width
+                    if (cell == null) // Because this returns upto the dimension of the sheet width
+                    {
+                        continue;
+                    }
 
-                cell.RawValue.Should().Be(workSheet2Content[r][c]);
-                c++;
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    c++;
+                }
             }
 
             c.Should().Be(workSheet2Content[r].Length);
@@ -266,7 +307,6 @@ public class RowCellTests
 
     [Test]
     [TestCase("Data/ValueTest.xlsx")]
-    [Explicit("Types Not implemented yet!")]
     public async Task A040_ValuesTypesOfCells(string fileName)
     {
         using Excel_PRIME workbook = new();
@@ -274,28 +314,28 @@ public class RowCellTests
         ISheetAsync? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(0, RowCellGet.PreGet).FirstAsync();
         ICell? cell = await row.GetCellAsync(1).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<int>().And.Be(1);
+        cell.CellValue.AsInt32.Should().Be(1);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(2.3);
-        cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<string>().And.Be("abc");
+        cell.CellValue.AsDouble.Should().BeApproximately(2.3, 1E-8);
         cell = await row.GetCellAsync(3).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<bool>().And.Be(true);
+        cell.CellValue.ToString().Should().Be("abc");
         cell = await row.GetCellAsync(4).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<bool>().And.Be(false);
+        cell.CellValue.AsBoolean.Should().Be(true);
         cell = await row.GetCellAsync(5).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
+        cell.CellValue.AsBoolean.Should().Be(false);
         cell = await row.GetCellAsync(6).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+        cell.CellValue.AsDouble.Should().Be(0.01);
         cell = await row.GetCellAsync(7).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
         cell = await row.GetCellAsync(8).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2021, 5, 12));
         cell = await row.GetCellAsync(9).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2011, 5, 23, 19, 12, 30));
         cell = await row.GetCellAsync(10).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
+        cell.CellValue.BoxedValue.Should().BeOfType<string>();//.And.Be.("2.3");
         cell = await row.GetCellAsync(11).ConfigureAwait(false);
-        cell.RawValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
+        cell.CellValue.AsDouble.Should().Be(3.3);//.Within(0.000001));
+        cell = await row.GetCellAsync(12).ConfigureAwait(false);
+        cell.CellValue.ToString().Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
     }
 }

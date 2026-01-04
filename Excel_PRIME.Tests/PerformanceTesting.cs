@@ -5,11 +5,14 @@ using AwesomeAssertions;
 
 using ExcelPRIME.Bench;
 
+using ExcelPRIMEXlsb.Bench;
+
 using NUnit.Framework;
 
 namespace ExcelPRIME.Tests;
 
 [ExcludeFromCodeCoverage]
+[TestFixture]
 internal class PerformanceTesting
 {
     [Test]
@@ -22,6 +25,19 @@ internal class PerformanceTesting
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
         int cells = aecB.AccessEveryCellExcel_Prime();
+        cells.Should().Be(expectedCells);
+    }
+
+    [Test]
+    [TestCase("sampledocs-50mb-xlsx-file.xlsb", 7000012)]
+    [TestCase("Blank Data 1 Million Rows.xlsb", 15463982)]
+    [TestCase("sampledocs-50mb-xlsx-file-sst.xlsb", 7000012)]
+    [TestCase("100mb.xlsb", 8930256)]
+    [Explicit("Lot of data being thrown about !")]
+    public void A011_AccessEveryCellExcel_Prime_Xlsb(string fileName, int expectedCells)
+    {
+        AccessEveryCellBenchmarksXlsb aecB = new() { FileName = fileName };
+        int cells = aecB.AccessEveryCellExcel_PrimeXlsb();
         cells.Should().Be(expectedCells);
     }
 

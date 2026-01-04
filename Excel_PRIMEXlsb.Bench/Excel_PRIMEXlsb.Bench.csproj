@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<NeutralLanguage>en</NeutralLanguage>
+		<LangVersion>preview</LangVersion>
+		<OutputType>Exe</OutputType>
+		<Nullable>enable</Nullable>
+		<IsPublishable>False</IsPublishable>
+		<IsPackable>false</IsPackable>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<RootNamespace>ExcelPRIMEXlsb.Bench</RootNamespace>
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Aspose.Cells" Version="25.12.0" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+		<PackageReference Include="ExcelDataReader" Version="3.8.0" />
+		<PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36812.1" />
+		<PackageReference Include="Sylvan.Data.Excel" Version="0.5.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Excel_PRIME\Excel_PRIME.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Data\100mb.xlsx">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Data\Blank Data 1 Million Rows.xlsx">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Data\sampledocs-50mb-xlsx-file-sst.xlsx">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Data\sampledocs-50mb-xlsx-file.xlsx">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Data\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\Excel_PRIME.Bench\Data\100mb.xlsb" Link="Data\100mb.xlsb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\Excel_PRIME.Bench\Data\Blank Data 1 Million Rows.xlsb" Link="Data\Blank Data 1 Million Rows.xlsb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\Excel_PRIME.Bench\Data\sampledocs-50mb-xlsx-file-sst.xlsb" Link="Data\sampledocs-50mb-xlsx-file-sst.xlsb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\Excel_PRIME.Bench\Data\sampledocs-50mb-xlsx-file.xlsb" Link="Data\sampledocs-50mb-xlsx-file.xlsb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>
