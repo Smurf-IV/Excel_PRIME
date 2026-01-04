@@ -1,4 +1,4 @@
-﻿# 2026-01-04 - V3 XLSB-Beta
+﻿# 2026-01-04 - V3 XLSB - RC1
 - ⛓️‍💥 **Breaking Change(s)
     - Change `GetAllCells` to return `IReadOnlyList<ICell?>?`
 - Add `NonClosingStream` to  make it self documenting

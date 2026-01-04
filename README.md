@@ -250,7 +250,7 @@ Lets take each of the above elements and explain:
 - ✅ Parallel Sheet threads Access
     - ✅ Multiple times (with locking)
 - [>] Release as Nuget V3.yyMM.dd
-    - 🎊 Released **Beta** as Nuget `V3.2601.04`
+    - 🎊 Released **RC1** as Nuget `V3.2601.04-RC1`
     - [ ] Investigate Performance and edge cases, then Release as Stable
 -----
 
