@@ -262,7 +262,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.RawValue).ToArray();
+            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
         }
     }
 
