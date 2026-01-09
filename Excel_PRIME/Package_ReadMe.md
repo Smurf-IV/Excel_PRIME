@@ -7,7 +7,7 @@
 - _Yet another Excel reader ?_, 
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
     - V9 gives an extra 5% boost, 
-    - V10 Another 5% ;-)
+    - V10 Another 5% over 9 ;-)
 
 Lets take each of the above elements and explain:
 
@@ -60,6 +60,7 @@ Lets take each of the above elements and explain:
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
     - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
+    - And, the memory used will actually be used in the ETL pipeline anyway, so it's just being truthful
 
 ## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
@@ -80,18 +81,18 @@ Lets take each of the above elements and explain:
 
 -----
 
-# It will **_not_** ⛔:
-## Be: Same sheet Thread safe 📊
+# Caveats ⛔:
+## _Not_ Be: Same sheet Thread safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## Do: Dynamic Ranges ⚠️
+## _Not_ Do: Dynamic Ranges ⚠️
 - i.e. Ones that contain formulas:
     - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
-## Do: Poco 🤖
+## _Not_ Do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## Be a: Writer / Modifier 📚
+## _Not_ Be a: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----

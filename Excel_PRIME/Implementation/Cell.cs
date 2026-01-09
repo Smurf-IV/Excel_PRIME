@@ -15,13 +15,15 @@ namespace ExcelPRIME.Implementation;
 [DebuggerDisplay("{CellValue.ToString(),raw}")]
 internal sealed record Cell : ICell
 {
+    private static readonly char[]?[] s_columnLetterCache = new char[256][];
+    private char[]? _columnLetters;
+
     public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
         CellType type = CellType.Numeric;
         CellValue? value = null;
         int col = -1;
-        char[] colName = [];
         int bufferSize = buffer.Length;
         int len;
 
@@ -38,7 +40,7 @@ internal sealed record Cell : ICell
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
                 ReadValue();
-                (int _, col, colName) = new ReadOnlySpan<char>(buffer, 0, len).GetRowColNumbers();
+                col = ExcelColumns.ParseColumnOffset(buffer, len);
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
@@ -85,9 +87,14 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        ReadValue();
-                        value = new CellValue(double.Parse(buffer.AsSpan(0, len), NumberStyles.Float,
-                            CultureInfo.InvariantCulture));
+                        {
+                            ReadValue();
+                            ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
+                            value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double numericValue)
+                                ? new CellValue(numericValue)
+                                // If numeric parsing fails, treat as string but avoid intermediate allocation
+                                : new CellValue(numericSpan.ToString());
+                        }
                         break;
 
                     case CellType.SharedString:
@@ -106,19 +113,22 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Date:
-                        ReadValue();
-                        if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
-                                CultureInfo.InvariantCulture, out double dateTimeValue))
                         {
-                            value = new CellValue(DateTime.FromOADate(dateTimeValue));
-                        }
-                        else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
-                        {
-                            value = new CellValue(result);
-                        }
-                        else
-                        {
-                            value = new CellValue(new string(buffer, 0, len));
+                            ReadValue();
+                            ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
+                            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
+                            {
+                                value = new CellValue(DateTime.FromOADate(dateTimeValue));
+                            }
+                            else if (DateTime.TryParse(dateSpan, out DateTime result))
+                            {
+                                value = new CellValue(result);
+                            }
+                            else
+                            {
+                                // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
+                                value = new CellValue(dateSpan.ToString());
+                            }
                         }
                         break;
 
@@ -133,7 +143,6 @@ internal sealed record Cell : ICell
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
-                ColumnLetters = colName,
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
@@ -147,7 +156,6 @@ internal sealed record Cell : ICell
         CellType type = CellType.Numeric;
         CellValue? value = null;
         int col = -1;
-        char[] colName = [];
         int bufferSize = buffer.Length;
         int len;
 
@@ -164,7 +172,7 @@ internal sealed record Cell : ICell
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
                 ReadValue();
-                (int _, col, colName) = new ReadOnlySpan<char>(buffer, 0, len).GetRowColNumbers();
+                col = ExcelColumns.ParseColumnOffset(buffer, len);
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
@@ -211,9 +219,14 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        ReadValue();
-                        value = new CellValue(double.Parse(buffer.AsSpan(0, len), NumberStyles.Float,
-                            CultureInfo.InvariantCulture));
+                        {
+                            ReadValue();
+                            ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
+                            value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double numericValue)
+                                ? new CellValue(numericValue)
+                                // If numeric parsing fails, treat as string but avoid intermediate allocation
+                                : new CellValue(numericSpan.ToString());
+                        }
                         break;
 
                     case CellType.SharedString:
@@ -232,19 +245,23 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Date:
-                        ReadValue();
-                        if (double.TryParse(buffer.AsSpan(0, len), NumberStyles.Number,
-                                CultureInfo.InvariantCulture, out double dateTimeValue))
                         {
-                            value = new CellValue(DateTime.FromOADate(dateTimeValue));
-                        }
-                        else if (DateTime.TryParse(buffer.AsSpan(0, len), out DateTime result))
-                        {
-                            value = new CellValue(result);
-                        }
-                        else
-                        {
-                            value = new CellValue(new string(buffer,0, len));
+                            ReadValue();
+                            ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
+                            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture,
+                                    out double dateTimeValue))
+                            {
+                                value = new CellValue(DateTime.FromOADate(dateTimeValue));
+                            }
+                            else if (DateTime.TryParse(dateSpan, out DateTime result))
+                            {
+                                value = new CellValue(result);
+                            }
+                            else
+                            {
+                                // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
+                                value = new CellValue(dateSpan.ToString());
+                            }
                         }
                         break;
 
@@ -259,7 +276,6 @@ internal sealed record Cell : ICell
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
-                ColumnLetters = colName,
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
@@ -285,16 +301,6 @@ internal sealed record Cell : ICell
                 return string.Empty;
             }
 
-            // Try the optimized fast path first
-            try
-            {
-                return reader.ReadElementContentAsString();
-            }
-            catch
-            {
-                // fallthrough to manual chunked read
-            }
-
             int startDepth = reader.Depth;
 
             // Move to the first node inside the element
@@ -303,9 +309,10 @@ internal sealed record Cell : ICell
                 return string.Empty;
             }
 
-            valueBuilder.Clear();
+            valueBuilder.Length = 0;
             bool wroteAny = false;
 
+            // Use chunked reading to avoid extra allocations
             while (reader.Depth > startDepth)
             {
                 XmlNodeType nt = reader.NodeType;
@@ -342,7 +349,7 @@ internal sealed record Cell : ICell
     }
 
     #endregion
-    
+
     /// <InheritDoc />
     public CellValue CellValue { get; private init; }
 
@@ -350,7 +357,37 @@ internal sealed record Cell : ICell
     public CellType RawExcelType { get; private init; }
 
     /// <InheritDoc />
-    public IReadOnlyList<char> ColumnLetters { get; private init; } = null!;
+    public IReadOnlyList<char> ColumnLetters
+    {
+        get
+        {
+            if (_columnLetters != null)
+            {
+                return _columnLetters;
+            }
+
+            int offset = ExcelColumnOffset;
+            if (offset <= 0)
+            {
+                return _columnLetters = Array.Empty<char>();
+            }
+
+            if (offset < s_columnLetterCache.Length)
+            {
+                char[]? cached = s_columnLetterCache[offset];
+                if (cached != null)
+                {
+                    return _columnLetters = cached;
+                }
+
+                char[] computed = offset.GetExcelColumnName().ToCharArray();
+                s_columnLetterCache[offset] = computed;
+                return _columnLetters = computed;
+            }
+
+            return _columnLetters = offset.GetExcelColumnName().ToCharArray();
+        }
+    }
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }

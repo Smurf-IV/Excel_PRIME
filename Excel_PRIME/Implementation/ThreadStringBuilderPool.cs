@@ -14,19 +14,19 @@ internal static class ThreadStringBuilderPool
     [ThreadStatic]
     private static StringBuilder? t_builder;
 
-    private const int InitialCapacity = 64;
-    private const int MaxPooledCapacity = 1024;
+    private const int InitialCapacity = 512;
+    private const int MaxPooledCapacity = 2048;
 
     public static StringBuilder Rent()
     {
         StringBuilder? sb = t_builder;
-        if (sb != null)
+        if (sb == null)
         {
-            t_builder = null;
-            return sb;
+            return new StringBuilder(InitialCapacity);
         }
 
-        return new StringBuilder(InitialCapacity);
+        t_builder = null;
+        return sb;
     }
 
     public static void Return(StringBuilder? sb)
@@ -42,7 +42,7 @@ internal static class ThreadStringBuilderPool
             return;
         }
 
-        sb.Clear();
+        sb.Length = 0;
         // Replace any existing thread-local builder (drop the previous one).
         t_builder = sb;
     }

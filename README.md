@@ -60,6 +60,7 @@ Lets take each of the above elements and explain:
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
     - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
+    - And, the memory used will actually be used in the ETL pipeline anyway, so it's just being truthful
 
 ## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
@@ -80,18 +81,18 @@ Lets take each of the above elements and explain:
 
 -----
 
-# It will **_not_** ⛔:
-## Be: Same sheet Thread safe 📊
+# Caveats ⛔:
+## _Not_ Be: Same sheet Thread safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## Do: Dynamic Ranges ⚠️
+## _Not_ Do: Dynamic Ranges ⚠️
 - i.e. Ones that contain formulas:
     - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
-## Do: Poco 🤖
+## _Not_ Do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## Be a: Writer / Modifier 📚
+## _Not_ Be a: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----
@@ -222,7 +223,7 @@ Lets take each of the above elements and explain:
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
   - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
 
-## Phase 3 - XLS**B** 💾 (BIFF12) - Beta V3
+## Phase V3 - XLS**B** 💾 (BIFF12)
 - ⛓️‍💥 **Breaking Change(s)**
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
@@ -253,9 +254,11 @@ Lets take each of the above elements and explain:
     - ✅ [2026-01-02](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-02)
 - ✅ Parallel Sheet threads Access
     - ✅ Multiple times (with locking)
-- [>] Release as Nuget V3.yyMM.dd
+- ✅ Release as Nuget V3.yyMM.dd
     - 🎊 Released **RC1** as Nuget `V3.2601.04-RC1`
-    - [ ] Investigate Performance and edge cases, then Release as Stable
+- ✅ Investigate Performance and edge cases, then Release as Stable
+   - 🚀 Big Performance improvements [2026-01-10](Performance.md#2026-01-10)
+   - 🎊 Released **V3** as Nuget `V3.2601.10`
 -----
 
 ## Phase 4 - Specific Cell value type(s) #️⃣

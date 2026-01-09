@@ -34,6 +34,27 @@ internal static class ExcelColumns
         return columnName;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static int ParseColumnOffset(char[] buffer, int len)
+    {
+        int colExcel = -1;
+        int i = 0;
+        for (; i < len; i++)
+        {
+            ref readonly char c = ref buffer[i];
+            if (c >= 'A')
+            {
+                colExcel = ((colExcel + 1) * 26) + (c - 'A');
+            }
+            else
+            {
+                break;
+            }
+        }
+        return colExcel + 1; // Make it into the Excel 1 offset #
+    }
+
+
     /// <summary>
     /// Convert ColumnNameRef - Character(s) into a Row - Column Excel Number eg A->1, B->2, AA -> 27
     /// </summary>
@@ -108,4 +129,5 @@ internal static class ExcelColumns
 
         return ++colExcel; // Make it into the Excel 1 offset #
     }
+
 }

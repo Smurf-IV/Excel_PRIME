@@ -11,6 +11,9 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class XlsbRow : IRowAsync
 {
+    [ThreadStatic]
+    private static XlsbRow? t_row;
+
     private XlsbStreamReader? _reader;
     private InstanceContext? _instanceContext;
     private int _maxExcelColumnDimension;
@@ -18,21 +21,34 @@ internal sealed class XlsbRow : IRowAsync
     private XlsbCell?[]? _cells;
     private bool _cellsLoaded;
 
-    // Small object pool for Row instances to avoid allocating a new Row per XML row.
-    private static readonly ConcurrentBag<XlsbRow> s_pool = [];
-
     private XlsbRow()
     {
         // Private ctor for pooling. Keep lightweight.
     }
 
-    internal static XlsbRow Rent() => s_pool.TryTake(out XlsbRow? item) ? item : new XlsbRow();
-
-    private static void Return(XlsbRow row)
+    public static XlsbRow Rent()
     {
-        // Reset state so next consumer sees a clean Row.
+        XlsbRow? sb = t_row;
+        if (sb == null)
+        {
+            return new XlsbRow();
+        }
+
+        t_row = null;
+        return sb;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Return(XlsbRow? row)
+    {
+        if (row == null)
+        {
+            return;
+        }
+
         row.Reset();
-        s_pool.Add(row);
+        // Replace any existing thread-local row (drop the previous one).
+        t_row = row;
     }
 
     internal void Initialize(XlsbStreamReader rowElement, InstanceContext instanceContext, int maxColumnDimension)
@@ -49,6 +65,7 @@ internal sealed class XlsbRow : IRowAsync
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Reset()
     {
         _isDisposed = false;
@@ -57,7 +74,6 @@ internal sealed class XlsbRow : IRowAsync
         _maxExcelColumnDimension = 0;
         _cells = null;
         _cellsLoaded = false;
-        // Do not reset RowOffset — it will be set again on Initialize
         RowOffset = 0;
     }
 

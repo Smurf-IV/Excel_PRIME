@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -14,6 +13,9 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class Row : IRowAsync
 {
+    [ThreadStatic]
+    private static Row? t_row;
+
     private XmlReader? _reader;
     private InstanceContext? _instanceContext;
     private int _maxExcelColumnDimension;
@@ -22,21 +24,34 @@ internal sealed class Row : IRowAsync
     private bool _cellsLoaded;
     private ReaderAtoms _readerAtomsRefForSafety;
 
-    // Small object pool for Row instances to avoid allocating a new Row per XML row.
-    private static readonly ConcurrentBag<Row> s_pool = [];
-
     private Row()
     {
         // Private ctor for pooling. Keep lightweight.
     }
 
-    internal static Row Rent() => s_pool.TryTake(out Row? item) ? item : new Row();
-
-    private static void Return(Row row)
+    public static Row Rent()
     {
-        // Reset state so next consumer sees a clean Row.
+        Row? sb = t_row;
+        if (sb == null)
+        {
+            return new Row();
+        }
+
+        t_row = null;
+        return sb;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Return(Row? row)
+    {
+        if (row == null)
+        {
+            return;
+        }
+
         row.Reset();
-        s_pool.Add(row);
+        // Replace any existing thread-local row (drop the previous one).
+        t_row = row;
     }
 
     internal void Initialize(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
@@ -74,6 +89,7 @@ internal sealed class Row : IRowAsync
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Reset()
     {
         _isDisposed = false;
@@ -82,7 +98,6 @@ internal sealed class Row : IRowAsync
         _maxExcelColumnDimension = 0;
         _cells = null;
         _cellsLoaded = false;
-        // Do not reset RowOffset — it will be set again on Initialize
         RowOffset = 0;
     }
 
@@ -156,7 +171,7 @@ internal sealed class Row : IRowAsync
                     Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext!, _readerAtomsRefForSafety!, buffer, valueBuilder).ConfigureAwait(false);
                     if (cell != null)    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
-                        int offset = cell.ExcelColumnOffset-1;
+                        int offset = cell.ExcelColumnOffset - 1;
                         if (offset >= 0 && offset < _maxExcelColumnDimension)
                         {
                             localCells[offset] = cell;
@@ -167,8 +182,6 @@ internal sealed class Row : IRowAsync
                             // (Should be rare, defensive programming.)
                         }
                     }
-
-                    valueBuilder.Length = 0;
                 }
             }
 
@@ -231,14 +244,12 @@ internal sealed class Row : IRowAsync
                     Cell? cell = Cell.ConstructCell(_reader, _instanceContext!, _readerAtomsRefForSafety, buffer, valueBuilder);
                     if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
-                        int offset = cell.ExcelColumnOffset-1;
+                        int offset = cell.ExcelColumnOffset - 1;
                         if (offset >= 0 && offset < _maxExcelColumnDimension)
                         {
                             localCells[offset] = cell;
                         }
                     }
-
-                    valueBuilder.Length = 0;
                 }
             }
 
