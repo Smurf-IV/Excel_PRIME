@@ -1,4 +1,5 @@
-﻿## Phase V3 - Add XLS**B** 💾 (BIFF12)
+﻿# 2026-01-11 - V3
+- Add XLS**B** 💾 (BIFF12)
 - ⛓️‍💥 **Breaking Change(s)**
     - `FileType` has been removed, and Open via the Public class type
     - `IXmlReaderHelpers` has become `IOpenXmlReaderHelpers`, with slightly different methods
@@ -7,10 +8,9 @@
     - Removal of the Conversion options `Number###`
     - Changed `GetAllCells` to return `IReadOnlyList<ICell?>?`
         - Watch out for those null rows !
-- 🚀 Big Performance improvements [2026-01-10](Performance.md#2026-01-10)
-- 🎊 Released **V3** as Nuget `V3.2601.10`
-
-﻿# 2025-12-14 - V2
+- 🚀 Big Performance improvements [2026-01-11](Performance.md#2026-01-11)
+﻿
+# 2025-12-14 - V2
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
   - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
 

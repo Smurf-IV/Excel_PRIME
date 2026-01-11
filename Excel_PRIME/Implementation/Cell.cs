@@ -18,6 +18,7 @@ internal sealed record Cell : ICell
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
     private char[]? _columnLetters;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -150,6 +151,7 @@ internal sealed record Cell : ICell
             };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -284,6 +286,7 @@ internal sealed record Cell : ICell
     }
 
     #region Borrowed and some finessing from XMLReader source
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static string ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
     {
         if (reader.ReadState != ReadState.Interactive)
@@ -359,6 +362,7 @@ internal sealed record Cell : ICell
     /// <InheritDoc />
     public IReadOnlyList<char> ColumnLetters
     {
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         get
         {
             if (_columnLetters != null)

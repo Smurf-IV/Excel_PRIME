@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,13 +13,16 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
     private bool _isDisposed;
     private ZipArchive? _archive;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OpenArchive(Stream fileStream, CancellationToken ct) =>
         _archive = new ZipArchive(fileStream, ZipArchiveMode.Read, true);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Task OpenArchiveAsync(Stream fileStream, CancellationToken ct) =>
         Task.Run(() => _archive = new ZipArchive(fileStream, ZipArchiveMode.Read, true),
             ct);
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public bool CopyTo(string entryName, Stream targetStream, CancellationToken ct)
     {
         ZipArchiveEntry? entry = _archive!.GetEntry(entryName);
@@ -50,6 +54,7 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
         return true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public async Task<bool> CopyToAsync(string entryName, Stream targetStream, CancellationToken ct)
     {
         ZipArchiveEntry? entry = _archive!.GetEntry(entryName);
@@ -71,9 +76,11 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
     }
 
     // One day it will be async in the zipReader
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Task<Stream?> GetEntryAsync(string entryName, CancellationToken ct)
         => Task.FromResult(GetEntry(entryName));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Stream? GetEntry(string entryName)
     {
         ZipArchiveEntry? entry = _archive!.GetEntry(entryName);

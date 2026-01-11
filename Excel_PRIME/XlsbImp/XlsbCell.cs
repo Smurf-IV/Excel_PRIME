@@ -15,16 +15,14 @@ internal sealed record XlsbCell : ICell
     // Column offsets range from 1-16384 in Excel, allocate conservatively
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static XlsbCell? ConstructCell(PooledRecordBuffer reader, InstanceContext instanceContext)
     {
-        int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to one-based
-        RecordTypeIdentifier recordType = reader.RecordType;
+        int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
 
-        // Use expression-based switch for efficient dispatch
-        CellType cellType = CellType.Unknown;
-        CellValue? cellValue = null;
-        switch (recordType)
+        CellType cellType;
+        CellValue? cellValue;
+        switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
                 (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader)));
@@ -45,16 +43,11 @@ internal sealed record XlsbCell : ICell
             case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
                 (cellType, cellValue) = (CellType.Error, new CellValue((ExcelErrorCode)reader.GetByte(8)));
                 break;
+            default:
+                // Break out early
+                return null;
         }
 
-        // Return null for unhandled record types
-        if (cellType == CellType.Unknown 
-            || cellValue == null
-            //|| recordType != RecordTypeIdentifier.CELLRK
-            )
-        {
-            return null;
-        }
         // Allocate once and populate properties
         return new XlsbCell
         {
@@ -107,7 +100,7 @@ internal sealed record XlsbCell : ICell
     /// <InheritDoc />
     public IReadOnlyList<char> ColumnLetters
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         get
         {
             int offset = ExcelColumnOffset;

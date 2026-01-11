@@ -257,8 +257,8 @@ Lets take each of the above elements and explain:
 - ✅ Release as Nuget V3.yyMM.dd
     - 🎊 Released **RC1** as Nuget `V3.2601.04-RC1`
 - ✅ Investigate Performance and edge cases, then Release as Stable
-   - 🚀 Big Performance improvements [2026-01-10](Performance.md#2026-01-10)
-   - 🎊 Released **V3** as Nuget `V3.2601.10`
+   - 🚀 Big Performance improvements [2026-01-11](Performance.md#2026-01-11)
+   - 🎊 Released **V3** as Nuget `V3.2601.11`
 -----
 
 ## Phase 4 - Specific Cell value type(s) #️⃣

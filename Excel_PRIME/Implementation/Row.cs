@@ -29,6 +29,7 @@ internal sealed class Row : IRowAsync
         // Private ctor for pooling. Keep lightweight.
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static Row Rent()
     {
         Row? sb = t_row;
@@ -54,6 +55,7 @@ internal sealed class Row : IRowAsync
         t_row = row;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal void Initialize(XmlReader rowElement, InstanceContext instanceContext, int maxColumnDimension, ReaderAtoms readerAtoms)
     {
         _reader = rowElement;
@@ -122,6 +124,7 @@ internal sealed class Row : IRowAsync
     /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
     /// Using an array avoids Dictionary overhead and reduces per-row allocations for typical sheet widths.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal async ValueTask GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded)
@@ -196,6 +199,7 @@ internal sealed class Row : IRowAsync
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal void GetCells(CancellationToken ct)
     {
         if (_cellsLoaded)

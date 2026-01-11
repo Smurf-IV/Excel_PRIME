@@ -26,6 +26,7 @@ internal sealed class XlsbRow : IRowAsync
         // Private ctor for pooling. Keep lightweight.
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static XlsbRow Rent()
     {
         XlsbRow? sb = t_row;
@@ -77,7 +78,7 @@ internal sealed class XlsbRow : IRowAsync
         RowOffset = 0;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -133,7 +134,7 @@ internal sealed class XlsbRow : IRowAsync
         _cellsLoaded = true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal void GetCells(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -211,6 +212,7 @@ internal sealed class XlsbRow : IRowAsync
     }
 
     /// <InheritDoc />
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public IReadOnlyList<ICell?>? GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);
