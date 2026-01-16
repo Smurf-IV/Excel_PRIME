@@ -100,7 +100,7 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
         if (!_reader.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
-            return definedRanges.AsReadOnly();
+            return definedRanges;
         }
 
         string definedNameRefAtom = _reader.NameTable.Add("definedName");
@@ -160,7 +160,7 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
         }
 
         definedRanges.TrimExcess();
-        return definedRanges.AsReadOnly();
+        return definedRanges;
     }
 
     public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct)
@@ -170,14 +170,14 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
         if (!_reader.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
-            return definedRanges.AsReadOnly();
+            return definedRanges;
         }
 
         string definedNameRefAtom = _reader.NameTable.Add("definedName");
         string nameRefAtom = _reader.NameTable.Add("name");
         string localSheetIdRefAtom = _reader.NameTable.Add("localSheetId");
         List<string>? sheetRefs = null;
-        while ( _reader.Read()
+        while (_reader.Read()
                && !_reader.EOF
                && !ct.IsCancellationRequested
               )
@@ -230,7 +230,7 @@ internal sealed class XmlWorkBookReader : IOpenXmlWorkBookReaderAsync
         }
 
         definedRanges.TrimExcess();
-        return definedRanges.AsReadOnly();
+        return definedRanges;
     }
 
     private void Dispose(bool isDisposing)

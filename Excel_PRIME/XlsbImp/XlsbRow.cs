@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -26,7 +25,8 @@ internal sealed class XlsbRow : IRowAsync
         // Private ctor for pooling. Keep lightweight.
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple method that should inline naturally
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static XlsbRow Rent()
     {
         XlsbRow? sb = t_row;
@@ -52,6 +52,7 @@ internal sealed class XlsbRow : IRowAsync
         t_row = row;
     }
 
+    // CHANGED: Removed implicit optimization - let JIT optimize initialization
     internal void Initialize(XlsbStreamReader rowElement, InstanceContext instanceContext, int maxColumnDimension)
     {
         _reader = rowElement;
@@ -78,7 +79,7 @@ internal sealed class XlsbRow : IRowAsync
         RowOffset = 0;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - async state machine benefits from default JIT
     internal async Task GetCellsAsync(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -107,7 +108,7 @@ internal sealed class XlsbRow : IRowAsync
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
-                    int offset = cell.ExcelColumnOffset-1;
+                    int offset = cell.ExcelColumnOffset - 1;
                     if (offset >= 0 && offset < _maxExcelColumnDimension)
                     {
                         localCells[offset] = cell;
@@ -134,7 +135,7 @@ internal sealed class XlsbRow : IRowAsync
         _cellsLoaded = true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - let JIT optimize based on actual call patterns
     internal void GetCells(CancellationToken ct)
     {
         if (_cellsLoaded
@@ -163,7 +164,7 @@ internal sealed class XlsbRow : IRowAsync
                 XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
                 if (cell != null)
                 {
-                    int offset = cell.ExcelColumnOffset-1;
+                    int offset = cell.ExcelColumnOffset - 1;
                     if (offset >= 0 && offset < _maxExcelColumnDimension)
                     {
                         localCells[offset] = cell;
@@ -204,23 +205,26 @@ internal sealed class XlsbRow : IRowAsync
     public int RowOffset { get; private set; }
 
     /// <InheritDoc />
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple wrapper, inline better
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
-        return _cells?.AsReadOnly();
+        return _cells;
     }
 
     /// <InheritDoc />
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple wrapper, inline better
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IReadOnlyList<ICell?>? GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);
-        return _cells?.AsReadOnly();
+        return _cells;
     }
 
     /// <InheritDoc />
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple accessor, inline better
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
@@ -231,11 +235,12 @@ internal sealed class XlsbRow : IRowAsync
             return null;
         }
 
-        return _cells[excelColumnIndex-1];
+        return _cells[excelColumnIndex - 1];
     }
 
     /// <InheritDoc />
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple accessor, inline better
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ICell? GetCell(int excelColumnIndex, CancellationToken ct = default)
     {
         GetCells(ct);
@@ -246,7 +251,7 @@ internal sealed class XlsbRow : IRowAsync
             return null;
         }
 
-        return _cells[excelColumnIndex-1];
+        return _cells[excelColumnIndex - 1];
     }
 
     /// <InheritDoc />
@@ -255,7 +260,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - tight loop benefits from smaller code
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(values);

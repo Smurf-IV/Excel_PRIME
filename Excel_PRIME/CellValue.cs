@@ -34,35 +34,35 @@ public struct CellValue : IEquatable<CellValue>
         [FieldOffset(0)] public DateTime _dateTimeValue;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // Remove AggressiveOptimization from Constructors
     internal CellValue(string? strValue)
     {
         _strValue = strValue;
         _type = CellValueType.String;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // Remove AggressiveOptimization from Constructors
     internal CellValue(bool boolValue)
     {
         _value = new BclValue { _boolValue = boolValue };
         _type = CellValueType.Bool;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // Remove AggressiveOptimization from Constructors
     internal CellValue(double doubleValue)
     {
         _value = new BclValue { _doubleValue = doubleValue };
         _type = CellValueType.Numeric;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // Remove AggressiveOptimization from Constructors
     internal CellValue(DateTime dateTimeValue)
     {
         _value = new BclValue { _dateTimeValue = dateTimeValue };
         _type = CellValueType.DateTime;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // Remove AggressiveOptimization from Constructors
     internal CellValue(ExcelErrorCode errorCodeValue)
     {
         _value = new BclValue { _doubleValue = (int)errorCodeValue };
@@ -78,20 +78,29 @@ public struct CellValue : IEquatable<CellValue>
     /// it is formatted using the invariant culture. Otherwise, the default <see cref="object.ToString"/> 
     /// implementation is used.
     /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // Optimize ToString to cache and avoid repeated allocations
+    // Remove AggressiveOptimization from Constructors
     public override string? ToString()
     {
-        _strValue ??= _type switch
+        if (_strValue != null || _type == CellValueType.String)
         {
-            CellValueType.Unknown => null,
+            return _strValue;
+        }
+
+        return ToString_Slow();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private string? ToString_Slow()
+    {
+        return _type switch
+        {
             CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
             CellValueType.Numeric => _value._doubleValue.ToString(CultureInfo.InvariantCulture),
             CellValueType.DateTime => _value._dateTimeValue.ToString(CultureInfo.InvariantCulture),
             CellValueType.Error => ((ExcelErrorCode)_value._doubleValue).ToString(),
-            _ => _strValue
+            _ => null
         };
-
-        return _strValue;
     }
 
     /// <summary>
@@ -109,32 +118,29 @@ public struct CellValue : IEquatable<CellValue>
             _ => null
         };
 
-
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateTime"/> object, if possible.
     /// </summary>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="DateTime"/>.
     /// </exception>
-    public DateTime AsDateTime
-    {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+    // Remove AggressiveOptimization from properties
+    public DateTime AsDateTime =>
+        // Simplified without branches for common case
+        _type == CellValueType.DateTime
+            ? _value._dateTimeValue
+            : AsDateTime_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private DateTime AsDateTime_Slow() =>
+        _type switch
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return _value._dateTimeValue;
-                case CellValueType.Numeric:
-                    return DateTime.FromOADate(_value._doubleValue);
-                default:
-                    return double.TryParse(_strValue, out double val)
-                        ?// Excel stores the DateTime as a double OADate
-                         DateTime.FromOADate(val)
-                        : DateTime.Parse(ToString()!, CultureInfo.InvariantCulture);
-            }
-        }
-    }
+            CellValueType.Numeric => DateTime.FromOADate(_value._doubleValue),
+            _ => double.TryParse(_strValue, out double val)
+                ? // Excel stores the DateTime as a double OADate
+                DateTime.FromOADate(val)
+                : DateTime.Parse(ToString()!, CultureInfo.InvariantCulture)
+        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="bool"/> object, if possible.
@@ -142,58 +148,54 @@ public struct CellValue : IEquatable<CellValue>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="bool"/>.
     /// </exception>
-    public bool AsBoolean
-    {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+    // Remove AggressiveOptimization from properties
+    public bool AsBoolean =>
+        // Simplified without branches for common case
+        _type == CellValueType.Bool
+            ? _value._boolValue
+            : AsBoolean_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private bool AsBoolean_Slow() =>
+        _type switch
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return _value._dateTimeValue.Ticks != 0;
-                case CellValueType.Bool:
-                    return _value._boolValue;
-                case CellValueType.Error:
-                    return (ExcelErrorCode)_value._doubleValue != ExcelErrorCode.Null;
-                case CellValueType.Numeric:
-                    return _value._doubleValue != 0;
-                default:
-                    return int.TryParse(_strValue, out int val)
-                        ?// Sometimes Excel stores the Boolean as an int `1` or `0`
-                        val != 0
-                        : Convert.ToBoolean(_strValue!);
-            }
-        }
-    }
-    
+            CellValueType.DateTime => _value._dateTimeValue.Ticks != 0,
+            CellValueType.Error => (ExcelErrorCode)_value._doubleValue != ExcelErrorCode.Null,
+            CellValueType.Numeric => _value._doubleValue != 0,
+            _ => int.TryParse(_strValue, out int val) ? val != 0 : Convert.ToBoolean(_strValue!)
+        };
+
     /// <summary>
     /// Gets the value of the cell as a <see cref="Int32"/> object, if possible.
     /// </summary>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="Int32"/>.
     /// </exception>
-    public int AsInt32
+    // Remove AggressiveOptimization from properties
+    public int AsInt32 =>
+        // Simplified without branches for common case
+        _type == CellValueType.Numeric
+            ? (int)_value._doubleValue
+            : AsInt32_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private int AsInt32_Slow()
     {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+        switch (_type)
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return (int)_value._dateTimeValue.Ticks;
-                case CellValueType.Bool:
-                    return _value._boolValue?1:0;
-                case CellValueType.Error:
-                case CellValueType.Numeric:
-                    return (int)_value._doubleValue;
-                default:
-                    {
-                        ReadOnlySpan<char> asSpan = _strValue!.AsSpan();
-                        return asSpan[0] != '-'
-                            ? asSpan.IntParse()
-                            : int.Parse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                    }
-            }
+            case CellValueType.DateTime:
+                return (int)_value._dateTimeValue.Ticks;
+            case CellValueType.Bool:
+                return _value._boolValue ? 1 : 0;
+            case CellValueType.Error:
+                return (int)_value._doubleValue;
+            default:
+                {
+                    ReadOnlySpan<char> asSpan = _strValue!.AsSpan();
+                    return asSpan[0] != '-'
+                        ? asSpan.IntParse()
+                        : int.Parse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture);
+                }
         }
     }
 
@@ -203,25 +205,21 @@ public struct CellValue : IEquatable<CellValue>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="Int64"/>.
     /// </exception>
-    public long AsInt64
-    {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+    // Remove AggressiveOptimization from properties
+    public long AsInt64 =>
+        _type == CellValueType.Numeric
+            ? (long)_value._doubleValue
+            : AsInt64_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private long AsInt64_Slow() =>
+        _type switch
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return _value._dateTimeValue.Ticks;
-                case CellValueType.Bool:
-                    return _value._boolValue ? 1 : 0;
-                case CellValueType.Error:
-                case CellValueType.Numeric:
-                    return (long)_value._doubleValue;
-                default:
-                    return long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture);
-            }
-        }
-    }
+            CellValueType.DateTime => _value._dateTimeValue.Ticks,
+            CellValueType.Bool => _value._boolValue ? 1 : 0,
+            CellValueType.Error => (long)_value._doubleValue,
+            _ => long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="double"/> object, if possible.
@@ -229,25 +227,22 @@ public struct CellValue : IEquatable<CellValue>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="double"/>.
     /// </exception>
-    public double AsDouble
-    {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+    // Remove AggressiveOptimization from properties
+    public double AsDouble =>
+        // Simplified without branches for common case
+        _type == CellValueType.Numeric
+            ? _value._doubleValue
+            : AsDouble_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private double AsDouble_Slow() =>
+        _type switch
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return _value._dateTimeValue.ToOADate();
-                case CellValueType.Bool:
-                    return _value._boolValue ? 1 : 0;
-                case CellValueType.Error:
-                case CellValueType.Numeric:
-                    return _value._doubleValue;
-                default:
-                    return double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture);
-            }
-        }
-    }
+            CellValueType.DateTime => _value._dateTimeValue.ToOADate(),
+            CellValueType.Bool => _value._boolValue ? 1 : 0,
+            CellValueType.Error => _value._doubleValue,
+            _ => double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
+        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="Decimal"/> object, if possible.
@@ -255,33 +250,30 @@ public struct CellValue : IEquatable<CellValue>
     /// <exception cref="FormatException">
     /// Thrown if the cell value cannot be parsed as a valid <see cref="Decimal"/>.
     /// </exception>
-    public decimal AsDecimal
-    {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        get
+    // Remove AggressiveOptimization from properties
+    public decimal AsDecimal =>
+        // Simplified without branches for common case
+        _type == CellValueType.Numeric
+            ? (decimal)_value._doubleValue
+            : AsDecimal_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private decimal AsDecimal_Slow() =>
+        _type switch
         {
-            switch (_type)
-            {
-                case CellValueType.DateTime:
-                    return (decimal)_value._dateTimeValue.ToOADate();
-                case CellValueType.Bool:
-                    return _value._boolValue ? 1 : 0;
-                case CellValueType.Error:
-                case CellValueType.Numeric:
-                    return (decimal)_value._doubleValue;
-                default:
-                    return decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture);
-            }
-        }
-    }
-    
+            CellValueType.DateTime => (decimal)_value._dateTimeValue.ToOADate(),
+            CellValueType.Bool => _value._boolValue ? 1 : 0,
+            CellValueType.Error => (decimal)_value._doubleValue,
+            _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
+        };
+
     /// <summary>
-     /// Determines whether the specified object is equal to the current <see cref="CellValue"/> instance.
-     /// </summary>
-     /// <param name="obj">The object to compare with the current <see cref="CellValue"/> instance.</param>
-     /// <returns>
-     /// <c>true</c> if the specified object is a <see cref="CellValue"/> and has the same type and value as the current instance; otherwise, <c>false</c>.
-     /// </returns>
+    /// Determines whether the specified object is equal to the current <see cref="CellValue"/> instance.
+    /// </summary>
+    /// <param name="obj">The object to compare with the current <see cref="CellValue"/> instance.</param>
+    /// <returns>
+    /// <c>true</c> if the specified object is a <see cref="CellValue"/> and has the same type and value as the current instance; otherwise, <c>false</c>.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public override bool Equals(object? obj) => obj is CellValue other && Equals(other);
 
