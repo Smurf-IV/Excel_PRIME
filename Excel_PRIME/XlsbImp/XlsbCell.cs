@@ -15,7 +15,7 @@ internal sealed record XlsbCell : ICell
     // Column offsets range from 1-16384 in Excel, allocate conservatively
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - switch-based method, let JIT optimize naturally
     public static XlsbCell? ConstructCell(PooledRecordBuffer reader, InstanceContext instanceContext)
     {
         int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
@@ -60,7 +60,8 @@ internal sealed record XlsbCell : ICell
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string? GetSharedString(InstanceContext instanceContext, PooledRecordBuffer reader) => instanceContext.SharedStrings?[reader.GetInt32(8)];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Kept AggressiveInlining, removed AggressiveOptimization - hot-path bit manipulation method benefits from inline
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double MagicConvertRK(PooledRecordBuffer record)
     {
         int rk = record.GetInt32(8);
@@ -82,7 +83,7 @@ internal sealed record XlsbCell : ICell
             d = rk >> 2;
         }
 
-            // Check if scaled by 100
+        // Check if scaled by 100
         if ((rk & 0x01) != 0)
         {
             d /= 100.0;  // Explicit double to ensure double division
@@ -100,7 +101,8 @@ internal sealed record XlsbCell : ICell
     /// <InheritDoc />
     public IReadOnlyList<char> ColumnLetters
     {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        // CHANGED: Removed AggressiveOptimization - simple cache lookup property, inline better
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             int offset = ExcelColumnOffset;

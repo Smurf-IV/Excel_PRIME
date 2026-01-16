@@ -18,7 +18,7 @@ internal sealed record Cell : ICell
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
     private char[]? _columnLetters;
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - large method with complex branching, let JIT tier appropriately
     public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -151,7 +151,7 @@ internal sealed record Cell : ICell
             };
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Use stackalloc for small attribute buffers
     public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -286,7 +286,7 @@ internal sealed record Cell : ICell
     }
 
     #region Borrowed and some finessing from XMLReader source
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - complex method with loops and branches
     private static string ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
     {
         if (reader.ReadState != ReadState.Interactive)
@@ -362,7 +362,8 @@ internal sealed record Cell : ICell
     /// <InheritDoc />
     public IReadOnlyList<char> ColumnLetters
     {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        // CHANGED: Removed AggressiveOptimization - simple property with cache lookup, inline better
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (_columnLetters != null)
@@ -396,7 +397,8 @@ internal sealed record Cell : ICell
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Removed AggressiveOptimization - simple switch on first char, inline better
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static CellType GetCellType(in char[] b, int l)
     {
         if (l == 0)

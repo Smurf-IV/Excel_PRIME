@@ -12,29 +12,48 @@ namespace ExcelPRIME.FromExternal;
 /// </summary>
 internal static class ExcelColumns
 {
-    /// <summary>
-    /// Convert Column Number into Column Name - Character(s) eg 1->A, 2->B
-    /// </summary>
-    /// <param name="columnNumber">Column Number</param>
-    /// <returns>Column Name - Character(s)</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // Precomputed lookup table for first 64 columns (A-)
+    private static readonly string[] s_columnNameCache = new string[64 + 1];
+
+    static ExcelColumns()
+    {
+        for (int i = 1; i < s_columnNameCache.Length; i++)
+        {
+            s_columnNameCache[i] = ComputeColumnName(i);
+        }
+    }
+
+    // CHANGED: Use lookup table for common columns, reduces allocations
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string GetExcelColumnName(this int columnNumber)
     {
-        string columnName = string.Empty;   // No need for a StringBuilder,as this will only be done max 3 times
+        if (columnNumber > 0 && columnNumber < s_columnNameCache.Length)
+        {
+            return s_columnNameCache[columnNumber];
+        }
 
+        return ComputeColumnName(columnNumber);
+    }
+
+    private static string ComputeColumnName(int columnNumber)
+    {
+        // Use stackalloc for temp buffer (max 3 chars for column names up to XFD/16384)
+        Span<char> buffer = stackalloc char[4];
+        int pos = buffer.Length;
         int dividend = columnNumber;
 
         while (dividend > 0)
         {
             int modulo = (dividend - 1) % 26;
-            columnName = string.Concat(Convert.ToChar(65 + modulo), columnName);
+            buffer[--pos] = (char)(65 + modulo);
             dividend = (dividend - modulo) / 26;
         }
 
-        return columnName;
+        return new string(buffer.Slice(pos));
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // CHANGED: Use ref readonly for better performance
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ParseColumnOffset(char[] buffer, int len)
     {
         int colExcel = -1;

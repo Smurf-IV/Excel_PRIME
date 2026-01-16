@@ -26,7 +26,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private readonly IZipReaderAsync _zipReader;
     private Stream? _fs;
     private readonly Dictionary<int, TempFile> _sheetFiles = [];
-    private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>().AsReadOnly();
+    private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>();
     private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
@@ -203,7 +203,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
         }
         // Maybe it is not an override of the `localSheetId`, so try the expected reference
-        if ( definedRange == null)
+        if (definedRange == null)
         {
             if (!_definedRanges.TryGetValue(rangeName, out definedRange))
             {
