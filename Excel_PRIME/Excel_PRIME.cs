@@ -190,7 +190,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
         }
         // Maybe it is not an override of the `localSheetId`, so try the expected reference
-        if ( definedRange == null)
+        if (definedRange == null)
         {
             if (!_definedRanges.TryGetValue(rangeName, out definedRange))
             {

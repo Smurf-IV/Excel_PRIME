@@ -6,6 +6,12 @@
     - Internal Creation of WorkBooks
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
 
+﻿# 2026-01-16 - V3 
+- Remove some `AggressiveOptimization` and allow `i-cache` to do its job
+- Implement "Hot-Paths" for cell type access
+- Reduce some memory allocations for ReadOnly CellCollections
+  - [2026-01-16](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-16)
+
 # 2026-01-11 - V3
 - Add XLS**B** 💾 (BIFF12)
 - ⛓️‍💥 **Breaking Change(s)**

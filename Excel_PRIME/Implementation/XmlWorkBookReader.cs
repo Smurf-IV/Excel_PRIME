@@ -147,7 +147,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
         if (!_readerWb.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
-            return definedRanges.AsReadOnly();
+            return definedRanges;
         }
 
         string definedNameRefAtom = _readerWb.NameTable.Add("definedName");
@@ -207,7 +207,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
         }
 
         definedRanges.TrimExcess();
-        return definedRanges.AsReadOnly();
+        return definedRanges;
     }
 
     private void Dispose(bool isDisposing)
@@ -353,7 +353,7 @@ internal class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBookReade
         if (!_readerWb.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
-            return definedRanges.AsReadOnly();
+            return definedRanges;
         }
 
         string definedNameRefAtom = _readerWb.NameTable.Add("definedName");
@@ -413,7 +413,7 @@ internal class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBookReade
         }
 
         definedRanges.TrimExcess();
-        return definedRanges.AsReadOnly();
+        return definedRanges;
     }
 
 }

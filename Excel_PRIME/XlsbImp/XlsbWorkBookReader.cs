@@ -502,7 +502,8 @@ internal class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookRea
                     int row = nextRecord.GetInt32(offset) + 1;
                     offset += 4;
                     int col = nextRecord.GetInt16(offset) + 1;
-                    return (col.GetExcelColumnName(), col.GetExcelColumnName(), row, row, false, sheetRef);
+                    string excelColumnName = col.GetExcelColumnName();
+                    return (excelColumnName, excelColumnName, row, row, false, sheetRef);
                 }
 
             case 0x3B:  //PtgArea3d
@@ -529,6 +530,7 @@ internal class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookRea
         //    sheetRef = nextRecord.GetInt16(offset + 5);
         //}
 
-        return (colFirst.GetExcelColumnName(), colLast.GetExcelColumnName(), rowFirst, rowLast, false, sheetRef);
+        string columnName = colLast.GetExcelColumnName();
+        return (colFirst.GetExcelColumnName(), columnName, rowFirst, rowLast, false, sheetRef);
     }
 }
