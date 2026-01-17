@@ -136,7 +136,7 @@ internal class DefinedRangeTests
         getRanger.LoadFile("Data\\pivot-tables.xlsx");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         int cells = filterDatabaseSheet.Sum(row => row.Count());
         IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());

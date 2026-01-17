@@ -107,10 +107,7 @@ public sealed class NonClosingStream : Stream
     }
 
     /// If you want to allow explicit close of the inner stream:
-    public void CloseInnerStream()
-    {
-        _inner.Close();
-    }
+    public void CloseInnerStream() => _inner.Close();
 
     /// <inheritdoc/>
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>

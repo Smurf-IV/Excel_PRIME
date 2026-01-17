@@ -23,13 +23,13 @@ public class GREPPlus : IGetRange
         return excelPackage != null;
     }
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
         ExcelNamedRange? namedRange;
         // worksheet scope
-        if (localSheetId.HasValue)
+        if (sheetName != null)
         {
-            ExcelWorksheet? worksheet = excelPackage!.Workbook.Worksheets.ElementAt(localSheetId.Value);
+            ExcelWorksheet? worksheet = excelPackage!.Workbook.Worksheets[sheetName];
             namedRange = worksheet.Names[definedName];
         }
         else

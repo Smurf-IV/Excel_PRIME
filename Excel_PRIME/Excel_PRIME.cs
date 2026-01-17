@@ -25,8 +25,8 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
     private readonly IZipReaderAsync _zipReader;
     private Stream? _fs;
-    private readonly Dictionary<int, TempFile> _sheetFiles = [];
-    private IReadOnlyDictionary<string, int> _sheetNamesToOffsetSheetId = new Dictionary<string, int>().AsReadOnly();
+    private readonly Dictionary<string /*pathOffsetSheet*/, TempFile> _sheetFiles = [];
+    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>().AsReadOnly();
     private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
@@ -117,17 +117,17 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     {
         using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
-        _sheetNamesToOffsetSheetId = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
+        _sheetNamesToPathOffset = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
     }
 
     private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
     {
         using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
-        _sheetNamesToOffsetSheetId = wbr.GetSheetNames(ct).ToDictionary();
+        _sheetNamesToPathOffset = wbr.GetSheetNames(ct).ToDictionary();
     }
 
     /// <InheritDoc />
-    public IEnumerable<string> SheetNames() => _sheetNamesToOffsetSheetId.Keys;
+    public IEnumerable<string> SheetNames() => _sheetNamesToPathOffset.Keys;
 
     /// <InheritDoc />
     public virtual async IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
@@ -137,7 +137,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             // Lazy load on first use
             using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(_zipReader, ct)
                 .ConfigureAwait(false);
-            _definedRanges = await wbr.GetDefinedRangesAsync(_sheetNamesToOffsetSheetId, ct).ConfigureAwait(false);
+            _definedRanges = await wbr.GetDefinedRangesAsync(_sheetNamesToPathOffset, ct).ConfigureAwait(false);
         }
 
         if (!_definedRanges.TryGetValue(rangeName, out DefinedRange? definedRange))
@@ -151,9 +151,9 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             yield break;
         }
 
-        string definedRangeSheetName = useThisSheetName ?? definedRange.SheetName ??
-            _sheetNamesToOffsetSheetId.FirstOrDefault(kvp => kvp.Value == definedRange.SheetIdReference.IntParse()).Key;
-        if (!_sheetNamesToOffsetSheetId.ContainsKey(definedRangeSheetName))
+        string? definedRangeSheetName = useThisSheetName ?? definedRange.SheetName;
+        if (string.IsNullOrEmpty(definedRangeSheetName)
+            || !_sheetNamesToPathOffset.ContainsKey(definedRangeSheetName))
         {
             // range might be the following definition
             // <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
@@ -174,26 +174,13 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     }
 
     /// <InheritDoc />
-    public virtual IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, int useLocalSheetId, [EnumeratorCancellation] CancellationToken ct = default)
-    {
-        string? useThisSheetName = null;
-        int valueOffset = useLocalSheetId + 1;
-        KeyValuePair<string, int> firstOrDefault = _sheetNamesToOffsetSheetId.FirstOrDefault(kvp => kvp.Value == valueOffset);
-        if (!string.IsNullOrEmpty(firstOrDefault.Key))
-        {
-            useThisSheetName = firstOrDefault.Key;
-        }
-        return GetDefinedRange(rangeName, useThisSheetName, ct);
-    }
-
-    /// <InheritDoc />
     public IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
             // Lazy load on first use
             using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
-            _definedRanges = wbr.GetDefinedRanges(_sheetNamesToOffsetSheetId, ct);
+            _definedRanges = wbr.GetDefinedRanges(_sheetNamesToPathOffset, ct);
         }
 
         DefinedRange? definedRange = null;
@@ -218,10 +205,16 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             yield break;
         }
 
-        using ISheet? targetSheet = GetSheet(
-            useThisSheetName ?? definedRange.SheetName ??
-            _sheetNamesToOffsetSheetId.First(kvp => kvp.Value == definedRange.SheetIdReference.IntParse()).Key,
-            false, ct);
+        string? definedRangeSheetName = useThisSheetName ?? definedRange.SheetName;
+        if (string.IsNullOrEmpty(definedRangeSheetName))
+        {
+            // range might be the following definition
+            // <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
+            // Or user has made a mistake
+            yield break;
+        }
+
+        using ISheet? targetSheet = GetSheet( definedRangeSheetName, false, ct);
         if (targetSheet == null)
         {
             yield break;
@@ -269,7 +262,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     /// <InheritDoc />
     public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
-        if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
+        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string pathOffsetSheet))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
@@ -281,13 +274,12 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         {
             TempFile sheetFile = await _locker.LockAsync(async () =>
             {
-                if (!_sheetFiles.TryGetValue(offsetSheetId, out TempFile? sheetFile))
+                if (!_sheetFiles.TryGetValue(pathOffsetSheet, out TempFile? sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}");
-                    _sheetFiles[offsetSheetId] = sheetFile;
+                    sheetFile = new TempFile(Path.GetFileName(pathOffsetSheet));
+                    _sheetFiles[pathOffsetSheet] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
-                    await _zipReader.CopyToAsync(sheetFileName, targetStream, ct).ConfigureAwait(false);
+                    await _zipReader.CopyToAsync(pathOffsetSheet, targetStream, ct).ConfigureAwait(false);
                 }
 
                 return sheetFile;
@@ -296,17 +288,16 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
-            stream = _zipReader.GetEntry(sheetFileName)!;
+            stream = _zipReader.GetEntry(pathOffsetSheet)!;
         }
-        return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
+        return new Sheet(stream, _xmlReaderHelper, sheetName, _instanceContext);
     }
 
     /// <InheritDoc />
     public ISheet? GetSheet(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
         // Find Id
-        if (!_sheetNamesToOffsetSheetId.TryGetValue(sheetName, out int offsetSheetId))
+        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string pathOffsetSheet))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
@@ -319,23 +310,21 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             TempFile? sheetFile = null;
             _locker.Lock(() =>
             {
-                if (!_sheetFiles.TryGetValue(offsetSheetId, out sheetFile))
+                if (!_sheetFiles.TryGetValue(pathOffsetSheet, out sheetFile))
                 {
-                    sheetFile = new TempFile($"sheet{offsetSheetId}");
-                    _sheetFiles[offsetSheetId] = sheetFile;
+                    sheetFile = new TempFile(Path.GetFileName(pathOffsetSheet));
+                    _sheetFiles[pathOffsetSheet] = sheetFile;
                     using FileStream targetStream = sheetFile.OpenForAsyncWrite();
-                    string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
-                    _zipReader.CopyTo(sheetFileName, targetStream, ct);
+                    _zipReader.CopyTo(pathOffsetSheet, targetStream, ct);
                 }
             });
             stream = sheetFile!.OpenForAsyncRead(true);
         }
         else
         {
-            string sheetFileName = _xmlReaderHelper.GetSheetFileName(offsetSheetId);
-            stream = _zipReader.GetEntry(sheetFileName)!;
+            stream = _zipReader.GetEntry(pathOffsetSheet)!;
         }
-        return new Sheet(stream, _xmlReaderHelper, sheetName, offsetSheetId, _instanceContext);
+        return new Sheet(stream, _xmlReaderHelper, sheetName, _instanceContext);
     }
 
     /// <summary>
@@ -354,7 +343,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             {
                 _instanceContext.SharedStrings?.Dispose();
                 _instanceContext.SharedStrings = null;
-                foreach ((int _, TempFile tf) in _sheetFiles)
+                foreach ((string _, TempFile tf) in _sheetFiles)
                 {
                     tf.Dispose();
                 }

@@ -130,7 +130,7 @@ internal class DefinedRangeTestsXlsb
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
         // In the Xlsb, the `_xlnm.` portion of the name is dropped
         //<definedName name="_FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_FilterDatabase", 2);
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_FilterDatabase");
         int cells = filterDatabaseSheet.Sum(row => row.Count());
         IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());

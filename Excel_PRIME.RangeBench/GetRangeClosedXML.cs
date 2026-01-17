@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using ClosedXML.Excel;
@@ -22,13 +23,13 @@ public class GRClosedXML : IGetRange
         return wb != null;
     }
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
         IXLRanges rangesLocal;
         // worksheet scope
-        if (localSheetId.HasValue)
+        if (sheetName != null)
         {
-            IXLWorksheet worksheet = wb!.Worksheets.ElementAt(localSheetId.Value);
+            wb!.Worksheets.TryGetWorksheet(sheetName, out IXLWorksheet? worksheet);
             rangesLocal = worksheet.Ranges(definedName);
         }
         else

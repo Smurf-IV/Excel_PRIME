@@ -16,11 +16,9 @@ public class GRExcelPrime : IGetRange
     }
 
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
-        IEnumerable<CellValue?[]> rangeRows = localSheetId.HasValue
-                ? _workbook.GetDefinedRange(definedName, localSheetId.Value)
-                : _workbook.GetDefinedRange(definedName);
+        IEnumerable<CellValue?[]> rangeRows = _workbook.GetDefinedRange(definedName, sheetName);
         foreach (CellValue?[] rangeRow in rangeRows)
         {
             yield return rangeRow.Select(cell => cell?.ToString());

@@ -19,21 +19,17 @@ internal sealed class Sheet : ISheetAsync
     private readonly NonClosingStream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
-    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, InstanceContext instanceContext)
     {
         _stream = new NonClosingStream(stream);
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
         Name = name;
-        Index = index;
     }
 
     /// <InheritDoc />
     public string Name { get; }
-
-    /// <InheritDoc />
-    public int Index { get; }
 
     /// <inheritdoc/>
     public (int Height, int Width) SheetDimensions

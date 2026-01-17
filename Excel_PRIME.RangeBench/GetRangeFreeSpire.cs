@@ -18,13 +18,13 @@ public class GRFreeSpire : IGetRange
         return true;
     }
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
         INamedRange namedRange;
-        if ( localSheetId.HasValue)
+        if (sheetName != null)
         {
             //Get a specific named range in the worksheet
-            Worksheet sheet = book.Worksheets[localSheetId.Value];
+            Worksheet sheet = book.Worksheets[sheetName];
             namedRange = sheet.Names.GetByName(definedName);
         }
         else

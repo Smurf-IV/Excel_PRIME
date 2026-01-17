@@ -75,18 +75,14 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 
 
     /// <InheritDoc />
-    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.xml", ct).ConfigureAwait(false);
-        return new XmlWorkBookReader(stream!, ct);
+        IOpenXmlWorkBookReaderAsync xmlWorkBookReaderAsync = new XmlWorkBookReaderAsync(zipReader, ct);
+        return Task.FromResult(xmlWorkBookReaderAsync);
     }
 
     /// <InheritDoc />
-    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
-    {
-        Stream? stream = zipReader.GetEntry("xl/workbook.xml");
-        return new XmlWorkBookReader(stream!, ct);
-    }
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XmlWorkBookReader(zipReader, ct);
 
 
     /// <InheritDoc />

@@ -76,7 +76,6 @@ public record DefinedRange
     {
         SheetName = sheetName;
         Name = string.Empty;
-        SheetIdReference = string.Empty;
         ExcelColumnStart = columnStart.GetColNumber();
         ExcelColumnEnd = columnEnd.GetColNumber();
         ExcelRowStart = rowStart;
@@ -101,7 +100,6 @@ public record DefinedRange
 
         SheetName = sheetName;
         Name = userRange;
-        SheetIdReference = string.Empty;
         if (userRange.Contains(':'))
         {
             DoExtractBasedOnCellRange(userRange);
@@ -253,10 +251,10 @@ public record DefinedRange
     /// </summary>
     public int ExcelRowEnd { get; private set; }
 
-    /// <summary>
-    /// Xml.Value;
-    /// </summary>
-    public string SheetIdReference { get; init; }
+    ///// <summary>
+    ///// Xml.Value;
+    ///// </summary>
+    //public string SheetIdReference { get; init; }
 
     /// <summary>
     /// Xml.Value;

@@ -1,4 +1,12 @@
-﻿# 2026-01-11 - V3
+﻿# 2026-01-## - V4 - Alpha
+- ⛓️‍💥 **Breaking Change(s)**
+    - Removal of `GetSheetFileName(int offsetSheetId);`
+    - Removal of `GetDefinedRange` via `int sheetId`
+    - Removal of `Index` property from `ISheet`
+    - Internal Creation of WorkBooks
+    - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
+
+# 2026-01-11 - V3
 - Add XLS**B** 💾 (BIFF12)
 - ⛓️‍💥 **Breaking Change(s)**
     - `FileType` has been removed, and Open via the Public class type

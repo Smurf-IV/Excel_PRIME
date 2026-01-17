@@ -7,8 +7,8 @@
 # What does that mean?
 - _Yet another Excel reader ?_, 
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
-    - V9 gives an extra 5% boost, 
-    - V10 Another 5% ;-)
+    - .Net9 gives an extra 5% boost, 
+    - .Net10 Another 5% over .Net9 ;-)
 
 Lets take each of the above elements and explain:
 
@@ -261,9 +261,16 @@ Lets take each of the above elements and explain:
 - 🎊 Released **V3** as Nuget `V3.2601.11`
 -----
 
-## Phase 4 - Specific Cell value type(s) #️⃣
+## Phase V4 - Specific Cell value type(s) #️⃣ - Alpha
+- ⛓️‍💥 **Breaking Change(s)**
+    - Removal of `GetSheetFileName(int offsetSheetId);`
+    - Removal of `GetDefinedRange` via `int sheetId`
+    - Removal of `Index` property from `ISheet`
+    - Internal Creation of WorkBooks
+    - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
 - [ ] Cell object type 📅
-    - [ ] `Operator` based conversion
+    - [ ] "Best Effort" `Operator` based conversion
+    - [ ] TryGet`Type` will return `out type`, if stored as that type.
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
     - [ ] Formatter applied -> `CellConversion.ForceStyles`

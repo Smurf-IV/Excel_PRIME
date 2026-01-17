@@ -7,7 +7,7 @@ public interface IGetRange : IDisposable
 {
     bool LoadFile(string fullPath);
 
-    IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null);
+    IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null);
 
     IEnumerable<IEnumerable<object?>> GetRange(string userRange, string sheetName);
 }
