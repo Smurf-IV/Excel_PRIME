@@ -11,7 +11,9 @@ public class GRClosedXML : IGetRange
 {
     private XLWorkbook? wb;
 
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
     {
         wb?.Dispose();
         wb = null;

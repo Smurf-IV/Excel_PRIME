@@ -43,7 +43,7 @@ public class AccessEveryCellBenchmarksXlsb
 
     [Benchmark(Baseline = true)]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellSylvan()
+    public async Task<int> SylvanRdr()
     {
         int cells = 0;
         // ReSharper disable once MethodHasAsyncOverload
@@ -76,7 +76,7 @@ public class AccessEveryCellBenchmarksXlsb
        AccessEveryCellBenchmarksXlsb.AccessEveryCellExcelDataReader: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3) [FileName=sampl(...).xlsb [30]]
      */
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellExcelDataReader()
+    public int ExcelDataReader()
     {
         int cells = 0;
         using FileStream stream = File.Open(RootFolder + FileName, FileMode.Open, FileAccess.Read);
@@ -104,10 +104,10 @@ public class AccessEveryCellBenchmarksXlsb
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellAspose()
+    public int Aspose()
     {
         int cells = 0;
-        Workbook wb = new Workbook(RootFolder + FileName);
+        using Workbook wb = new Workbook(RootFolder + FileName);
         foreach (Worksheet? ws in wb.Worksheets)
         {
             Cells? wsCells = ws.Cells;
@@ -148,7 +148,7 @@ public class AccessEveryCellBenchmarksXlsb
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellAsyncExcel_PrimeXlsb()
+    public async Task<int> AsyncExcel_PrimeXlsb()
     {
         int cells = 0;
         using Excel_PRIMEXlsb workbook = new();
@@ -185,7 +185,7 @@ public class AccessEveryCellBenchmarksXlsb
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellExcel_PrimeXlsb()
+    public int Excel_PrimeXlsb()
     {
         int cells = 0;
         using Excel_PRIMEXlsb workbook = new();
@@ -227,7 +227,7 @@ public class AccessEveryCellBenchmarksXlsb
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
     // Memory is between 80% and 110% more
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> ParallelEveryCellAsyncExcel_PrimeXlsbTwice()
+    public async Task<int> PrlAsyncExcel_PrimeXlsbTwice()
     {
         using Excel_PRIMEXlsb workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
