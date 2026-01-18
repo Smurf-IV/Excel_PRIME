@@ -77,7 +77,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
 
     private Dictionary<string, string> PopulateWorkSheetRels(CancellationToken ct)
     {
-        using Stream? streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.bin.rels");
+        using Stream streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.bin.rels")!;
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
@@ -290,7 +290,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
     }
 }
 
-internal class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookReaderAsync
+internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookReaderAsync
 {
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
 
@@ -345,7 +345,7 @@ internal class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookRea
 
     private async Task<Dictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
     {
-        using Stream? streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.bin.rels", ct).ConfigureAwait(false);
+        using Stream streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.bin.rels", ct).ConfigureAwait(false)!;
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources

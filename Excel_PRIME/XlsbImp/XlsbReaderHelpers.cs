@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -10,7 +9,7 @@ using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME.XlsbImp;
 
-internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisposable
+internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 {
     private TempFile? _shareStrings;
     public void Dispose()

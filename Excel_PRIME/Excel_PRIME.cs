@@ -262,7 +262,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     /// <InheritDoc />
     public async Task<ISheetAsync?> GetSheetAsync(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
-        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string pathOffsetSheet))
+        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string? pathOffsetSheet))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
@@ -297,7 +297,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     public ISheet? GetSheet(string sheetName, TernaryBool overrideOptionsAndUseSheetOnlyOnce = null, CancellationToken ct = default)
     {
         // Find Id
-        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string pathOffsetSheet))
+        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string? pathOffsetSheet))
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
