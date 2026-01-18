@@ -44,7 +44,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
 
     public IEnumerable<KeyValuePair<string, string>> GetSheetNames([EnumeratorCancellation] CancellationToken ct)
     {
-        IReadOnlyDictionary<string, string> worksheetRels = PopulateWorkSheetRels(ct);
+        Dictionary<string, string> worksheetRels = PopulateWorkSheetRels(ct);
 
         string sheetsRefAtom = _readerWb.NameTable.Add("sheets");
         if (!worksheetRels.Any()
@@ -78,7 +78,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
         }
     }
 
-    private IReadOnlyDictionary<string, string> PopulateWorkSheetRels(CancellationToken ct)
+    private Dictionary<string, string> PopulateWorkSheetRels(CancellationToken ct)
     {
         using Stream? streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.xml.rels");
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
@@ -251,7 +251,7 @@ internal class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBookReade
 
     public async IAsyncEnumerable<KeyValuePair<string, string>> GetSheetNamesAsync([EnumeratorCancellation] CancellationToken ct)
     {
-        IReadOnlyDictionary<string, string> worksheetRels = await PopulateWorkSheetRelsAsync(ct).ConfigureAwait(false);
+        Dictionary<string, string> worksheetRels = await PopulateWorkSheetRelsAsync(ct).ConfigureAwait(false);
 
         string sheetsRefAtom = _readerWb.NameTable.Add("sheets");
         if (!worksheetRels.Any()
@@ -284,7 +284,7 @@ internal class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBookReade
         }
     }
 
-    private async Task<IReadOnlyDictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
+    private async Task<Dictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
     {
         using Stream? streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.xml.rels", ct).ConfigureAwait(false);
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
