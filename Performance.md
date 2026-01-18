@@ -871,7 +871,7 @@ And then slightly different versions of the following dependent on date:
 ```
 -----
 
-# 2026-01-16
+# 2026-01-16 - V3
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job
 - Implement "Hot-Paths" for cell type access
 - Reduce some memory allocations for ReadOnly CellCollections
@@ -903,3 +903,33 @@ And then slightly different versions of the following dependent on date:
 | ParallelEveryCellAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.10x slower | 303000.0000 |  1000.0000 |          - | 2420.25 MB |  8.23x more |
 ```
 
+# 2026-01-18 - V4 Alpha
+- Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
+```
+| Method                  | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
+|------------------------ |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
+| Sylvan                  | 100mb.xlsx           |     baseline |  43000.0000 | 41000.0000 |  5000.0000 |  338.72 MB |             |
+| XlsxHelper              | 100mb.xlsx           | 4.24x slower | 424000.0000 |  5000.0000 |  2000.0000 | 3380.59 MB |  9.98x more |
+| AsyncExcel_Prime        | 100mb.xlsx           | 1.39x slower | 259000.0000 | 43000.0000 |  6000.0000 | 2029.28 MB |  5.99x more |
+| Excel_Prime             | 100mb.xlsx           | 1.19x slower | 162000.0000 | 47000.0000 |  6000.0000 | 1256.38 MB |  3.71x more |
+| PrlAsyncExcel_PrimeTwice| 100mb.xlsx           | 2.27x slower | 440000.0000 | 50000.0000 |  6000.0000 |  3464.3 MB | 10.23x more |
+|                         |                      |              |             |            |            |            |             |
+| Sylvan                  | Blank(...).xlsx [30] |     baseline |  40000.0000 |  2000.0000 |  1000.0000 |   318.9 MB |             |
+| XlsxHelper              | Blank(...).xlsx [30] | 1.01x slower | 218000.0000 |  1000.0000 |          - | 1739.24 MB |  5.45x more |
+| AsyncExcel_Prime        | Blank(...).xlsx [30] | 1.08x slower | 347000.0000 | 42000.0000 | 41000.0000 | 2566.97 MB |  8.05x more |
+| Excel_Prime             | Blank(...).xlsx [30] | 1.11x faster | 195000.0000 | 42000.0000 | 41000.0000 | 1361.65 MB |  4.27x more |
+| PrlAsyncExcel_PrimeTwice| Blank(...).xlsx [30] | 2.40x slower | 693000.0000 | 85000.0000 | 83000.0000 | 5155.95 MB | 16.17x more |
+|                         |                      |              |             |            |            |            |             |
+| Sylvan                  | sampl(...).xlsx [34] |     baseline |  33000.0000 |          - |          - |  265.67 MB |             |
+| XlsxHelper              | sampl(...).xlsx [34] | 1.12x faster | 100000.0000 |          - |          - |  799.73 MB |  3.01x more |
+| AsyncExcel_Prime        | sampl(...).xlsx [34] | 1.04x faster | 148000.0000 |  1000.0000 |          - | 1184.05 MB |  4.46x more |
+| Excel_Prime             | sampl(...).xlsx [34] | 1.25x faster |  79000.0000 |  1000.0000 |          - |  632.38 MB |  2.38x more |
+| PrlAsyncExcel_PrimeTwice| sampl(...).xlsx [34] | 2.05x slower | 297000.0000 |  1000.0000 |          - | 2376.06 MB |  8.94x more |
+|                         |                      |              |             |            |            |            |             |
+| Sylvan                  | sampl(...).xlsx [30] |     baseline |  36000.0000 |          - |          - |  294.16 MB |             |
+| XlsxHelper              | sampl(...).xlsx [30] | 1.09x faster |  93000.0000 |          - |          - |  742.13 MB |  2.52x more |
+| AsyncExcel_Prime        | sampl(...).xlsx [30] | 1.03x slower | 151000.0000 |  1000.0000 |          - | 1207.31 MB |  4.10x more |
+| Excel_Prime             | sampl(...).xlsx [30] | 1.22x faster |  82000.0000 |  1000.0000 |          - |  656.03 MB |  2.23x more |
+| PrlAsyncExcel_PrimeTwice| sampl(...).xlsx [30] | 2.17x slower | 303000.0000 |          - |          - |  2420.4 MB |  8.23x more |
+```
+-----

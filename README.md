@@ -103,6 +103,23 @@ Lets take each of the above elements and explain:
 
 <a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
 -----
+<!--TOC-->
+- [Targets 🎯](#targets-)
+  - [Phase 0](#phase-0)
+  - [Phase Alpha](#phase-alpha)
+  - [Phase Beta - Benchmarks ⏱️](#phase-beta-benchmarks-)
+  - [Phase 1 - MVP 🔍](#phase-1-mvp-)
+  - [Phase 2 - RC](#phase-2-rc)
+  - [V2 Changes](#v2-changes)
+    - [2025-12-14](#2025-12-14)
+  - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3-xlsb-biff12)
+- [V3 Changes](#v3-changes)
+- [2026-01-16](#2026-01-16)
+  - [Phase V4 - Specific Cell value type(s) #️⃣ - Alpha](#phase-v4-specific-cell-value-types-alpha)
+  - [Phase 5 - Third Party Nugets 📦](#phase-5-third-party-nugets-)
+  - [Phase 6 - ideas 💡](#phase-6-ideas-)
+<!--/TOC-->
+-----
 
 # Targets 🎯
 ## Phase 0
@@ -137,37 +154,16 @@ Lets take each of the above elements and explain:
 
 ## Phase 1 - MVP 🔍
 - ✅ Add `IEnumerable`s and benchmark
-    - ⚠️ Still not convinced whether to implement "all the way down"
 - ✅ Implement `XmlReader.Create` for
-    - ✅ Loading sharedStrings
-    - ✅ Sheet loading
-    - ✅ Some Profiling Enahancements 
-        - ✅ Performance [2025-10-18-pm](Performance.md#2025-10-18-pm)
 - ✅ More Benchmarks
     - Now With `FastExcel`
     - ✅ Some Profiling Enahancements 
-        - 🚀 Big Performance improvements [2025-10-19-pm](Performance.md#2025-10-19-pm)
 - ✅ Better `Storage` of the SharedStrings
-    - ✅ Use of LazyLoading Class
-        - ⚠️ Performance [2025-10-14](Performance.md#2025-10-14)
-    - ✅ Use of Derived `XmlNamedTable` implementations
-    - ✅ Locking for separate sheet thread reading
-        - ⚠️ Performance [2025-10-25](Performance.md##2025-10-25)
-    - ✅ Restricted storage (i.e. do not return things that are not relevant)
-      - 🚀 Big Performance improvements [2025-10-26](Performance.md#2025-10-26)
 - ✅ Cell object type 📅
-      - 🚀 Big Performance improvements [2025-11-01](Performance.md#2025-11-01)
-    - ✅ Cell converted when read (i.e. you will know the type that you want, and you can convert it.)
-      - 🚀 Big Performance improvements [2025-11-04](Performance.md#2025-11-04)
 - ✅ Use internal `ZipEntry` rented buffer
-    - ✅ Add and explain usage in options
-      - 🚀 Big Performance improvements  [2025-11-07](Performance.md#2025-11-07)
 - ✅ Investigation into the smallest function 💪
-    - 🚀 More Performance improvements  [2025-11-08](Performance.md#2025-11-08)
 - ✅ Optimise for `CellConversion.None` 💪
-    - 🚀 More Performance improvements  [2025-11-12](Performance.md#2025-11-12)
 - ✅ Parallel Sheet threads Access
-    - ✅ Multiple times (with locking)
 - ✅ Nuget
     - ✅ Beta etc.
     - 🎊 Released as Nuget V1.yyMM.dd -> **`1.2511.14`**
@@ -175,53 +171,34 @@ Lets take each of the above elements and explain:
 
 ## Phase 2 - RC
 - ✅ Add `IEnumerable`s _All_ the way down ⤵️
-    - i.e. remove the need for Asynchronous awaits
-    - 🚀 Yielding More Performance improvements  [2025-11-19](Performance.md#2025-11-19)
-    - ⛓️‍💥 **Breaking Change** 🔩
-        - The Async classes now have `Async` appended to be distinct from the non async versions
-        - But, `Async` inherit from the non, so they are interchangable
 - ✅ Nuget
     - ✅ Manual workflow deploy Release
     - ✅ Manual workflow deploy Beta
 - ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
-    - ✅ Read from global
-    - ✅ Handle Dynamics (i.e. do not fall over! 🤷)
 - ✅ Deal with blank rows in a sheet 🗋
-    - ✅ Return a `null` cell row
 - ✅ Deal with Empty cells in a row 🗅
-    - ✅ Return a `null` cell (e.g. `<c r="F12" s="8"/>`)
 - ✅ Implement Sheet scoping of `definedName`s
-    - ✅ i.e. `<definedName name="OrderSize" localSheetId="0">'Try it Yourself'!$C$12:$E$12</definedName>`
-    - Note: The above will be referenced as `OrderSize (Try it Yourself)` as shown in LibreOffice.
 - ✅ Implement Row extraction 📟
-    - ✅ Allow ColumnHeader addressing (i.e. start -> end columns)
 - ✅ Implement RangeExtraction 📲
-    - ✅ Global rangeNames
-    - ✅ Make `DefinedName`'s work with `localSheetId`definitions
-    - ✅ User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
-      - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
 - ✅ Add Benchmarks for "Excel readers" That perform Range Extraction
     - ✅ `ClosedXML` Version="0.105.0"
-        - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
     - ✅ `EPPlus_LPGL` Version="4.5.3.13"
-        - [Performance on 2025-11-25](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-25)
     - ⚠️ `FastExcel` Version="3.0.13" -> [Fails on Range Extraction](https://github.com/ahmedwalid05/FastExcel/issues/89)
     - ✅ `FreeSpire.XLS` Version="14.2.0"
-        - [Performance on 2025-11-27](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-27)
     - ✅ `Aspose.Cells` Version="25.11.0"
-        - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
     - ⚠️ Extend bencmarks to cover the other large file types
         - It appears that most of the others do not like the `pivot-tables` file.!! 🤯
+        - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
 - ✅ Investigate _memory usage_(s) 🧑‍💻
-    - ✅ Some performance improvements 🏃‍➡️ [Performance on 2025-12-01](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-01)
-    - ✅ More performance improvements 🏃‍➡️ [Performance on 2025-12-04](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-04)
     - ✅ Sacrificed a little speed ➡️ [Performance on 2025-12-07](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-07)
 - ✅ Release as Nuget V2.2512-10 💨
 -----
-## V2 Changes
+## V2 Changes ➡️
 ### 2025-12-14
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
   - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
+
+-----
 
 ## Phase V3 - XLS**B** 💾 (BIFF12)
 - ⛓️‍💥 **Breaking Change(s)**
@@ -259,6 +236,14 @@ Lets take each of the above elements and explain:
 - ✅ Investigate Performance and edge cases, then Release as Stable
    - 🚀 Big Performance improvements [2026-01-11](Performance.md#2026-01-11)
 - 🎊 Released **V3** as Nuget `V3.2601.11`
+-----
+# V3 Changes ➡️
+# 2026-01-16
+- Remove some `AggressiveOptimization` and allow `i-cache` to do its job
+- Implement "Hot-Paths" for cell type access
+- Reduce some memory allocations for ReadOnly CellCollections
+  - [2026-01-16](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-16)
+
 -----
 
 ## Phase V4 - Specific Cell value type(s) #️⃣ - Alpha

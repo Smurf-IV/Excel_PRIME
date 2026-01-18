@@ -6,7 +6,8 @@
     - Internal Creation of WorkBooks
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
 
-﻿# 2026-01-16 - V3 
+
+# 2026-01-16 - V3 
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job
 - Implement "Hot-Paths" for cell type access
 - Reduce some memory allocations for ReadOnly CellCollections
@@ -22,21 +23,17 @@
     - Removal of the Conversion options `Number###`
     - Changed `GetAllCells` to return `IReadOnlyList<ICell?>?`
         - Watch out for those null rows !
-- 🚀 Big Performance improvements [2026-01-11](Performance.md#2026-01-11)
+- 🚀 Big Performance improvements [2026-01-11](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-01-11)
 ﻿
 # 2025-12-14 - V2
-- Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
-  - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
-
-# 2025-12-10 - V2 RC
-- User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
-  - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
-
-# 2025-1#-## - Beta V2
-- Improve _memory usage_(s) 🧑‍💻
 - ⛓️‍💥 **Breaking Change** 🔩
     - The Async classes now have `Async` appended to be distinct from the non async versions
     - But, `Async` inherit from the non, so they are interchangable
+- Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
+  - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
+- User defined, using the `"A1:B10"` or `"$A$1:$B$10"` syntax
+  - [Range Performance on 2025-12-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-10)
+- Improve _memory usage_(s) 🧑‍💻
 - Make `DefinedName`'s work with `localSheetId`definitions
 - Benchmarks for range extraction
 - Add `IEnumerable`s _All_ the way down ⤵️
