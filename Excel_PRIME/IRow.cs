@@ -61,15 +61,15 @@ public interface IRowAsync : IRow
     /// <summary>
     /// Retrieves _All_ cells within the row, `0` indexed
     /// </summary>
-    Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
+    ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
     /// </summary>
-    Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
+    ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves (If exists) the cell data
     /// </summary>
-    Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
+    ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
 }

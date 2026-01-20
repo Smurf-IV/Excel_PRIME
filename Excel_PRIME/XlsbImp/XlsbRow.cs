@@ -207,7 +207,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple wrapper, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public async ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         return _cells;
@@ -225,7 +225,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple accessor, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
+    public async ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         if (_cells == null
@@ -255,7 +255,7 @@ internal sealed class XlsbRow : IRowAsync
     }
 
     /// <InheritDoc />
-    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
 
     /// <InheritDoc />
     public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();

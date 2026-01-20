@@ -5,6 +5,8 @@
     - Removal of `Index` property from `ISheet`
     - Internal Creation of WorkBooks
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
+- Re-introduce the CellConversion for the XLSX cell types
+- Use `ValueTask` and reduce memory allocations in some hot paths
 
 
 # 2026-01-16 - V3 

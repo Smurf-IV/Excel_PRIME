@@ -260,6 +260,8 @@ Lets take each of the above elements and explain:
     - [ ] Use of user defined column schema (Excel Number Format nuget?)
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
 - [ ] Benchmarks
+    - Use `ValueTask` and reduce memory allocations in some hot paths
+
 -----
 
 ## Phase 5 - Third Party Nugets 📦
