@@ -77,8 +77,8 @@ internal sealed record Cell : ICell
                     value = new CellValue(ReadString(reader, valueBuilder, buffer));
                 }
             }
-            else
-            {
+            else if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            {   // Perform conversion
                 switch (type)
                 {
                     case CellType.Unknown:
@@ -210,8 +210,8 @@ internal sealed record Cell : ICell
                     value = new CellValue(ReadString(reader, valueBuilder, buffer));
                 }
             }
-            else
-            {
+            if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            {   // Perform conversion
                 switch (type)
                 {
                     case CellType.Unknown:

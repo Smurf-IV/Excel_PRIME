@@ -15,10 +15,14 @@ public enum CellConversion
     Unknown = 0,
 
     /// <summary>
-    /// default  - Normally the Fastest option, Will leave the value as a string.
+    /// default  - Normally the Fastest option, Will leave the value as the read type (i.e. as string from XLSX).
     /// </summary>
-    /// 
     None,
+
+    /// <summary>
+    /// Will convert to the CLR type specified by the celltype.
+    /// </summary>  
+    ExcelCellType, 
 
     /// <summary>
     /// As NumberAndDates, and also takes into account the number of decimal places etc. from the style when converting / formatting
