@@ -292,10 +292,14 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
 
 internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWorkBookReaderAsync
 {
+    // ReSharper disable InconsistentNaming
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
+    // ReSharper restore InconsistentNaming
 
     public XlsbWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+#pragma warning disable CA2016 // do not forward the ct to the public base constructor
         : base(zipReader)
+#pragma warning restore CA2016
     {
         Stream? stream = zipReader.GetEntryAsync("xl/workbook.bin", ct).GetAwaiter().GetResult();
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
@@ -345,8 +349,8 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
 
     private async Task<Dictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
     {
-        using Stream streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.bin.rels", ct).ConfigureAwait(false)!;
-        using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
+        using Stream? streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.bin.rels", ct).ConfigureAwait(false);
+        using XmlReader readerRels = XmlReader.Create(streamRelWb!, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
             IgnoreComments = true, // Skip parsing and allocating strings for comments

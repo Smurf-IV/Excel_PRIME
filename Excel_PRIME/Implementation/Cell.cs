@@ -210,7 +210,7 @@ internal sealed record Cell : ICell
                     value = new CellValue(ReadString(reader, valueBuilder, buffer));
                 }
             }
-            if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            else if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
             {   // Perform conversion
                 switch (type)
                 {

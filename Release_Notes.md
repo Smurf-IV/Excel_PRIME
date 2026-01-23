@@ -7,6 +7,9 @@
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
 - Re-introduce the CellConversion for the XLSX cell types
 - Use `ValueTask` and reduce memory allocations in some hot paths
+- Cell object type 📅
+    - "Best Effort" `Operator` based conversion
+    - TryGet`Type` will return `out type`, if stored as that type.
 
 
 # 2026-01-16 - V3 

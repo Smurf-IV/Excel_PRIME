@@ -3,9 +3,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME;
+
+#pragma warning disable CA2225 // Implement To### as partner to operator overloads. -> Already exists due to As### properties.
 
 /// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
@@ -91,9 +92,8 @@ public struct CellValue : IEquatable<CellValue>
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
-    private string? ToString_Slow()
-    {
-        return _type switch
+    private string? ToString_Slow() =>
+        _type switch
         {
             CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
             CellValueType.Numeric => _value._doubleValue.ToString(CultureInfo.InvariantCulture),
@@ -101,7 +101,6 @@ public struct CellValue : IEquatable<CellValue>
             CellValueType.Error => ((ExcelErrorCode)_value._doubleValue).ToString(),
             _ => null
         };
-    }
 
     /// <summary>
     /// Gets the raw "Boxed" value of the cell.
@@ -179,25 +178,14 @@ public struct CellValue : IEquatable<CellValue>
             : AsInt32_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
-    private int AsInt32_Slow()
-    {
-        switch (_type)
+    private int AsInt32_Slow() =>
+        _type switch
         {
-            case CellValueType.DateTime:
-                return (int)_value._dateTimeValue.Ticks;
-            case CellValueType.Bool:
-                return _value._boolValue ? 1 : 0;
-            case CellValueType.Error:
-                return (int)_value._doubleValue;
-            default:
-                {
-                    ReadOnlySpan<char> asSpan = _strValue!.AsSpan();
-                    return asSpan[0] != '-'
-                        ? asSpan.IntParse()
-                        : int.Parse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                }
-        }
-    }
+            CellValueType.DateTime => (int)_value._dateTimeValue.Ticks,
+            CellValueType.Bool => _value._boolValue ? 1 : 0,
+            CellValueType.Error => (int)_value._doubleValue,
+            _ => int.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="Int64"/> object, if possible.
@@ -274,7 +262,6 @@ public struct CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified object is a <see cref="CellValue"/> and has the same type and value as the current instance; otherwise, <c>false</c>.
     /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public override bool Equals(object? obj) => obj is CellValue other && Equals(other);
 
     /// <summary>
@@ -287,7 +274,6 @@ public struct CellValue : IEquatable<CellValue>
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal <see cref="CellValue"/> instances produce the same hash code.
     /// </remarks>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public override int GetHashCode() => HashCode.Combine(_type, _value._boolValue, _value._doubleValue, _value._dateTimeValue, _strValue);
 
     /// <summary>
@@ -302,7 +288,6 @@ public struct CellValue : IEquatable<CellValue>
     /// For example, numeric values are compared numerically, strings are compared using string equality,
     /// and dates are compared using date-time equality.
     /// </remarks>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public bool Equals(CellValue other)
     {
         if (_type != other._type)
@@ -328,7 +313,6 @@ public struct CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified <see cref="CellValue"/> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static bool operator ==(CellValue left, CellValue right) => left.Equals(right);
 
     /// <summary>
@@ -339,6 +323,209 @@ public struct CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified <see cref="CellValue"/> instances are not equal; otherwise, <c>false</c>.
     /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static bool operator !=(CellValue left, CellValue right) => !(left == right);
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="DateTime"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="DateTime"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="DateTime"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetDateTime(out DateTime value)
+    {
+        try
+        {
+            value = AsDateTime;
+            return true;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="bool"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="bool"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="bool"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetBoolean(out bool value)
+    {
+        try
+        {
+            value = AsBoolean;
+            return true;
+        }
+        catch
+        {
+            value = false;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="int"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="int"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="int"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetInt32(out int value)
+    {
+        try
+        {
+            value = AsInt32;
+            return true;
+        }
+        catch
+        {
+            value = 0;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="long"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="long"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="long"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetInt64(out long value)
+    {
+        try
+        {
+            value = AsInt64;
+            return true;
+        }
+        catch
+        {
+            value = 0;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="double"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="double"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="double"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetDouble(out double value)
+    {
+        try
+        {
+            value = AsDouble;
+            return true;
+        }
+        catch
+        {
+            value = 0;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the value of the cell as a <see cref="decimal"/> object.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="decimal"/> value of the cell if the conversion succeeded, 
+    /// or the default value if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="decimal"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetDecimal(out decimal value)
+    {
+        try
+        {
+            value = AsDecimal;
+            return true;
+        }
+        catch
+        {
+            value = 0;
+            return false;
+        }
+    }
+
+    #region Implicit Operators
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="string"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A string representation of the cell value, or <c>null</c> if the value is <c>null</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator string?(CellValue value) => value.ToString();
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="bool"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A boolean representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator bool(CellValue value) => value.AsBoolean;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="int"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A 32-bit integer representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator int(CellValue value) => value.AsInt32;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="long"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A 64-bit integer representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator long(CellValue value) => value.AsInt64;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="double"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A double representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator double(CellValue value) => value.AsDouble;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="decimal"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A decimal representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator decimal(CellValue value) => value.AsDecimal;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="DateTime"/>.
+    /// </summary>
+    /// <param name="value">The <see cref="CellValue"/> to convert.</param>
+    /// <returns>A DateTime representation of the cell value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator DateTime(CellValue value) => value.AsDateTime;
+
+    #endregion
 }

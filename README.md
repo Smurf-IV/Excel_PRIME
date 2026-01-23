@@ -253,14 +253,15 @@ Lets take each of the above elements and explain:
     - Removal of `Index` property from `ISheet`
     - Internal Creation of WorkBooks
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
-- [ ] Cell object type 📅
-    - [ ] "Best Effort" `Operator` based conversion
-    - [ ] TryGet`Type` will return `out type`, if stored as that type.
+- [>] Cell object type 📅
+    - ✅ "Best Effort" `Operator` based conversion
+    - ✅ TryGet`Type` will return `out type`, if stored as that type.
+    - [ ] Store cell _style_ type (see Options enum)
+    - [ ] Use of _user_ defined column schema (Excel Number Format nuget?)
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
-    - [ ] Use of user defined column schema (Excel Number Format nuget?)
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
 - [ ] Benchmarks
-    - Use `ValueTask` and reduce memory allocations in some hot paths
+    - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
 
 -----
 

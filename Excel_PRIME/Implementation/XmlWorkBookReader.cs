@@ -240,10 +240,14 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
 
 internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBookReaderAsync
 {
+    // ReSharper disable InconsistentNaming
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
+    // ReSharper restore InconsistentNaming
 
     public XmlWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+#pragma warning disable CA2016 // do not forward the ct to the public base constructor
         : base(zipReader)
+#pragma warning restore CA2016
     {
         _streamWb = zipReader.GetEntryAsync("xl/workbook.xml", ct).GetAwaiter().GetResult()!;
         OpenWorkbookStream();
@@ -286,8 +290,8 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
 
     private async Task<Dictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
     {
-        using Stream streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.xml.rels", ct).ConfigureAwait(false)!;
-        using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
+        using Stream? streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.xml.rels", ct).ConfigureAwait(false);
+        using XmlReader readerRels = XmlReader.Create(streamRelWb!, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
             IgnoreComments = true, // Skip parsing and allocating strings for comments
