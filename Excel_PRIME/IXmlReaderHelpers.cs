@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
+using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME;
 
@@ -38,6 +40,18 @@ public interface IOpenXmlReaderHelpers : IDisposable
     /// <returns></returns>
     IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
+
+    /// <summary>
+    /// Extracts all cell styles from the workbook's styles.#### file.
+    /// </summary>
+    /// <remarks>
+    /// Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+    /// </remarks>
+    /// <returns>
+    /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+    /// Returns empty/default styles if styles.#### is not found.
+    /// </returns>
+    IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct);
 }
 
 /// <summary>
@@ -70,4 +84,16 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// <returns></returns>
     Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct);
+
+    /// <summary>
+    /// Extracts all cell styles from the workbook's styles.#### file.
+    /// </summary>
+    /// <remarks>
+    /// Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+    /// </remarks>
+    /// <returns>
+    /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+    /// Returns empty/default styles if styles.#### is not found.
+    /// </returns>
+    Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct);
 }

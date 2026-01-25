@@ -256,10 +256,11 @@ Lets take each of the above elements and explain:
 - [>] Cell object type 📅
     - ✅ "Best Effort" `Operator` based conversion
     - ✅ TryGet`Type` will return `out type`, if stored as that type.
-    - [ ] Store cell _style_ type (see Options enum)
-    - [ ] Use of _user_ defined column schema (Excel Number Format nuget?)
+    - ✅ Store cell _style_ type (see Options enum)
+    - ✅ Use of _user_ defined column schema
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
+    - [ ] Unit Tests
 - [ ] Benchmarks
     - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
 

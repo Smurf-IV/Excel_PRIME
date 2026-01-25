@@ -19,26 +19,27 @@ internal sealed record XlsbCell : ICell
     public static XlsbCell? ConstructCell(PooledRecordBuffer reader, InstanceContext instanceContext)
     {
         int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
+        int styleRef = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle ? -1 : reader.GetInt32(4);
 
         CellType cellType;
         CellValue? cellValue;
         switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader)));
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8)));
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
                 (cellType, cellValue) = (CellType.Boolean, new CellValue(reader.GetByte(8) != 0));
                 break;
             case RecordTypeIdentifier.CELLST or RecordTypeIdentifier.CELLFMLASTRING:
-                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8)));
+                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLISST:
                 (cellType, cellValue) = (CellType.SharedString,
-                    new CellValue(GetSharedString(instanceContext, reader)));
+                    new CellValue(GetSharedString(instanceContext, reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
                 (cellType, cellValue) = (CellType.Error, new CellValue((ExcelErrorCode)reader.GetByte(8)));

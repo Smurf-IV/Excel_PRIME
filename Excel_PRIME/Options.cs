@@ -22,12 +22,16 @@ public enum CellConversion
     /// <summary>
     /// Will convert to the CLR type specified by the celltype.
     /// </summary>  
-    ExcelCellType, 
+    ExcelCellType,
 
     /// <summary>
-    /// As NumberAndDates, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    /// Will read the "Excel style" and convert the Date / Time / Numbers accordingly
     /// </summary>
-    [Obsolete("Not Implemented yet!")]
+    ExcelCellStyle,
+
+    /// <summary>
+    /// As ExcelCellStyle, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    /// </summary>
     ForceStyles 
 }
 

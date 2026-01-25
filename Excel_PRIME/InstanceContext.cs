@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using ExcelPRIME.Implementation;
+
 namespace ExcelPRIME;
 
 /// <summary>
@@ -21,5 +23,10 @@ public class InstanceContext
     /// What ranges have been defined
     /// </summary>
     public IReadOnlyDictionary<string, DefinedRange>? DefinedRanges { get; set; }
+
+    /// <summary>
+    /// Cell styles extracted from the workbook's styles.xml file.
+    /// </summary>
+    public IReadOnlyDictionary<int, CellStyle>? CellStyles { get; set; }
 
 }

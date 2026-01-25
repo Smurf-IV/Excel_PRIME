@@ -10,7 +10,11 @@
 - Cell object type 📅
     - "Best Effort" `Operator` based conversion
     - TryGet`Type` will return `out type`, if stored as that type.
-
+- Add `Ecma376StandardProvider`
+- Add `StylesExtractor`
+- Attempt to make use of the Cell types
+- Tinker with some `MethodImpl`
+- Add `_iStyleRef` and start to add formatting based on it
 
 # 2026-01-16 - V3 
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job

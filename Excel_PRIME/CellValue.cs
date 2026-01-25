@@ -2,6 +2,9 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+
+using ExcelPRIME.Implementation;
 
 
 namespace ExcelPRIME;
@@ -26,6 +29,7 @@ public struct CellValue : IEquatable<CellValue>
     private string? _strValue; // Has to be on its own due to reference type
     private readonly CellValueType _type;
     private readonly BclValue _value;
+    private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
 
     [StructLayout(LayoutKind.Explicit)]
     private struct BclValue
@@ -36,10 +40,12 @@ public struct CellValue : IEquatable<CellValue>
     }
 
     // Remove AggressiveOptimization from Constructors
-    internal CellValue(string? strValue)
+    internal CellValue(string? strValue, int iStyleRef)
     {
-        _strValue = strValue;
+        // TODO: iStyleRef might make the string conversion different in future
+        _strValue = strValue != null ? string.Intern(strValue) : null;
         _type = CellValueType.String;
+        _iStyleRef = iStyleRef;
     }
 
     // Remove AggressiveOptimization from Constructors
@@ -50,17 +56,19 @@ public struct CellValue : IEquatable<CellValue>
     }
 
     // Remove AggressiveOptimization from Constructors
-    internal CellValue(double doubleValue)
+    internal CellValue(double doubleValue, int iStyleRef)
     {
         _value = new BclValue { _doubleValue = doubleValue };
         _type = CellValueType.Numeric;
+        _iStyleRef = iStyleRef;
     }
 
     // Remove AggressiveOptimization from Constructors
-    internal CellValue(DateTime dateTimeValue)
+    internal CellValue(DateTime dateTimeValue, int iStyleRef)
     {
         _value = new BclValue { _dateTimeValue = dateTimeValue };
         _type = CellValueType.DateTime;
+        _iStyleRef = iStyleRef;
     }
 
     // Remove AggressiveOptimization from Constructors
@@ -81,15 +89,10 @@ public struct CellValue : IEquatable<CellValue>
     /// </returns>
     // Optimize ToString to cache and avoid repeated allocations
     // Remove AggressiveOptimization from Constructors
-    public override string? ToString()
-    {
-        if (_strValue != null || _type == CellValueType.String)
-        {
-            return _strValue;
-        }
-
-        return ToString_Slow();
-    }
+    public override string? ToString() =>
+        (_strValue != null || _type == CellValueType.String)
+            ? _strValue
+            : ToString_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private string? ToString_Slow() =>
@@ -140,6 +143,18 @@ public struct CellValue : IEquatable<CellValue>
                 DateTime.FromOADate(val)
                 : DateTime.Parse(ToString()!, CultureInfo.InvariantCulture)
         };
+
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
+    /// </summary>
+    public DateOnly AsDateOnly =>
+        DateOnly.FromDateTime(AsDateTime);
+
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
+    /// </summary>
+    public TimeOnly AsTimeOnly =>
+        TimeOnly.FromDateTime(AsDateTime);
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="bool"/> object, if possible.
@@ -255,6 +270,529 @@ public struct CellValue : IEquatable<CellValue>
             _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
 
+    #region Styled Formatters
+
+    /// <summary>
+    /// Returns the cell value as a string formatted according to the specified styles dictionary, if available.
+    /// </summary>
+    /// <returns>
+    /// A string representation of the cell value formatted according to the cell's style, 
+    /// or the default string representation if the style is not found.
+    /// </returns>
+    public string? ToStyledString()
+    {
+        if (_iStyleRef < 0
+            || !Ecma376StandardProvider.TryGetFormat(_iStyleRef, out string? formatCode, out FormattingType type)
+            || string.IsNullOrWhiteSpace(formatCode)
+            || type == FormattingType.General
+            )
+        {
+            return ToString();
+        }
+        return FormatValueWithStyle(formatCode, type);
+    }
+
+    /// <summary>
+    /// Formats the cell value according to the provided style.
+    /// </summary>
+    private string? FormatValueWithStyle(string formatCode, FormattingType type) =>
+        _type switch
+        {
+            CellValueType.Numeric => FormatNumericWithNumberFormat(_value._doubleValue, formatCode, type),
+            CellValueType.DateTime => FormatDateTimeWithNumberFormat(_value._dateTimeValue, formatCode, type),
+            CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
+            _ => ToString() // TODO: What happens if the formatCode is applied to a string type ?
+        };
+
+    /// <summary>
+    /// Formats a numeric value according to an Excel number format code.
+    /// Handles all FormattingType.Number styles including:
+    /// - Regular numbers (0, 0.00, #,##0, #,##0.00)
+    /// - Scientific notation (0.00E+00, ##0.0E0, etc.)
+    /// - Percentages (0%, 0.0%, 0.00%)
+    /// - Fractions (# ?/?, # ??/??)
+    /// - International formats and variants
+    /// </summary>
+    private static string FormatNumericWithNumberFormat(double value, string formatCode, FormattingType type)
+    {
+        // Ensure we're handling FormattingType.Number
+        if (type != FormattingType.Number)
+        {
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return formatCode switch
+        {
+            // General and text formats
+            "General" => value.ToString(CultureInfo.InvariantCulture),
+            "@" => value.ToString(CultureInfo.InvariantCulture),
+
+            // Basic integer formats
+            "0" => Math.Round(value).ToString(CultureInfo.InvariantCulture),
+
+            // Decimal formats
+            "0.00" => value.ToString("F2", CultureInfo.InvariantCulture),
+            "0.0" => value.ToString("F1", CultureInfo.InvariantCulture),
+
+            // Thousand separator formats
+            "#,##0" => Math.Round(value).ToString("N0", CultureInfo.InvariantCulture),
+            "#,##0.0" => value.ToString("N1", CultureInfo.InvariantCulture),
+            "#,##0.00" => value.ToString("N2", CultureInfo.InvariantCulture),
+
+            // With brackets (negative in parentheses)
+            "#,##0;(#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
+            "#,##0.0;(#,##0.0)" => FormatNumberWithNegativeParentheses(value, "N1"),
+            "#,##0.00;(#,##0.00)" => FormatNumberWithNegativeParentheses(value, "N2"),
+
+            // With red color indicator for negatives
+            "#,##0;[Red](#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
+            "#,##0.00;[Red](#,##0.00)" => FormatNumberWithNegativeParentheses(value, "N2"),
+
+            // Currency/Accounting formats (non-currency symbol versions)
+            "_(* #,##0_);_(* (#,##0);_(* \"-\"??_);_(@_)" => FormatAccountingNumber(value, 0),
+            "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)" => FormatAccountingNumber(value, 2),
+
+            // Percentage formats
+            "0%" => (value * 100).ToString("F0", CultureInfo.InvariantCulture) + "%",
+            "0.0%" => (value * 100).ToString("F1", CultureInfo.InvariantCulture) + "%",
+            "0.00%" => (value * 100).ToString("F2", CultureInfo.InvariantCulture) + "%",
+
+            // Scientific notation
+            "0.00E+00" => value.ToString("E2", CultureInfo.InvariantCulture),
+            "0.00E+0" => value.ToString("E2", CultureInfo.InvariantCulture),
+            "0.00E0" => value.ToString("E2", CultureInfo.InvariantCulture),
+            "##0.0E0" => value.ToString("E1", CultureInfo.InvariantCulture),
+            "##0.0E+0" => value.ToString("E1", CultureInfo.InvariantCulture),
+            "##0.0E+00" => value.ToString("E1", CultureInfo.InvariantCulture),
+
+            // Fraction formats
+            "# ?/?" => FormatFraction(value, 1),
+            "# ??/??" => FormatFraction(value, 2),
+
+            // CJK formats (treated as numbers)
+            "[DBNum1][$-804]0" => value.ToString("F0", CultureInfo.InvariantCulture),
+            "[DBNum1][$-804]0.00" => value.ToString("F2", CultureInfo.InvariantCulture),
+            "[DBNum4][$-804]0" => value.ToString("F0", CultureInfo.InvariantCulture),
+
+            // Default: return as double with invariant culture
+            _ => FormatCustomNumber(value, formatCode)
+        };
+    }
+
+    /// <summary>
+    /// Formats a number with negative values in parentheses.
+    /// </summary>
+    private static string FormatNumberWithNegativeParentheses(double value, string format)
+    {
+        if (value < 0)
+        {
+            return "(" + Math.Abs(value).ToString(format, CultureInfo.InvariantCulture) + ")";
+        }
+        return value.ToString(format, CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Formats a number in accounting style with alignment spacing.
+    /// </summary>
+    private static string FormatAccountingNumber(double value, int decimals)
+    {
+        string format = decimals switch
+        {
+            0 => "N0",
+            1 => "N1",
+            2 => "N2",
+            _ => "N" + decimals
+        };
+
+        if (value < 0)
+        {
+            return "(" + Math.Abs(value).ToString(format, CultureInfo.InvariantCulture) + ")";
+        }
+
+        // Add leading space for alignment
+        return " " + value.ToString(format, CultureInfo.InvariantCulture) + " ";
+    }
+
+    /// <summary>
+    /// Formats a decimal number as a fraction.
+    /// </summary>
+    private static string FormatFraction(double value, int maxDigits)
+    {
+        // Get the integer and fractional parts
+        double intPart = Math.Truncate(value);
+        double fracPart = Math.Abs(value - intPart);
+
+        // Find the best rational approximation
+        int denominator = maxDigits switch
+        {
+            1 => 8,  // Single digit: /1 through /9, common: /8
+            2 => 16, // Double digit: /16 is common for 1/16
+            _ => 8
+        };
+
+        // Try to find a simpler fraction
+        int numerator = (int)Math.Round(fracPart * denominator);
+
+        // Simplify fraction if needed
+        int gcd = GreatestCommonDivisor(numerator, denominator);
+        numerator /= gcd;
+        denominator /= gcd;
+
+        if (numerator == 0)
+        {
+            return Math.Round(value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        string result = numerator + "/" + denominator;
+
+        if (intPart != 0)
+        {
+            result = Math.Truncate(intPart).ToString(CultureInfo.InvariantCulture) + " " + result;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Calculates the greatest common divisor using Euclidean algorithm.
+    /// </summary>
+    private static int GreatestCommonDivisor(int a, int b)
+    {
+        while (b != 0)
+        {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    /// <summary>
+    /// Formats a numeric value using a custom format code pattern.
+    /// </summary>
+    private static string FormatCustomNumber(double value, string formatCode)
+    {
+        var span = formatCode.AsSpan();
+        // Check for percentage format in the code
+        if (span.Contains('%'))
+        {
+            // Count decimal places in the format
+            int decimalPlaces = 0;
+            int dotIndex = span.IndexOf('.');
+            if (dotIndex >= 0)
+            {
+                var afterDot = span.Slice(dotIndex + 1);
+                foreach (char c in afterDot)
+                {
+                    if (c == '0')
+                        decimalPlaces++;
+                    else
+                        break;
+                }
+            }
+            
+            return (value * 100).ToString("F" + decimalPlaces, CultureInfo.InvariantCulture) + "%";
+        }
+
+        // Check for scientific notation
+        if (span.ContainsAny("Ee"))
+        {
+            int eIndex = Math.Max(span.IndexOf('E'), span.IndexOf('e'));
+            int decimalPlaces = 2; // default
+            if (eIndex > 0)
+            {
+                var beforeE = span.Slice(0, eIndex);
+                int dotIndex = beforeE.LastIndexOf('.');
+                if (dotIndex >= 0)
+                {
+                    decimalPlaces = beforeE.Length - dotIndex - 1;
+                }
+            }
+            return value.ToString("E" + decimalPlaces, CultureInfo.InvariantCulture);
+        }
+
+        // Count decimal places from format code
+        int dotPos = span.IndexOf('.');
+        int decimals = 0;
+        if (dotPos >= 0)
+        {
+            var afterDot = span.Slice(dotPos + 1);
+            foreach (char c in afterDot)
+            {
+                if (c == '0' || c == '#')
+                    decimals++;
+            }
+        }
+
+        // Check if thousands separator is present
+        if (span.Contains(','))
+        {
+            return value.ToString("N" + decimals, CultureInfo.InvariantCulture);
+        }
+
+        // Default fixed-point format
+        if (decimals > 0)
+        {
+            return value.ToString("F" + decimals, CultureInfo.InvariantCulture);
+        }
+
+        return Math.Round(value).ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Formats a DateTime value according to an Excel number format code.
+    /// Handles all FormattingType.TimeOnly, DateTime, and DateOnly styles including:
+    /// - Time-only formats (h:mm, h:mm:ss, mm:ss, [h]:mm:ss)
+    /// - Date-only formats (mm/dd/yyyy, d-mmm-yy, yyyy-mm-dd, etc.)
+    /// - Combined date/time formats (m/d/yy h:mm, dd/mm/yyyy h:mm:ss, etc.)
+    /// - International variants (German, Chinese, etc.)
+    /// - Millisecond precision formats (hh:mm:ss.000)
+    /// </summary>
+    private static string FormatDateTimeWithNumberFormat(DateTime value, string formatCode, FormattingType type) =>
+        formatCode switch
+        {
+            // ============ TimeOnly Formats ============
+            "mm:ss" => value.ToString("mm:ss", CultureInfo.InvariantCulture),
+            "mm:ss.0" => value.ToString("mm:ss.f", CultureInfo.InvariantCulture),
+            "[h]:mm:ss" => FormatElapsedTime(value),
+            
+            "h:mm AM/PM" => value.ToString("h:mm tt", CultureInfo.InvariantCulture),
+            "h:mm:ss AM/PM" => value.ToString("h:mm:ss tt", CultureInfo.InvariantCulture),
+            
+            "h:mm" => value.ToString("h:mm", CultureInfo.InvariantCulture),
+            "h:mm:ss" => value.ToString("h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "hh:mm:ss" => value.ToString("HH:mm:ss", CultureInfo.InvariantCulture),
+            "hh:mm:ss.000" => value.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture),
+            "h:mm:ss.00" => value.ToString("h:mm:ss.ff", CultureInfo.InvariantCulture),
+            
+            // Locale-specific time formats (US)
+            "[$-409]h:mm AM/PM" => value.ToString("h:mm tt", CultureInfo.InvariantCulture),
+            "[$-409]h:mm:ss AM/PM" => value.ToString("h:mm:ss tt", CultureInfo.InvariantCulture),
+            "[$-409]h:mm" => value.ToString("h:mm", CultureInfo.InvariantCulture),
+            "[$-409]h:mm:ss" => value.ToString("h:mm:ss", CultureInfo.InvariantCulture),
+
+            // ============ DateOnly Formats ============
+            "mm/dd/yyyy" => value.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture),
+            "m/d/yy" => value.ToString("M/d/yy", CultureInfo.InvariantCulture),
+            "mm/dd/yy" => value.ToString("MM/dd/yy", CultureInfo.InvariantCulture),
+            
+            "d-mmm-yy" => value.ToString("d-MMM-yy", CultureInfo.InvariantCulture),
+            "d-mmm" => value.ToString("d-MMM", CultureInfo.InvariantCulture),
+            "mmm-yy" => value.ToString("MMM-yy", CultureInfo.InvariantCulture),
+            
+            "d/m/yy" => value.ToString("d/M/yy", CultureInfo.InvariantCulture),
+            "d.m.yy" => value.ToString("d.M.yy", CultureInfo.InvariantCulture),
+            "d.m.yyyy" => value.ToString("d.M.yyyy", CultureInfo.InvariantCulture),
+            
+            "yyyy-m-d" => value.ToString("yyyy-M-d", CultureInfo.InvariantCulture),
+            "yyyy-mm-dd" => value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            
+            "dd-mmm-yyyy" => value.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
+            "dd/mmm/yyyy" => value.ToString("dd/MMM/yyyy", CultureInfo.InvariantCulture),
+            
+            "dd-mm-yy" => value.ToString("dd-MM-yy", CultureInfo.InvariantCulture),
+            "dd-mm-yyyy" => value.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture),
+            
+            "dd MMMM yyyy" => value.ToString("dd MMMM yyyy", CultureInfo.InvariantCulture),
+            "d. MMMM yyyy" => value.ToString("d. MMMM yyyy", CultureInfo.InvariantCulture),
+            
+            "d MMM yy" => value.ToString("d MMM yy", CultureInfo.InvariantCulture),
+            "d MMMM yy" => value.ToString("d MMMM yy", CultureInfo.InvariantCulture),
+            
+            "mm-dd" => value.ToString("MM-dd", CultureInfo.InvariantCulture),
+            "mm-dd-yy" => value.ToString("MM-dd-yy", CultureInfo.InvariantCulture),
+            "mm-dd-yyyy" => value.ToString("MM-dd-yyyy", CultureInfo.InvariantCulture),
+            
+            "mmmm d, yyyy" => value.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture),
+            "d MMMM, yyyy" => value.ToString("d MMMM, yyyy", CultureInfo.InvariantCulture),
+            
+            "dd-mmm" => value.ToString("dd-MMM", CultureInfo.InvariantCulture),
+            
+            "ddd, mmmm dd, yyyy" => value.ToString("ddd, MMMM dd, yyyy", CultureInfo.InvariantCulture),
+            
+            // CJK and Japanese formats
+            "g/m/d" => value.ToString("g/M/d", CultureInfo.InvariantCulture),
+            "ge.m.d" => value.ToString("ge.M.d", CultureInfo.InvariantCulture),
+            "gg" => value.ToString("gg", CultureInfo.InvariantCulture),
+            "ggg" => value.ToString("ggg", CultureInfo.InvariantCulture),
+            
+            // Locale-specific date formats (US)
+            "[$-409]M/d/yy" => value.ToString("M/d/yy", CultureInfo.InvariantCulture),
+            "[$-409]d-mmm-yy" => value.ToString("d-MMM-yy", CultureInfo.InvariantCulture),
+            "[$-409]d-mmm" => value.ToString("d-MMM", CultureInfo.InvariantCulture),
+            "[$-409]mmm-yy" => value.ToString("MMM-yy", CultureInfo.InvariantCulture),
+            
+            // German date format
+            "d. mmm. yyyy" => value.ToString("d. MMM. yyyy", CultureInfo.InvariantCulture),
+            "dddd, d. mmmm yyyy" => value.ToString("dddd, d. MMMM yyyy", CultureInfo.InvariantCulture),
+
+            // ============ DateTime (Combined) Formats ============
+            "m/d/yy h:mm" => value.ToString("M/d/yy h:mm", CultureInfo.InvariantCulture),
+            "m/d/yy h:mm:ss" => value.ToString("M/d/yy h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "d/m/yy h:mm" => value.ToString("d/M/yy h:mm", CultureInfo.InvariantCulture),
+            "d/m/yy h:mm:ss" => value.ToString("d/M/yy h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "d/m/yyyy h:mm" => value.ToString("d/M/yyyy h:mm", CultureInfo.InvariantCulture),
+            "d/m/yyyy h:mm:ss" => value.ToString("d/M/yyyy h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "yyyy-m-d h:mm:ss" => value.ToString("yyyy-M-d h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "mm/dd/yyyy h:mm:ss" => value.ToString("MM/dd/yyyy h:mm:ss", CultureInfo.InvariantCulture),
+            "dd/mm/yyyy h:mm:ss" => value.ToString("dd/MM/yyyy h:mm:ss", CultureInfo.InvariantCulture),
+            
+            "yyyy-mm-dd hh:mm:ss" => value.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            "yyyy-mm-dd'T'hh:mm:ss" => value.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture),
+            
+            "mmmm d, yyyy h:mm:ss" => value.ToString("MMMM d, yyyy h:mm:ss", CultureInfo.InvariantCulture),
+            
+            // Locale-specific datetime formats (US)
+            "[$-409]m/d/yy h:mm" => value.ToString("M/d/yy h:mm", CultureInfo.InvariantCulture),
+
+            // ============ Default/Fallback ============
+            _ => FormatCustomDateTime(value, formatCode, type)
+        };
+
+    /// <summary>
+    /// Formats elapsed time in [h]:mm:ss format (hours can exceed 24).
+    /// </summary>
+    private static string FormatElapsedTime(DateTime value)
+    {
+        TimeOnly timeOnly = TimeOnly.FromDateTime(value);
+        int totalHours = timeOnly.Hour;
+        int minutes = value.Minute;
+        int seconds = value.Second;
+        return $"{totalHours}:{minutes:D2}:{seconds:D2}";
+    }
+
+    /// <summary>
+    /// Formats a DateTime value using a custom format code pattern.
+    /// </summary>
+    private static string FormatCustomDateTime(DateTime value, string formatCode, FormattingType type)
+    {
+        // Handle formats with color indicators (e.g., "[Red]mm:ss")
+        if (formatCode.Contains("[Red]"))
+        {
+            string cleanFormat = formatCode.Replace("[Red]", "");
+            return FormatCustomDateTime(value, cleanFormat, type);
+        }
+
+        // Try to convert Excel format codes to .NET format codes
+        string netFormat = ConvertExcelDateTimeFormatToNet(formatCode);
+        
+        try
+        {
+            return value.ToString(netFormat, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            // Fallback based on FormattingType
+            return type switch
+            {
+                FormattingType.TimeOnly => value.ToString("HH:mm:ss", CultureInfo.InvariantCulture),
+                FormattingType.DateOnly => value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                FormattingType.DateTime => value.ToString("s", CultureInfo.InvariantCulture),
+                _ => value.ToString(CultureInfo.InvariantCulture)
+            };
+        }
+    }
+
+    /// <summary>
+    /// Converts Excel date/time format codes to .NET DateTime format strings.
+    /// Intelligently handles "mm" which can be either months or minutes depending on context.
+    /// </summary>
+    private static string ConvertExcelDateTimeFormatToNet(string excelFormat)
+    {
+        // Build a mapping for common conversions
+        string result = excelFormat;
+        
+        // Handle full and abbreviated month names first (these are unambiguous)
+        result = result.Replace("mmmm", "MMMM"); // Full month name
+        result = result.Replace("mmm", "MMM");   // Abbreviated month name
+        
+        // Now handle "mm" carefully - only replace when it's a month, not minutes
+        // "mm" is a month when:
+        // - It's followed by "/" or "-" and preceded/followed by day or year (e.g., "mm/dd", "d-mm")
+        // - It's part of date format
+        // "mm" is minutes when:
+        // - It's followed by ":" (e.g., "h:mm", "mm:ss")
+        // - It's in a time-only context
+        
+        // Safer approach: replace "mm" only when NOT followed by colon
+        // Build the result character by character to avoid replacing "mm" in time contexts
+        StringBuilder sb = new StringBuilder(result.Length);
+        int i = 0;
+        while (i < result.Length)
+        {
+            // Look for "mm" pattern
+            if (i < result.Length - 1 && result[i] == 'm' && result[i + 1] == 'm')
+            {
+                // Check if it's followed by a colon (indicating minutes)
+                if (i + 2 < result.Length && result[i + 2] == ':')
+                {
+                    // This is minutes - keep as "mm"
+                    sb.Append("mm");
+                    i += 2;
+                }
+                else
+                {
+                    // Check if preceded by digit or date separator, or followed by date pattern
+                    bool isProbablyMonth = false;
+                    
+                    // If preceded by a digit or date separator
+                    if (i > 0 && (char.IsDigit(result[i - 1]) || result[i - 1] == '/' || result[i - 1] == '-' || result[i - 1] == '.'))
+                    {
+                        isProbablyMonth = true;
+                    }
+                    
+                    // If followed by digit, date separator, or date character
+                    if (i + 2 < result.Length)
+                    {
+                        char next = result[i + 2];
+                        if (char.IsDigit(next) || next == '/' || next == '-' || next == '.' || next == 'd' || next == 'y' || next == 'D' || next == 'Y')
+                        {
+                            isProbablyMonth = true;
+                        }
+                    }
+                    
+                    if (isProbablyMonth)
+                    {
+                        sb.Append("MM");
+                    }
+                    else
+                    {
+                        sb.Append("mm");
+                    }
+                    i += 2;
+                }
+            }
+            else
+            {
+                sb.Append(result[i]);
+                i++;
+            }
+        }
+        result = sb.ToString();
+        
+        // Year patterns
+        //result = result.Replace("yyyy", "yyyy"); // Four-digit year
+        //result = result.Replace("yy", "yy");     // Two-digit year
+        
+        // Time patterns
+        //result = result.Replace("H", "H");       // One or two-digit hour (24-hour)
+        //result = result.Replace("ss", "ss");     // Two-digit seconds
+        //result = result.Replace("ff", "ff");     // Two-digit milliseconds
+        //result = result.Replace("fff", "fff");   // Three-digit milliseconds
+        
+        // AM/PM indicators
+        result = result.Replace("AM/PM", "tt");     // AM/PM
+        result = result.Replace("A/P", "t");        // A/P
+        
+        return result;
+    }
+
+    #endregion
     /// <summary>
     /// Determines whether the specified object is equal to the current <see cref="CellValue"/> instance.
     /// </summary>
@@ -340,6 +878,45 @@ public struct CellValue : IEquatable<CellValue>
         try
         {
             value = AsDateTime;
+            return true;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="DateOnly"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryDateOnly(out DateOnly value)
+    {
+        try
+        {
+            value = DateOnly.FromDateTime(AsDateTime);
+            return true;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the cell value was successfully converted to a <see cref="TimeOnly"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryTimeOnly(out TimeOnly value)
+    {
+        try
+        {
+            value = TimeOnly.FromDateTime(AsDateTime);
             return true;
         }
         catch
@@ -526,6 +1103,18 @@ public struct CellValue : IEquatable<CellValue>
     /// <returns>A DateTime representation of the cell value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DateTime(CellValue value) => value.AsDateTime;
+
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator DateOnly(CellValue value) => value.AsDateOnly;
+
+    /// <summary>
+    /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator TimeOnly(CellValue value) => value.AsTimeOnly;
 
     #endregion
 }
