@@ -1,42 +1,33 @@
 ﻿<!--TOC-->
-  - [ake), 1 CPU,](#ake-1-cpu)
-  - [the following de](#the-following-de)
-    - [|----------](#-)
-  - [MB |](#mb-)
-    - [5x more |](#5x-more-)
-  - [35 MB |  1.23x m](#35-mb-1.23x-m)
-    - [-](#-)
-  - [xlsx [39]](#xlsx-39)
-    - [2.04x slower | 197000.00](#2.04x-slower-197000.00)
-    - [- |------------](#-)
-- [EveryCellSyl](#everycellsyl)
-  - [n           | Data/(...).xlsx [35] | b](#n-data....xlsx-35-b)
-  - [ryCellExcel_Prime      | Data/](#rycellexcel_prime-data)
-  - [- |-----------------](#-)
-  - [--:|------------:|
-```
------
-
-#](#-)
-  - [| Allocated   | Alloc Ratio |
-|-------------------------------- |--------------------- |-------------:|-------------:|------------:|------------:|------------:|------------:|
-| AccessEver](#-allocated-alloc-ratio-accessever)
-- [8000.0000 |](#8000.0000-)
-  - [4000.0000](#4000.0000)
-  - [-------:|-----](#-)
-  - [ime | Data/(...).xlsx [35] |](#ime-data....xlsx-35-)
-  - [0000 |   1000.0000](#0000-1000.0000)
-  - [| Data/(...).](#-data....)
-  - [8.6 MB | 19.56x](#8.6-mb-19.56x)
-    - [re |
-|-------](#re-)
-  - [appear to have more memory used??](#appear-to-have-more-memory-used)
-- [- |   106.77 M](#-106.77-m)
-- [|](#)
-  - [re |
-| AccessEveryCellExcel_Prime      | Data/(...).](#re-accesseverycellexcel_prime-data....)
-  - [-------------------------------- |](#-)
-  - [- Investigate the u](#-investigate-the-u)
+- [Intro](#intro)
+- [2025-10-18 pm](#2025-10-18-pm)
+- [2025-10-19 pm](#2025-10-19-pm)
+- [2025-10-23](#2025-10-23)
+- [2025-10-26](#2025-10-26)
+- [2025-10-25](#2025-10-25)
+- [2025-10-26](#2025-10-26)
+- [2025-11-01](#2025-11-01)
+- [2025-11-04](#2025-11-04)
+- [2025-11-07](#2025-11-07)
+- [2025-11-08](#2025-11-08)
+- [2025-11-12](#2025-11-12)
+- [2025-11-16 - Beta V2](#2025-11-16-beta-v2)
+- [2025-11-25 - Beta V2](#2025-11-25-beta-v2)
+- [2025-11-27 - Beta V2](#2025-11-27-beta-v2)
+- [2025-11-18 - Beta V2](#2025-11-18-beta-v2)
+- [2025-12-01 - Beta V2](#2025-12-01-beta-v2)
+- [2025-12-02 - Beta V2](#2025-12-02-beta-v2)
+- [2025-12-04 - Beta V2](#2025-12-04-beta-v2)
+- [2025-12-07 - Beta V2](#2025-12-07-beta-v2)
+- [2025-12-10](#2025-12-10)
+- [2025-12-20](#2025-12-20)
+- [2025-12-21](#2025-12-21)
+- [2026-01-02](#2026-01-02)
+- [2026-01-04](#2026-01-04)
+- [2026-01-11](#2026-01-11)
+- [2026-01-16 - V3](#2026-01-16-v3)
+- [2026-01-18 - V4 Alpha](#2026-01-18-v4-alpha)
+- [2026-01-20 - V4 Alpha](#2026-01-20-v4-alpha)
 <!--/TOC-->
 
 # Intro
@@ -605,7 +596,7 @@ And then slightly different versions of the following dependent on date:
     - Replace uses of `string.Split` in DefinedRange with span-based parsing
 - Some code Cleanup
 - Sacrificed a little speed..
-- 
+
 ```
 | Method                          | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
 |-------------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
@@ -947,7 +938,7 @@ And then slightly different versions of the following dependent on date:
 -----
 
 # 2026-01-20 - V4 Alpha
-- Use `ValueTask` and reduce memory allocations in some hot paths
+- Use `Task` and reduce memory allocations in some hot paths
 ```
 | Method                   | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
 |------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|

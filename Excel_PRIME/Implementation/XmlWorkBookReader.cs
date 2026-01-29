@@ -290,8 +290,8 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
 
     private async Task<Dictionary<string, string>> PopulateWorkSheetRelsAsync(CancellationToken ct)
     {
-        using Stream? streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.xml.rels", ct).ConfigureAwait(false);
-        using XmlReader readerRels = XmlReader.Create(streamRelWb!, new XmlReaderSettings
+        using Stream streamRelWb = await _zipReaderA.GetEntryAsync("xl/_rels/workbook.xml.rels", ct).ConfigureAwait(false)!;
+        using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
             IgnoreComments = true, // Skip parsing and allocating strings for comments

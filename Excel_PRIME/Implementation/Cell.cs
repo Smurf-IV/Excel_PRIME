@@ -28,7 +28,7 @@ internal sealed record Cell : ICell
         int bufferSize = buffer.Length;
         int len;
         int style=-1;
-        bool noCellConversion = instanceContext.Options.CellConversionType == CellConversion.None;
+        bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
         bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
 
         void ReadValue()
@@ -53,14 +53,14 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (!noCellStyle
-                && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
-                )
-            {
-                ReadValue();
-                style = GetStyleOffset(buffer, len);
-                expectedAttributes--;
-            }
+            //else if (!noCellStyle
+            //    && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
+            //    )
+            //{
+            //    ReadValue();
+            //    style = GetStyleOffset(buffer, len);
+            //    expectedAttributes--;
+            //}
         }
 
         reader.MoveToElement();
@@ -82,7 +82,7 @@ internal sealed record Cell : ICell
                     value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
                 }
             }
-            else if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
             {   // Perform conversion
                 switch (type)
                 {
@@ -156,7 +156,7 @@ internal sealed record Cell : ICell
             };
     }
 
-    // CHANGED: Use stackalloc for small attribute buffers
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -166,7 +166,7 @@ internal sealed record Cell : ICell
         int bufferSize = buffer.Length;
         int len;
         int style = -1;
-        bool noCellConversion = instanceContext.Options.CellConversionType == CellConversion.None;
+        bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
         bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
 
         void ReadValue()
@@ -191,14 +191,14 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (!noCellStyle
-                     && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
-                    )
-            {
-                ReadValue();
-                style = GetStyleOffset(buffer, len);
-                expectedAttributes--;
-            }
+            //else if (!noCellStyle
+            //         && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
+            //        )
+            //{
+            //    ReadValue();
+            //    style = GetStyleOffset(buffer, len);
+            //    expectedAttributes--;
+            //}
         }
 
         reader.MoveToElement();
@@ -208,7 +208,7 @@ internal sealed record Cell : ICell
         {
             // Move to data
             reader.Read();
-            if (instanceContext.Options.CellConversionType == CellConversion.None)
+            if (noCellConversion)
             {
                 if (type == CellType.SharedString)
                 {
@@ -220,7 +220,7 @@ internal sealed record Cell : ICell
                     value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
                 }
             }
-            else if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
             {   // Perform conversion
                 switch (type)
                 {

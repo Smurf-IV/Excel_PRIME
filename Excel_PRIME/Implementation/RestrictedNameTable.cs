@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Xml;
 
 // ReSharper disable InconsistentNaming on "private const string"s
@@ -27,7 +28,7 @@ internal sealed class SharedStringsRestrictedNameTable : NameTable
 
     public override string? Get(string value) => Get(value.AsSpan());
 
-    // [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
     {
         switch (value.Length)
@@ -91,7 +92,7 @@ internal sealed class SheetRestrictedNameTable : NameTable
 
     public override string? Get(string value) => Get(value.AsSpan());
 
-    //[MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
     {
         switch (value.Length)
@@ -183,7 +184,7 @@ internal sealed class WorkBookRestrictedNameTable : NameTable
 
     public override string? Get(string value) => Get(value.AsSpan());
 
-    //[MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
     {
         switch (value.Length)

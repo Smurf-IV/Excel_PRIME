@@ -59,8 +59,8 @@ public class StylesExtractionExample
 
                         // Example 2: Get the styled string representation using extracted styles
                         // The styles are automatically extracted when the workbook is opened
-                        string styledString = cell.CellValue.ToStyledString() ?? "null";
-                        Console.WriteLine($"Styled cell value: {styledString}");
+                        //string styledString = cell.CellValue.ToStyledString() ?? "null";
+                        //Console.WriteLine($"Styled cell value: {styledString}");
                     }
                 }
             }

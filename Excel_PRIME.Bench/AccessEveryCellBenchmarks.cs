@@ -20,9 +20,9 @@ public class AccessEveryCellBenchmarks
 {
     private const string RootFolder = @"Data\";
     [Params(
-        "Blank Data 1 Million Rows.xlsx",
-        "sampledocs-50mb-xlsx-file.xlsx",
-        "sampledocs-50mb-xlsx-file-sst.xlsx",
+        //"Blank Data 1 Million Rows.xlsx",
+        //"sampledocs-50mb-xlsx-file.xlsx",
+        //"sampledocs-50mb-xlsx-file-sst.xlsx",
         "100mb.xlsx"
     )]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -55,7 +55,7 @@ public class AccessEveryCellBenchmarks
         return cells;
     }
 
-    [Benchmark]
+    //[Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public int XlsxHelper()
     {
