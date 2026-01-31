@@ -145,7 +145,7 @@ internal sealed class Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value is not null
+        return value is null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
@@ -284,7 +284,7 @@ internal sealed class Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value is not null
+        return value is null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {

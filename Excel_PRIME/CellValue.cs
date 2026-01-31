@@ -813,7 +813,7 @@ public class CellValue : IEquatable<CellValue>
     /// <returns>
     /// A 32-bit signed integer hash code that represents the current<see cref = "CellValue" />.
     /// </returns >
-    /// < remarks >
+    /// <remarks>
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
@@ -822,7 +822,7 @@ public class CellValue : IEquatable<CellValue>
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
     /// </summary >
-    /// < param name= "other" > The < see cref= "CellValue" /> instance to compare with the current instance.</param>
+    /// <param name= "other" > The <see cref= "CellValue" /> instance to compare with the current instance.</param>
     /// <returns>
     /// <c>true</c> if the current instance and the<paramref name = "other" /> instance are equal; otherwise, <c>false</c>.
     /// </returns>
@@ -831,9 +831,10 @@ public class CellValue : IEquatable<CellValue>
     /// For example, numeric values are compared numerically, strings are compared using string equality,
     /// and dates are compared using date-time equality.
     /// </remarks>
-    public bool Equals(CellValue other)
+    public bool Equals(CellValue? other)
     {
-        if (_type != other._type)
+        if (other is null
+            || _type != other._type)
         {
             return false;
         }
@@ -856,7 +857,19 @@ public class CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator ==(CellValue? left, CellValue right) => left.Equals(right);
+    public static bool operator ==(CellValue? left, CellValue? right)
+    {
+        if (ReferenceEquals(left, right))
+        {
+            return true;
+        }
+        if (left is null
+            || right is null)
+        {
+            return false;
+        }
+        return left.Equals(right);
+    }
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.
@@ -866,7 +879,7 @@ public class CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified<see cref="CellValue"/> instances are not equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator !=(CellValue left, CellValue right) => !(left == right);
+    public static bool operator !=(CellValue? left, CellValue? right) => !(left == right);
 
     /// <summary>
     /// Attempts to get the value of the cell as a <see cref="DateTime"/> object.
@@ -891,6 +904,7 @@ public class CellValue : IEquatable<CellValue>
             return false;
         }
     }
+    
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
     /// </summary>
