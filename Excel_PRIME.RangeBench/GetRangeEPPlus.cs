@@ -44,7 +44,7 @@ public class GREPPlus : IGetRange
                 List<object?> rowData = new List<object?>(range.End.Column - range.Start.Column);
                 for (int col = range.Start.Column; col <= range.End.Column; col++)
                 {
-                    rowData.Add(range.Worksheet.Cells[row, col].Value.ToString());
+                    rowData.Add(range.Worksheet.Cells[row, col].ToString());
                 }
                 yield return rowData;
             }

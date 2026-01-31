@@ -222,7 +222,7 @@ public record DefinedRange
     }
 
     /// <summary>
-    /// Xml.Attribute("name").Value; 
+    /// Xml.Attribute("name"); 
     /// </summary>
     public string Name { get; init; }
 
@@ -252,12 +252,12 @@ public record DefinedRange
     public int ExcelRowEnd { get; private set; }
 
     ///// <summary>
-    ///// Xml.Value;
+    ///// Xml;
     ///// </summary>
     //public string SheetIdReference { get; init; }
 
     /// <summary>
-    /// Xml.Value;
+    /// Xml;
     /// </summary>
     public string? ConstValue { get; private set; }
 }

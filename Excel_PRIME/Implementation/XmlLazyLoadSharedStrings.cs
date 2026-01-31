@@ -179,7 +179,7 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
                     {
                         if (_reader.NodeType is XmlNodeType.Text or XmlNodeType.CDATA or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace)
                         {
-                            _currentStNodeBuilder.Append(_reader.Value);
+                            _currentStNodeBuilder.Append(_reader);
                         }
 
                         if (_reader.NodeType == XmlNodeType.EndElement && _reader.Depth == tDepth)

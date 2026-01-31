@@ -47,7 +47,7 @@ public class GRAsposeCells : IGetRange
                 // Iterate through each column in the range to access individual cell values
                 for (int j = 0; j < columnCount; j++)
                 {
-                    rowData.Add(namedRange.GetCellOrNull(i, j).Value.ToString());
+                    rowData.Add(namedRange.GetCellOrNull(i, j).ToString());
                 }
                 yield return rowData;
             }

@@ -122,7 +122,7 @@ public class AccessEveryCellBenchmarksXlsb
                 for (int c = 0; c <= maxCol; c++)
                 {
                     Cell cell = wsCells[r, c];
-                    if (cell.Value != null)
+                    if (cell != null)
                     {
                         rowHasData = true;
                         break;

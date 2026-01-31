@@ -43,7 +43,7 @@ public class GRClosedXML : IGetRange
         {
             foreach (IXLRangeRow? row in range.Rows())
             {
-                yield return row.Cells().Select(c => c.Value.ToString());
+                yield return row.Cells().Select(c => c.ToString());
             }
         }
     }

@@ -12,8 +12,8 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{CellValue.ToString(),raw}")]
-internal sealed record Cell : ICell
+[DebuggerDisplay("{ToString(),raw}")]
+internal sealed class Cell : ICell
 {
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
     private char[]? _columnLetters;
@@ -145,14 +145,14 @@ internal sealed record Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value == null
+        return value is not null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
-                CellValue = value.Value
+                CellValue = value
             };
     }
 
@@ -284,14 +284,14 @@ internal sealed record Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value == null
+        return value is not null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
-                CellValue = value.Value
+                CellValue = value
             };
     }
 
@@ -364,7 +364,7 @@ internal sealed record Cell : ICell
     #endregion
 
     /// <InheritDoc />
-    public CellValue CellValue { get; private init; }
+    public CellValue? CellValue { get; private init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }
@@ -406,6 +406,9 @@ internal sealed record Cell : ICell
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }
+
+    /// <InheritDoc />
+    public override string? ToString() => CellValue?.ToString() ?? base.ToString();
 
     // CHANGED: Removed AggressiveOptimization - simple switch on first char, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

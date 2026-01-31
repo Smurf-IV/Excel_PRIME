@@ -14,7 +14,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
 /// </summary>
-public struct CellValue : IEquatable<CellValue>
+public class CellValue : IEquatable<CellValue>
 {
     private enum CellValueType
     {
@@ -856,7 +856,7 @@ public struct CellValue : IEquatable<CellValue>
     /// <returns>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator ==(CellValue left, CellValue right) => left.Equals(right);
+    public static bool operator ==(CellValue? left, CellValue right) => left.Equals(right);
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.

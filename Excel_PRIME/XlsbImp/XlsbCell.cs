@@ -8,8 +8,8 @@ using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{CellValue}")]
-internal sealed record XlsbCell : ICell
+[DebuggerDisplay("{ToString(),raw}")]
+internal sealed class XlsbCell : ICell
 {
     // Static cache for column letter arrays to avoid repeated allocations
     // Column offsets range from 1-16384 in Excel, allocate conservatively
@@ -54,7 +54,7 @@ internal sealed record XlsbCell : ICell
         {
             ExcelColumnOffset = columnOffset,
             RawExcelType = cellType,
-            CellValue = cellValue.Value
+            CellValue = cellValue
         };
     }
 
@@ -94,7 +94,7 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public CellValue CellValue { get; private init; }
+    public CellValue? CellValue { get; private init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }
@@ -131,4 +131,8 @@ internal sealed record XlsbCell : ICell
 
     /// <InheritDoc />
     public int ExcelColumnOffset { get; private init; }
+
+    /// <InheritDoc />
+    public override string? ToString() => CellValue?.ToString() ?? base.ToString();
+
 }

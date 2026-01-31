@@ -39,7 +39,7 @@ public class GRFreeSpire : IGetRange
             {
                 foreach (CellRange cells in row.CellList)
                 {
-                    yield return cells.Select(c => c.Value.ToString());
+                    yield return cells.Select(c => c.ToString());
                 }
             }
         }

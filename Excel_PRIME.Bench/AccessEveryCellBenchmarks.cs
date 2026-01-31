@@ -20,9 +20,9 @@ public class AccessEveryCellBenchmarks
 {
     private const string RootFolder = @"Data\";
     [Params(
-        //"Blank Data 1 Million Rows.xlsx",
-        //"sampledocs-50mb-xlsx-file.xlsx",
-        //"sampledocs-50mb-xlsx-file-sst.xlsx",
+        "Blank Data 1 Million Rows.xlsx",
+        "sampledocs-50mb-xlsx-file.xlsx",
+        "sampledocs-50mb-xlsx-file-sst.xlsx",
         "100mb.xlsx"
     )]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -55,7 +55,7 @@ public class AccessEveryCellBenchmarks
         return cells;
     }
 
-    //[Benchmark]
+    [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public int XlsxHelper()
     {
@@ -96,7 +96,7 @@ public class AccessEveryCellBenchmarks
     //        {
     //            foreach (FastExcel.Cell cell in row.Cells)
     //            {
-    //                _ = cell.Value;
+    //                _ = cell;
     //                cells++;
     //            }
     //        }
@@ -127,7 +127,7 @@ public class AccessEveryCellBenchmarks
                     foreach (ICell? cell in rowCells)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                         {
                             cells++;
                         }
@@ -160,7 +160,7 @@ public class AccessEveryCellBenchmarks
                 IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
                 if (rowCells != null)
                 {
-                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue.ToString()));
+                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue?.ToString()));
                 }
                 row.Dispose();
             }
@@ -205,7 +205,7 @@ public class AccessEveryCellBenchmarks
                         foreach (ICell? cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                             {
                                 Interlocked.Increment(ref cells);
                             }
@@ -236,7 +236,7 @@ public class AccessEveryCellBenchmarks
                         foreach (ICell? cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                             {
                                 Interlocked.Increment(ref cells);
                             }

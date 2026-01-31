@@ -253,6 +253,8 @@ Lets take each of the above elements and explain:
     - Removal of `Index` property from `ISheet`
     - Internal Creation of WorkBooks
     - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
+    - `CellValue` is now a `class`, therefore no need to use `.Value`
+    - `ICell.CellValue` is now nullable
 - [>] Cell object type 📅
     - ✅ "Best Effort" `Operator` based conversion
     - ✅ TryGet`Type` will return `out type`, if stored as that type.
@@ -263,6 +265,7 @@ Lets take each of the above elements and explain:
     - [ ] Unit Tests
 - [ ] Benchmarks
     - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
+    - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
 
 -----
 
