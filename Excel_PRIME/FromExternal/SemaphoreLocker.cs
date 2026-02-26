@@ -32,6 +32,26 @@ internal sealed class SemaphoreLocker : IDisposable
         }
     }
 
+    public T Lock<T>(Func<T> worker)
+    {
+        bool isTaken = false;
+        try
+        {
+            do
+            {
+                isTaken = _semaphore.Wait(TimeSpan.FromMilliseconds(250));
+            } while (!isTaken);
+            return worker();
+        }
+        finally
+        {
+            if (isTaken)
+            {
+                _semaphore.Release();
+            }
+        }
+    }
+
     public async Task LockAsync(Func<Task> worker)
     {
         bool isTaken = false;

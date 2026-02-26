@@ -14,7 +14,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
 /// </summary>
-public class CellValue : IEquatable<CellValue>
+public sealed class CellValue : IEquatable<CellValue>
 {
     private enum CellValueType
     {
@@ -904,7 +904,7 @@ public class CellValue : IEquatable<CellValue>
             return false;
         }
     }
-    
+
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
     /// </summary>
