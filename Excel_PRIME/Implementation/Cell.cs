@@ -53,14 +53,14 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            //else if (!noCellStyle
-            //    && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
-            //    )
-            //{
-            //    ReadValue();
-            //    style = GetStyleOffset(buffer, len);
-            //    expectedAttributes--;
-            //}
+            else if (!noCellStyle
+                && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
+                )
+            {
+                ReadValue();
+                style = GetStyleOffset(buffer, len);
+                expectedAttributes--;
+            }
         }
 
         reader.MoveToElement();
