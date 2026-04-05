@@ -1,4 +1,4 @@
-﻿# 2026-01-## - V4 - Alpha
+﻿# 2026-04-05 - V4 - Beta
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`

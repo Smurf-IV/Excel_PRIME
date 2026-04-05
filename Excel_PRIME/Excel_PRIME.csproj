@@ -42,7 +42,7 @@
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
 		<VersionPrefix>4.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
-		<!--<VersionSuffix>beta</VersionSuffix>-->
+		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
 		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageIcon>Excel.png</PackageIcon>

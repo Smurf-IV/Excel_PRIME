@@ -103,22 +103,22 @@ Lets take each of the above elements and explain:
 
 <a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
 -----
-<!--TOC-->
+<!-- TOC-->
 - [Targets 🎯](#targets-)
   - [Phase 0](#phase-0)
   - [Phase Alpha](#phase-alpha)
-  - [Phase Beta - Benchmarks ⏱️](#phase-beta-benchmarks-)
-  - [Phase 1 - MVP 🔍](#phase-1-mvp-)
-  - [Phase 2 - RC](#phase-2-rc)
-  - [V2 Changes](#v2-changes)
+  - [Phase Beta - Benchmarks ⏱️](#phase-beta---benchmarks-)
+  - [Phase 1 - MVP 🔍](#phase-1---mvp-)
+  - [Phase 2 - RC](#phase-2---rc)
+  - [V2 Changes ➡️](#v2-changes-)
     - [2025-12-14](#2025-12-14)
-  - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3-xlsb-biff12)
-- [V3 Changes](#v3-changes)
+  - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
+- [V3 Changes ➡️](#v3-changes-)
 - [2026-01-16](#2026-01-16)
-  - [Phase V4 - Specific Cell value type(s) #️⃣ - Alpha](#phase-v4-specific-cell-value-types-alpha)
-  - [Phase 5 - Third Party Nugets 📦](#phase-5-third-party-nugets-)
-  - [Phase 6 - ideas 💡](#phase-6-ideas-)
-<!--/TOC-->
+  - [Phase V4 - Specific Cell value type(s) #️⃣ - Beta](#phase-v4---specific-cell-value-types----beta)
+  - [Phase 5 - Third Party Nugets 📦](#phase-5---third-party-nugets-)
+  - [Phase 6 - ideas 💡](#phase-6---ideas-)
+<!-- TOC -->
 -----
 
 # Targets 🎯
@@ -246,30 +246,30 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase V4 - Specific Cell value type(s) #️⃣ - Alpha
+## Phase V4 - Specific Cell value type(s) #️⃣ - Beta
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`
     - Removal of `Index` property from `ISheet`
     - Internal Creation of WorkBooks
-    - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
+    - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the "Sheet Name"
     - `CellValue` is now a `class`, therefore no need to use `.Value`
     - `ICell.CellValue` is now nullable
-- [>] Cell object type 📅
+- ✅ Cell object type 📅
     - ✅ "Best Effort" `Operator` based conversion
     - ✅ TryGet`Type` will return `out type`, if stored as that type.
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Use of _user_ defined column schema
-    - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
-    - [ ] Formatter applied -> `CellConversion.ForceStyles`
-    - [ ] Unit Tests
-- [ ] Benchmarks
+    - ✅ Formatter applied -> `CellConversion.ForceStyles`
+    - ✅ Unit Tests
+- ✅ Benchmarks
     - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
     - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
 
 -----
 
 ## Phase 5 - Third Party Nugets 📦
+- [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
     - [ ] Separate Nuget(s) ?
 - [ ] Benchmarks
