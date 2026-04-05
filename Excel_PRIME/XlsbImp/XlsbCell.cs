@@ -9,7 +9,7 @@ using ExcelPRIME.XlsbImp;
 namespace ExcelPRIME.Implementation;
 
 [DebuggerDisplay("{ToString(),raw}")]
-internal sealed class XlsbCell : ICell
+internal sealed record XlsbCell : ICell
 {
     // Static cache for column letter arrays to avoid repeated allocations
     // Column offsets range from 1-16384 in Excel, allocate conservatively

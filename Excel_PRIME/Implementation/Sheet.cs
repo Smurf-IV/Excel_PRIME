@@ -56,7 +56,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         CheckLocation(startRow, ct);
         while (_sheetReader!.CurrentRow < SheetDimensions.Height
@@ -206,7 +206,7 @@ internal sealed class Sheet : ISheetAsync
         }
     }
 
-    private void CheckLocation(int startRow, CancellationToken ct)
+    private void CheckLocation(int startRow, [EnumeratorCancellation] CancellationToken ct)
     {
         if (_sheetReader == null
             || _sheetReader.CurrentRow > startRow

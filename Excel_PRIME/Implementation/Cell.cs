@@ -13,7 +13,7 @@ using ExcelPRIME.FromExternal;
 namespace ExcelPRIME.Implementation;
 
 [DebuggerDisplay("{ToString(),raw}")]
-internal sealed class Cell : ICell
+internal sealed record Cell : ICell
 {
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
     private char[]? _columnLetters;
