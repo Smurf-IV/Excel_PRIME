@@ -1,35 +1,36 @@
-﻿<!--TOC-->
+﻿<!-- TOC-->
 - [Intro](#intro)
 - [2025-10-18 pm](#2025-10-18-pm)
 - [2025-10-19 pm](#2025-10-19-pm)
 - [2025-10-23](#2025-10-23)
 - [2025-10-26](#2025-10-26)
 - [2025-10-25](#2025-10-25)
-- [2025-10-26](#2025-10-26)
+- [2025-10-26](#2025-10-26-1)
 - [2025-11-01](#2025-11-01)
 - [2025-11-04](#2025-11-04)
 - [2025-11-07](#2025-11-07)
 - [2025-11-08](#2025-11-08)
 - [2025-11-12](#2025-11-12)
-- [2025-11-16 - Beta V2](#2025-11-16-beta-v2)
-- [2025-11-25 - Beta V2](#2025-11-25-beta-v2)
-- [2025-11-27 - Beta V2](#2025-11-27-beta-v2)
-- [2025-11-18 - Beta V2](#2025-11-18-beta-v2)
-- [2025-12-01 - Beta V2](#2025-12-01-beta-v2)
-- [2025-12-02 - Beta V2](#2025-12-02-beta-v2)
-- [2025-12-04 - Beta V2](#2025-12-04-beta-v2)
-- [2025-12-07 - Beta V2](#2025-12-07-beta-v2)
+- [2025-11-16 - Beta V2](#2025-11-16---beta-v2)
+- [2025-11-25 - Beta V2](#2025-11-25---beta-v2)
+- [2025-11-27 - Beta V2](#2025-11-27---beta-v2)
+- [2025-11-18 - Beta V2](#2025-11-18---beta-v2)
+- [2025-12-01 - Beta V2](#2025-12-01---beta-v2)
+- [2025-12-02 - Beta V2](#2025-12-02---beta-v2)
+- [2025-12-04 - Beta V2](#2025-12-04---beta-v2)
+- [2025-12-07 - Beta V2](#2025-12-07---beta-v2)
 - [2025-12-10](#2025-12-10)
 - [2025-12-20](#2025-12-20)
 - [2025-12-21](#2025-12-21)
 - [2026-01-02](#2026-01-02)
 - [2026-01-04](#2026-01-04)
 - [2026-01-11](#2026-01-11)
-- [2026-01-16 - V3](#2026-01-16-v3)
-- [2026-01-18 - V4 Alpha](#2026-01-18-v4-alpha)
-- [2026-01-20 - V4 Alpha](#2026-01-20-v4-alpha)
-- [2026-01-31 - V4 Alpha](#2026-01-31-v4-alpha)
-<!--/TOC-->
+- [2026-01-16 - V3](#2026-01-16---v3)
+- [2026-01-18 - V4 Alpha](#2026-01-18---v4-alpha)
+- [2026-01-20 - V4 Alpha](#2026-01-20---v4-alpha)
+- [2026-01-31 - V4 Alpha](#2026-01-31---v4-alpha)
+- [2026-04-05 - V4 Beta](#2026-04-05---v4-beta)
+<!-- TOC -->
 
 # Intro
 All done with the following
@@ -999,3 +1000,34 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.11x slower | 335000.0000 |  1000.0000 |          - | 2673.03 MB |  9.09x more |
 ```
 -----
+
+# 2026-04-05 - V4 Beta
+- Change the Cell type back to a `record`
+
+```
+| Method                   | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
+|------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
+| SylvanRdr                | 100mb.xlsx           |     baseline |  29000.0000 | 27000.0000 |  4000.0000 |  338.72 MB |             |
+| XlsxHelper               | 100mb.xlsx           | 3.97x slower | 282000.0000 |  2000.0000 |  1000.0000 | 3380.58 MB |  9.98x more |
+| AsyncExcel_Prime         | 100mb.xlsx           | 1.32x slower | 182000.0000 | 34000.0000 |  3000.0000 |  2157.1 MB |  6.37x more |
+| Excel_Prime              | 100mb.xlsx           | 1.15x slower | 126000.0000 | 34000.0000 |  5000.0000 | 1460.77 MB |  4.31x more |
+| PrlAsyncExcel_PrimeTwice | 100mb.xlsx           | 2.03x slower | 315000.0000 | 42000.0000 |  5000.0000 | 3720.85 MB | 10.99x more |
+|                          |                      |              |             |            |            |            |             |
+| SylvanRdr                | Blank(...).xlsx [30] |     baseline |  27000.0000 |  2000.0000 |  1000.0000 |  318.92 MB |             |
+| XlsxHelper               | Blank(...).xlsx [30] | 1.00x faster | 145000.0000 |  1000.0000 |          - | 1739.24 MB |  5.45x more |
+| AsyncExcel_Prime         | Blank(...).xlsx [30] | 1.09x slower | 268000.0000 | 42000.0000 | 41000.0000 | 2850.85 MB |  8.94x more |
+| Excel_Prime              | Blank(...).xlsx [30] | 1.04x faster | 173000.0000 | 42000.0000 | 41000.0000 | 1715.59 MB |  5.38x more |
+| PrlAsyncExcel_PrimeTwice | Blank(...).xlsx [30] | 2.29x slower | 537000.0000 | 83000.0000 | 83000.0000 | 5726.09 MB | 17.95x more |
+|                          |                      |              |             |            |            |            |             |
+| SylvanRdr                | sampl(...).xlsx [34] |     baseline |  22000.0000 |          - |          - |   265.7 MB |             |
+| XlsxHelper               | sampl(...).xlsx [34] | 1.09x faster |  66000.0000 |          - |          - |  799.73 MB |  3.01x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [34] | 1.01x faster | 109000.0000 |  1000.0000 |          - | 1309.95 MB |  4.93x more |
+| Excel_Prime              | sampl(...).xlsx [34] | 1.17x faster |  66000.0000 |  1000.0000 |          - |  792.59 MB |  2.98x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [34] | 2.06x slower | 219000.0000 |  1000.0000 |          - | 2628.98 MB |  9.89x more |
+|                          |                      |              |             |            |            |            |             |
+| SylvanRdr                | sampl(...).xlsx [30] |     baseline |  24000.0000 |          - |          - |  294.16 MB |             |
+| XlsxHelper               | sampl(...).xlsx [30] | 1.09x faster |  62000.0000 |          - |          - |  742.13 MB |  2.52x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.00x slower | 111000.0000 |  1000.0000 |          - | 1333.27 MB |  4.53x more |
+| Excel_Prime              | sampl(...).xlsx [30] | 1.18x faster |  68000.0000 |  1000.0000 |          - |  816.25 MB |  2.77x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 1.92x slower | 223000.0000 |  1000.0000 |          - | 2673.01 MB |  9.09x more |
+```
