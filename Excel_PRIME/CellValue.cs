@@ -14,8 +14,16 @@ namespace ExcelPRIME;
 /// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
 /// </summary>
+[StructLayout(LayoutKind.Explicit)]
 public sealed class CellValue : IEquatable<CellValue>
 {
+    [FieldOffset(0)] private string? _strValue;
+    [FieldOffset(8)] private bool _boolValue;
+    [FieldOffset(8)] private double _doubleValue;
+    [FieldOffset(8)] private DateTime _dateTimeValue;
+    [FieldOffset(16)] private readonly CellValueType _type;
+    [FieldOffset(20)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+
     private enum CellValueType
     {
         Unknown,
@@ -26,24 +34,15 @@ public sealed class CellValue : IEquatable<CellValue>
         DateTime
     }
 
-    private string? _strValue; // Has to be on its own due to reference type
-    private readonly CellValueType _type;
-    private readonly BclValue _value;
-    private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct BclValue
-    {
-        [FieldOffset(0)] public bool _boolValue;
-        [FieldOffset(0)] public double _doubleValue;
-        [FieldOffset(0)] public DateTime _dateTimeValue;
-    }
+    // Micro-optimization: Cache frequently allocated strings
+    private static readonly CultureInfo InvariantCultureCache = CultureInfo.InvariantCulture;
 
     // Remove AggressiveOptimization from Constructors
-    internal CellValue(in string? strValue, int iStyleRef)
+    internal CellValue(string? strValue, int iStyleRef)
     {
         // TODO: iStyleRef might make the string conversion different in future
-        _strValue = strValue;
+        // Micro-optimization: Cache empty string to avoid repeated allocations
+        _strValue = strValue ?? string.Empty;
         _type = CellValueType.String;
         _iStyleRef = iStyleRef;
     }
@@ -51,22 +50,22 @@ public sealed class CellValue : IEquatable<CellValue>
     // Remove AggressiveOptimization from Constructors
     internal CellValue(bool boolValue)
     {
-        _value = new BclValue { _boolValue = boolValue };
+        _boolValue = boolValue;
         _type = CellValueType.Bool;
     }
 
     // Remove AggressiveOptimization from Constructors
     internal CellValue(double doubleValue, int iStyleRef)
     {
-        _value = new BclValue { _doubleValue = doubleValue };
+        _doubleValue = doubleValue;
         _type = CellValueType.Numeric;
         _iStyleRef = iStyleRef;
     }
 
     // Remove AggressiveOptimization from Constructors
-    internal CellValue(in DateTime dateTimeValue, int iStyleRef)
+    internal CellValue(DateTime dateTimeValue, int iStyleRef)
     {
-        _value = new BclValue { _dateTimeValue = dateTimeValue };
+        _dateTimeValue = dateTimeValue;
         _type = CellValueType.DateTime;
         _iStyleRef = iStyleRef;
     }
@@ -74,7 +73,7 @@ public sealed class CellValue : IEquatable<CellValue>
     // Remove AggressiveOptimization from Constructors
     internal CellValue(ExcelErrorCode errorCodeValue)
     {
-        _value = new BclValue { _doubleValue = (int)errorCodeValue };
+        _doubleValue = (int)errorCodeValue;
         _type = CellValueType.Error;
     }
 
@@ -102,10 +101,11 @@ public sealed class CellValue : IEquatable<CellValue>
     private string? ToString_Slow() =>
         _type switch
         {
-            CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
-            CellValueType.Numeric => _value._doubleValue.ToString(CultureInfo.InvariantCulture),
-            CellValueType.DateTime => _value._dateTimeValue.ToString(CultureInfo.InvariantCulture),
-            CellValueType.Error => ((ExcelErrorCode)_value._doubleValue).ToString(),
+            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
+            // Micro-optimization: Use cached CultureInfo instead of property access
+            CellValueType.Numeric => _doubleValue.ToString(InvariantCultureCache),
+            CellValueType.DateTime => _dateTimeValue.ToString(InvariantCultureCache),
+            CellValueType.Error => ((ExcelErrorCode)_doubleValue).ToString(),
             _ => null
         };
 
@@ -116,10 +116,10 @@ public sealed class CellValue : IEquatable<CellValue>
         _type switch
         {
             CellValueType.Unknown => null,
-            CellValueType.Bool => _value._boolValue,
-            CellValueType.Numeric => _value._doubleValue,
-            CellValueType.DateTime => _value._dateTimeValue,
-            CellValueType.Error => (ExcelErrorCode)_value._doubleValue,
+            CellValueType.Bool => _boolValue,
+            CellValueType.Numeric => _doubleValue,
+            CellValueType.DateTime => _dateTimeValue,
+            CellValueType.Error => (ExcelErrorCode)_doubleValue,
             CellValueType.String => _strValue,
             _ => null
         };
@@ -134,14 +134,14 @@ public sealed class CellValue : IEquatable<CellValue>
     public DateTime AsDateTime =>
         // Simplified without branches for common case
         _type == CellValueType.DateTime
-            ? _value._dateTimeValue
+            ? _dateTimeValue
             : AsDateTime_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private DateTime AsDateTime_Slow() =>
         _type switch
         {
-            CellValueType.Numeric => DateTime.FromOADate(_value._doubleValue),
+            CellValueType.Numeric => DateTime.FromOADate(_doubleValue),
             _ => double.TryParse(_strValue, out double val)
                 ? // Excel stores the DateTime as a double OADate
                 DateTime.FromOADate(val)
@@ -170,16 +170,16 @@ public sealed class CellValue : IEquatable<CellValue>
     public bool AsBoolean =>
         // Simplified without branches for common case
         _type == CellValueType.Bool
-            ? _value._boolValue
+            ? _boolValue
             : AsBoolean_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private bool AsBoolean_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _value._dateTimeValue.Ticks != 0,
-            CellValueType.Error => (ExcelErrorCode)_value._doubleValue != ExcelErrorCode.Null,
-            CellValueType.Numeric => _value._doubleValue != 0,
+            CellValueType.DateTime => _dateTimeValue.Ticks != 0,
+            CellValueType.Error => (ExcelErrorCode)_doubleValue != ExcelErrorCode.Null,
+            CellValueType.Numeric => _doubleValue != 0,
             _ => int.TryParse(_strValue, out int val) ? val != 0 : Convert.ToBoolean(_strValue!)
         };
 
@@ -193,16 +193,16 @@ public sealed class CellValue : IEquatable<CellValue>
     public int AsInt32 =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (int)_value._doubleValue
+            ? (int)_doubleValue
             : AsInt32_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private int AsInt32_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (int)_value._dateTimeValue.Ticks,
-            CellValueType.Bool => _value._boolValue ? 1 : 0,
-            CellValueType.Error => (int)_value._doubleValue,
+            CellValueType.DateTime => (int)_dateTimeValue.Ticks,
+            CellValueType.Bool => _boolValue ? 1 : 0,
+            CellValueType.Error => (int)_doubleValue,
             _ => int.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
@@ -215,16 +215,16 @@ public sealed class CellValue : IEquatable<CellValue>
     // Remove AggressiveOptimization from properties
     public long AsInt64 =>
         _type == CellValueType.Numeric
-            ? (long)_value._doubleValue
+            ? (long)_doubleValue
             : AsInt64_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private long AsInt64_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _value._dateTimeValue.Ticks,
-            CellValueType.Bool => _value._boolValue ? 1 : 0,
-            CellValueType.Error => (long)_value._doubleValue,
+            CellValueType.DateTime => _dateTimeValue.Ticks,
+            CellValueType.Bool => _boolValue ? 1 : 0,
+            CellValueType.Error => (long)_doubleValue,
             _ => long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
@@ -238,16 +238,16 @@ public sealed class CellValue : IEquatable<CellValue>
     public double AsDouble =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? _value._doubleValue
+            ? _doubleValue
             : AsDouble_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private double AsDouble_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _value._dateTimeValue.ToOADate(),
-            CellValueType.Bool => _value._boolValue ? 1 : 0,
-            CellValueType.Error => _value._doubleValue,
+            CellValueType.DateTime => _dateTimeValue.ToOADate(),
+            CellValueType.Bool => _boolValue ? 1 : 0,
+            CellValueType.Error => _doubleValue,
             _ => double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
         };
 
@@ -261,16 +261,16 @@ public sealed class CellValue : IEquatable<CellValue>
     public decimal AsDecimal =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (decimal)_value._doubleValue
+            ? (decimal)_doubleValue
             : AsDecimal_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private decimal AsDecimal_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (decimal)_value._dateTimeValue.ToOADate(),
-            CellValueType.Bool => _value._boolValue ? 1 : 0,
-            CellValueType.Error => (decimal)_value._doubleValue,
+            CellValueType.DateTime => (decimal)_dateTimeValue.ToOADate(),
+            CellValueType.Bool => _boolValue ? 1 : 0,
+            CellValueType.Error => (decimal)_doubleValue,
             _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
 
@@ -302,9 +302,9 @@ public sealed class CellValue : IEquatable<CellValue>
     private string? FormatValueWithStyle(string formatCode, FormattingType type) =>
         _type switch
         {
-            CellValueType.Numeric => FormatNumericWithNumberFormat(_value._doubleValue, formatCode, type),
-            CellValueType.DateTime => FormatDateTimeWithNumberFormat(_value._dateTimeValue, formatCode, type),
-            CellValueType.Bool => _value._boolValue ? bool.TrueString : bool.FalseString,
+            CellValueType.Numeric => FormatNumericWithNumberFormat(_doubleValue, formatCode, type),
+            CellValueType.DateTime => FormatDateTimeWithNumberFormat(_dateTimeValue, formatCode, type),
+            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
             _ => ToString() // TODO: What happens if the formatCode is applied to a string type ?
         };
 
@@ -322,26 +322,26 @@ public sealed class CellValue : IEquatable<CellValue>
         // Ensure we're handling FormattingType.Number
         if (type != FormattingType.Number)
         {
-            return value.ToString(CultureInfo.InvariantCulture);
+            return value.ToString(InvariantCultureCache);
         }
 
         return formatCode switch
         {
             // General and text formats
-            "General" => value.ToString(CultureInfo.InvariantCulture),
-            "@" => value.ToString(CultureInfo.InvariantCulture),
+            "General" => value.ToString(InvariantCultureCache),
+            "@" => value.ToString(InvariantCultureCache),
 
             // Basic integer formats
-            "0" => Math.Round(value).ToString(CultureInfo.InvariantCulture),
+            "0" => Math.Round(value).ToString(InvariantCultureCache),
 
             // Decimal formats
-            "0.00" => value.ToString("F2", CultureInfo.InvariantCulture),
-            "0.0" => value.ToString("F1", CultureInfo.InvariantCulture),
+            "0.00" => value.ToString("F2", InvariantCultureCache),
+            "0.0" => value.ToString("F1", InvariantCultureCache),
 
             // Thousand separator formats
-            "#,##0" => Math.Round(value).ToString("N0", CultureInfo.InvariantCulture),
-            "#,##0.0" => value.ToString("N1", CultureInfo.InvariantCulture),
-            "#,##0.00" => value.ToString("N2", CultureInfo.InvariantCulture),
+            "#,##0" => Math.Round(value).ToString("N0", InvariantCultureCache),
+            "#,##0.0" => value.ToString("N1", InvariantCultureCache),
+            "#,##0.00" => value.ToString("N2", InvariantCultureCache),
 
             // With brackets (negative in parentheses)
             "#,##0;(#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
@@ -357,26 +357,26 @@ public sealed class CellValue : IEquatable<CellValue>
             "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)" => FormatAccountingNumber(value, 2),
 
             // Percentage formats
-            "0%" => (value * 100).ToString("F0", CultureInfo.InvariantCulture) + "%",
-            "0.0%" => (value * 100).ToString("F1", CultureInfo.InvariantCulture) + "%",
-            "0.00%" => (value * 100).ToString("F2", CultureInfo.InvariantCulture) + "%",
+            "0%" => (value * 100).ToString("F0", InvariantCultureCache) + "%",
+            "0.0%" => (value * 100).ToString("F1", InvariantCultureCache) + "%",
+            "0.00%" => (value * 100).ToString("F2", InvariantCultureCache) + "%",
 
             // Scientific notation
-            "0.00E+00" => value.ToString("E2", CultureInfo.InvariantCulture),
-            "0.00E+0" => value.ToString("E2", CultureInfo.InvariantCulture),
-            "0.00E0" => value.ToString("E2", CultureInfo.InvariantCulture),
-            "##0.0E0" => value.ToString("E1", CultureInfo.InvariantCulture),
-            "##0.0E+0" => value.ToString("E1", CultureInfo.InvariantCulture),
-            "##0.0E+00" => value.ToString("E1", CultureInfo.InvariantCulture),
+            "0.00E+00" => value.ToString("E2", InvariantCultureCache),
+            "0.00E+0" => value.ToString("E2", InvariantCultureCache),
+            "0.00E0" => value.ToString("E2", InvariantCultureCache),
+            "##0.0E0" => value.ToString("E1", InvariantCultureCache),
+            "##0.0E+0" => value.ToString("E1", InvariantCultureCache),
+            "##0.0E+00" => value.ToString("E1", InvariantCultureCache),
 
             // Fraction formats
             "# ?/?" => FormatFraction(value, 1),
             "# ??/??" => FormatFraction(value, 2),
 
             // CJK formats (treated as numbers)
-            "[DBNum1][$-804]0" => value.ToString("F0", CultureInfo.InvariantCulture),
-            "[DBNum1][$-804]0.00" => value.ToString("F2", CultureInfo.InvariantCulture),
-            "[DBNum4][$-804]0" => value.ToString("F0", CultureInfo.InvariantCulture),
+            "[DBNum1][$-804]0" => value.ToString("F0", InvariantCultureCache),
+            "[DBNum1][$-804]0.00" => value.ToString("F2", InvariantCultureCache),
+            "[DBNum4][$-804]0" => value.ToString("F0", InvariantCultureCache),
 
             // Default: return as double with invariant culture
             _ => FormatCustomNumber(value, formatCode)
@@ -817,7 +817,7 @@ public sealed class CellValue : IEquatable<CellValue>
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
-    public override int GetHashCode() => HashCode.Combine(_type, _value._boolValue, _value._doubleValue, _value._dateTimeValue, _strValue);
+    public override int GetHashCode() => HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue);
 
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
@@ -841,9 +841,9 @@ public sealed class CellValue : IEquatable<CellValue>
 
         return _type switch
         {
-            CellValueType.Bool => _value._boolValue == other._value._boolValue,
-            CellValueType.Numeric => _value._doubleValue == other._value._doubleValue,
-            CellValueType.DateTime => _value._boolValue == other._value._boolValue,
+            CellValueType.Bool => _boolValue == other._boolValue,
+            CellValueType.Numeric => _doubleValue == other._doubleValue,
+            CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
             //CellValueType.String => _strValue == other._strValue,
             _ => _strValue == other._strValue
         };

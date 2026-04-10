@@ -102,7 +102,7 @@ public class AccessEveryCellBenchmarksXlsb
     }
 
 
-    [Benchmark]
+    //[Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public int Aspose()
     {

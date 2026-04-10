@@ -412,7 +412,7 @@ internal sealed record Cell : ICell
 
     // CHANGED: Removed AggressiveOptimization - simple switch on first char, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static CellType GetCellType(in char[] b, int l)
+    private static CellType GetCellType(char[] b, int l)
     {
         if (l == 0)
         {
@@ -432,5 +432,5 @@ internal sealed record Cell : ICell
         };
     }
 
-    private static int GetStyleOffset(in char[] b, int l) => l == 0 ? -1 : b.AsSpan(0, l).IntParse();
+    private static int GetStyleOffset(char[] b, int l) => l == 0 ? -1 : b.AsSpan(0, l).IntParse();
 }

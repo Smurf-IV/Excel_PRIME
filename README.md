@@ -79,6 +79,11 @@ Lets take each of the above elements and explain:
 ### IDisposable
 - Got to tidy up those `Temp File`s, and release the `FileStream`'s
 
+### Challenges:
+- CellValue instances are returned to users
+- They must be thread-safe (multiple readers possible)
+- Each "Cell Type" / "Cell Instance" / " Row Instance"(string, numeric, boolean, datetime, error) have different lifecycle requirements
+
 -----
 
 # Caveats ⛔:

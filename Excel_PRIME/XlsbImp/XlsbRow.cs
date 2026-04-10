@@ -13,6 +13,10 @@ internal sealed class XlsbRow : IRowAsync
     [ThreadStatic]
     private static XlsbRow? t_row;
 
+    // Thread-local pool for cell arrays to reduce repeated allocations
+    [ThreadStatic]
+    private static XlsbCell?[]? t_cellArrayPool;
+
     private XlsbStreamReader? _reader;
     private InstanceContext? _instanceContext;
     private int _maxExcelColumnDimension;
@@ -71,10 +75,17 @@ internal sealed class XlsbRow : IRowAsync
     private void Reset()
     {
         _isDisposed = false;
+
+        // Return cell array to thread-local pool for reuse
+        if (_cells != null)
+        {
+            t_cellArrayPool = _cells;
+            _cells = null;
+        }
+
         _reader = null;
         _instanceContext = null;
         _maxExcelColumnDimension = 0;
-        _cells = null;
         _cellsLoaded = false;
         RowOffset = 0;
     }
@@ -88,8 +99,20 @@ internal sealed class XlsbRow : IRowAsync
             return;
         }
 
-        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
+        // Reuse pooled array if available, otherwise allocate new one
+        XlsbCell?[] localCells = t_cellArrayPool ?? new XlsbCell?[_maxExcelColumnDimension];
+
+        // If pooled array was reused but is wrong size, resize it (rare case)
+        if (localCells.Length != _maxExcelColumnDimension)
+        {
+            localCells = new XlsbCell?[_maxExcelColumnDimension];
+        }
+        else
+        {
+            // Clear pooled array for reuse
+            Array.Clear(localCells, 0, localCells.Length);
+        }
+
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
         try
         {
@@ -132,6 +155,7 @@ internal sealed class XlsbRow : IRowAsync
 
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
+        t_cellArrayPool = null; // Mark pooled array as consumed
         _cellsLoaded = true;
     }
 
@@ -144,8 +168,20 @@ internal sealed class XlsbRow : IRowAsync
             return;
         }
 
-        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
+        // Reuse pooled array if available, otherwise allocate new one
+        XlsbCell?[] localCells = t_cellArrayPool ?? new XlsbCell?[_maxExcelColumnDimension];
+
+        // If pooled array was reused but is wrong size, resize it (rare case)
+        if (localCells.Length != _maxExcelColumnDimension)
+        {
+            localCells = new XlsbCell?[_maxExcelColumnDimension];
+        }
+        else
+        {
+            // Clear pooled array for reuse
+            Array.Clear(localCells, 0, localCells.Length);
+        }
+
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
         try
         {
@@ -188,6 +224,7 @@ internal sealed class XlsbRow : IRowAsync
 
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
+        t_cellArrayPool = null; // Mark pooled array as consumed
         _cellsLoaded = true;
     }
 
@@ -271,7 +308,7 @@ internal sealed class XlsbRow : IRowAsync
             throw new InvalidOperationException("Cells are not initialized.");
         }
 
-        int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
+        int minLength = Math.Min(values.Length, _cells.Length);
         for (int ordinal = 0; ordinal < minLength; ++ordinal)
         {
             values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;

@@ -1,4 +1,10 @@
-﻿# 2026-04-05 - V4 - Beta
+﻿# 2026-04-10 - V4 - Beta
+- Remove `in` usages (Supposed to not benefit !)
+- Make use of ThreadStatic in XlsbRow
+- Remove secoundary usage of a struct
+  - 🚀 [2026-04-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-04-10-v4-beta)
+
+# 2026-04-05 - V4 - Beta
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`
