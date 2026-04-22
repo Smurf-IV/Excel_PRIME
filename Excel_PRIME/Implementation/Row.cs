@@ -189,6 +189,17 @@ internal sealed class Row : IRowAsync
                 }
             }
 
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < localCells.Length; index++)
+                {
+                    localCells[index] ??= new Cell
+                    {
+                        CellValue = new CellValue(DBNull.Value, 0),
+                        ExcelColumnOffset = index + 1
+                    };
+                }
+            }
             // publish parsed cells once fully read to avoid partial-visible state
             _cells = localCells;
             _cellsLoaded = true;
@@ -258,6 +269,17 @@ internal sealed class Row : IRowAsync
                 }
             }
 
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < localCells.Length; index++)
+                {
+                    localCells[index] ??= new Cell
+                    {
+                        CellValue = new CellValue(DBNull.Value, 0),
+                        ExcelColumnOffset = index + 1
+                    };
+                }
+            }
             _cells = localCells;
             _cellsLoaded = true;
         }

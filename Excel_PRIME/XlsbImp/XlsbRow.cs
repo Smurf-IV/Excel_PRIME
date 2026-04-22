@@ -153,6 +153,17 @@ internal sealed class XlsbRow : IRowAsync
             }
         }
 
+        if (_instanceContext.Options.ReturnDBNull)
+        {
+            for (int index = 0; index < localCells.Length; index++)
+            {
+                localCells[index] ??= new XlsbCell
+                {
+                    CellValue = new CellValue(DBNull.Value, 0),
+                    ExcelColumnOffset = index + 1
+                };
+            }
+        }
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
         t_cellArrayPool = null; // Mark pooled array as consumed
@@ -222,6 +233,17 @@ internal sealed class XlsbRow : IRowAsync
             }
         }
 
+        if (_instanceContext.Options.ReturnDBNull)
+        {
+            for (int index = 0; index < localCells.Length; index++)
+            {
+                localCells[index] ??= new XlsbCell
+                {
+                    CellValue = new CellValue(DBNull.Value, 0),
+                    ExcelColumnOffset = index + 1
+                };
+            }
+        }
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
         t_cellArrayPool = null; // Mark pooled array as consumed

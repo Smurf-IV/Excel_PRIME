@@ -17,8 +17,8 @@
 		<PackageReference Include="Aspose.Cells" Version="26.4.0" />
 		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
 		<PackageReference Include="ExcelDataReader" Version="3.8.0" />
-		<PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.6.37125.3" />
-		<PackageReference Include="Sylvan.Data.Excel" Version="0.5.4" />
+		<PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
+		<PackageReference Include="Sylvan.Data.Excel" Version="0.5.5" />
 	</ItemGroup>
 
 	<ItemGroup>

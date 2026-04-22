@@ -51,7 +51,7 @@ jobs:
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release --version-suffix RC1
+      run: dotnet pack --no-build --configuration Release --version-suffix RC2
                                                                             #Beta
 
     - name: PushGithub

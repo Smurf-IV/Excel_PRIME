@@ -53,4 +53,11 @@ public record Options
     /// `true`: Default, Use the internal rented buffer from the zipArchive; Therefore single threaded access to Excel file.
     /// </remarks>
     public bool AccessExcelFileInForwardOnlyMode { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether <see langword="System.DBNull" /> should be returned 
+    /// for empty or null cells during data conversion.
+    /// Null Rows are (_probably_) still null rows, not rows with DBNull.Value in all cells
+    /// </summary>
+    public bool ReturnDBNull { get; init; }
 }

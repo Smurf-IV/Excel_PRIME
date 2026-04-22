@@ -94,7 +94,7 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public CellValue? CellValue { get; private init; }
+    public CellValue? CellValue { get; internal init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }
@@ -130,7 +130,7 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public int ExcelColumnOffset { get; private init; }
+    public int ExcelColumnOffset { get; internal init; }
 
     /// <InheritDoc />
     public override string? ToString() => CellValue?.ToString() ?? base.ToString();

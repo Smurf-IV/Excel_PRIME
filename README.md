@@ -28,7 +28,7 @@ Lets take each of the above elements and explain:
 - Q: There are others that are faster
 - A: Agreed, but then 
     - They do **not** have range extraction.
-    - Or `optionally` allow the use of the OS's _TempFile System_ to store massive sheets
+    - Or optionally allow the use of the OS's _TempFile System_ to store massive sheets
     - Or **re-use** of already extracted (massive) sheets
     - Or allow multiple sheets to be read at the **same** time 
         - because others use global memory to represent the current row
@@ -56,15 +56,15 @@ Lets take each of the above elements and explain:
 - No internal .Net memory of previously loaded sheets / rows.
 ### Q & A's
 - Q: It appears that this uses more memory than other implementations
-- A: Currently yes, but it is being optimised for `Range Extraction`, 
+- A: Currently yes, but it is being optimised for _Range Extraction_, 
     - AND for allowing multiple rows (With cell data) to be stored in memory at the same time, (i.e. via `ToList()` call);
-    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use "a single" global memory to represent a row)
+    - AND to allow multiple sheets to be read at the same time (Unlike some to of the others that use a single global memory to represent a row)
     - And it appears that the current benchmarks do not extract unless a `ToString` and a check on the result is used (Otherwise the Jit removes the unassigned dead code)
     - And, the memory used will actually be used in the ETL pipeline anyway, so it's just being truthful
 
 ## Efficiency 📦
 - As hinted by the above statements, this is to be targetted at memory restricted environments (i.e. ASP Net VM's)
-- Use the OS's `Temp File` caching, so if the memory is _tight_ then the Owner app will not have to worry about OOM exceptions, or having to use Swap Disk speeds.
+- Use the OS's "Temp File" caching, so if the memory is _tight_ then the Owner app will not have to worry about OOM exceptions, or having to use Swap Disk speeds.
 - Only unzip the sheet(s) when they are asked for
 - Only load the shared strings upto the current request number
 ### Q & A's
@@ -87,17 +87,17 @@ Lets take each of the above elements and explain:
 -----
 
 # Caveats ⛔:
-## _Not_ Be: Same sheet Thread safe 📊
+## _It will not_ be: Same sheet thread instance safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## _Not_ Do: Dynamic Ranges ⚠️
+## _It will not_ do: Dynamic Ranges ⚠️
 - i.e. Ones that contain formulas:
     - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
-## _Not_ Do: Poco 🤖
+## _It will not_ do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## _Not_ Be a: Writer / Modifier 📚
+## _It will not_ be: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----
@@ -120,8 +120,8 @@ Lets take each of the above elements and explain:
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
 - [V3 Changes ➡️](#v3-changes-)
 - [2026-01-16](#2026-01-16)
-  - [Phase V4 - Specific Cell value type(s) #️⃣ - Beta](#phase-v4---specific-cell-value-types----beta)
-  - [Phase 5 - Third Party Nugets 📦](#phase-5---third-party-nugets-)
+  - [Phase V4 - Specific Cell value type(s) #️⃣ - RC2](#phase-v4---specific-cell-value-types----rc2)
+  - [Phase 5 - User Cell Value types & Third Party Nugets 📦](#phase-5---user-cell-value-types--third-party-nugets-)
   - [Phase 6 - ideas 💡](#phase-6---ideas-)
 <!-- TOC -->
 -----
@@ -163,7 +163,7 @@ Lets take each of the above elements and explain:
 - ✅ More Benchmarks
     - Now With `FastExcel`
     - ✅ Some Profiling Enahancements 
-- ✅ Better `Storage` of the SharedStrings
+- ✅ Better Storage of the SharedStrings
 - ✅ Cell object type 📅
 - ✅ Use internal `ZipEntry` rented buffer
 - ✅ Investigation into the smallest function 💪
@@ -179,10 +179,10 @@ Lets take each of the above elements and explain:
 - ✅ Nuget
     - ✅ Manual workflow deploy Release
     - ✅ Manual workflow deploy Beta
-- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+- ✅ Read "definedName"s (Ranges / Cell / Value / Dynamic) 📇
 - ✅ Deal with blank rows in a sheet 🗋
 - ✅ Deal with Empty cells in a row 🗅
-- ✅ Implement Sheet scoping of `definedName`s
+- ✅ Implement Sheet scoping of "definedName"s
 - ✅ Implement Row extraction 📟
 - ✅ Implement RangeExtraction 📲
 - ✅ Add Benchmarks for "Excel readers" That perform Range Extraction
@@ -191,7 +191,7 @@ Lets take each of the above elements and explain:
     - ⚠️ `FastExcel` Version="3.0.13" -> [Fails on Range Extraction](https://github.com/ahmedwalid05/FastExcel/issues/89)
     - ✅ `FreeSpire.XLS` Version="14.2.0"
     - ✅ `Aspose.Cells` Version="25.11.0"
-    - ⚠️ Extend bencmarks to cover the other large file types
+    - ⚠️ Extend benchmarks to cover the other large file types
         - It appears that most of the others do not like the `pivot-tables` file.!! 🤯
         - [Performance on 2025-11-28](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-11-28)
 - ✅ Investigate _memory usage_(s) 🧑‍💻
@@ -215,7 +215,7 @@ Lets take each of the above elements and explain:
     - Changed `GetAllCells` to return `IReadOnlyList<ICell?>?`
         - Watch out for those null rows !
 - ✅ Branch and beta yml
-    - ✅ Convert test data in xls**b** format (External `ultra - deflate` Recompress)
+    - ✅ Convert test data in xls**b** format
 - ✅ Implement Open / Dispose (Async)
     - ✅ Sheet Names
     - ✅ Shared Strings
@@ -229,7 +229,7 @@ Lets take each of the above elements and explain:
     - ✅ Add "Excel readers" That support XLS**B** Extraction
     - ✅ 🚶‍➡️ [1st Pass Performance on 2025-12-20](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-20)
     - ✅ 👟 [2nd Pass Performance on 2025-12-21](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-21)
-- ✅ Read `definedName`s (Ranges / Cell / Value / Dynamic) 📇
+- ✅ Read "definedName"s (Ranges / Cell / Value / Dynamic) 📇
     - ✅ Read from global
 - ✅ Strongly-typed accessors (`AsInt32`, `AsDateTime`, etc)
     - Slightly slower, but less memory pressure for `xslb`
@@ -251,7 +251,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase V4 - Specific Cell value type(s) #️⃣ - Beta
+## Phase V4 - Specific Cell value type(s) #️⃣ - RC2
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`
@@ -263,18 +263,22 @@ Lets take each of the above elements and explain:
 - ✅ Cell object type 📅
     - ✅ "Best Effort" `Operator` based conversion
     - ✅ TryGet`Type` will return `out type`, if stored as that type.
-    - ✅ Store cell _style_ type (see Options enum)
-    - ✅ Use of _user_ defined column schema
-    - ✅ Formatter applied -> `CellConversion.ForceStyles`
     - ✅ Unit Tests
 - ✅ Benchmarks
     - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
     - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
-
+- [ ] `System.DBNull` handling for empty cells
 -----
 
-## Phase 5 - Third Party Nugets 📦
-- [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
+## Phase 5 - User Cell Value types & Third Party Nugets 📦
+- ⛓️‍💥 **Breaking Change(s)**
+    - None yet.
+- [ ] Cell object type 📅
+    - [ ] Store cell _style_ type (see Options enum)
+    - [ ] Use of _user_ defined column schema
+    - [ ] Formatter applied -> `CellConversion.ForceStyles`
+    - [ ] Unit Tests
+    - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
     - [ ] Separate Nuget(s) ?
 - [ ] Benchmarks

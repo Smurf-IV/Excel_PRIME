@@ -1,8 +1,17 @@
-﻿# 2026-04-10 - V4 - Beta
+﻿# 2026-04-22 - V4 - RC2
+- Implement `System.DBNull` return option, for empty cells
+- Mark up usage of userdefined cells styles for V5
+- Update "Sylvan.Data.Excel" to Version="0.5.5"
+    - 🚀 [2026-04-22 - V4 - RC2](https://github.com/Smurf-IV/Excel_PRIME/blob/V4-Dev/Performance.md#2026-04-22---v4---rc2)
+
+# 2026-04-16 - V4 - RC1
+- Update nugets and update performance numbers
+- 🚀 [2026-04-10](https://github.com/Smurf-IV/Excel_PRIME/blob/V4-Dev/Performance.md#2026-04-10---v4---beta)
+
+# 2026-04-10 - V4 - Beta
 - Remove `in` usages (Supposed to not benefit !)
 - Make use of ThreadStatic in XlsbRow
 - Remove secoundary usage of a struct
-  - 🚀 [2026-04-10](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-04-10-v4-beta)
 
 # 2026-04-05 - V4 - Beta
 - ⛓️‍💥 **Breaking Change(s)**
@@ -24,7 +33,7 @@
 - Tinker with some `MethodImpl`
 - Add `_iStyleRef` and start to add formatting based on it
 - Fix fallout from making `CellValue` is now a `class`
-  - 🚀 [2026-01-31](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
+  - 🚀 [2026-01-31](https://github.com/Smurf-IV/Excel_PRIME/blob/V4-Dev/Performance.md#2026-01-31---v4-alpha)
 
 # 2026-01-16 - V3 
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job

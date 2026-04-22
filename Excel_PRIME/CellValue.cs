@@ -31,7 +31,8 @@ public sealed class CellValue : IEquatable<CellValue>
         String,
         Bool,
         Error,
-        DateTime
+        DateTime,
+        IsDBNull
     }
 
     // Micro-optimization: Cache frequently allocated strings
@@ -41,7 +42,6 @@ public sealed class CellValue : IEquatable<CellValue>
     internal CellValue(string? strValue, int iStyleRef)
     {
         // TODO: iStyleRef might make the string conversion different in future
-        // Micro-optimization: Cache empty string to avoid repeated allocations
         _strValue = strValue ?? string.Empty;
         _type = CellValueType.String;
         _iStyleRef = iStyleRef;
@@ -77,6 +77,12 @@ public sealed class CellValue : IEquatable<CellValue>
         _type = CellValueType.Error;
     }
 
+    internal CellValue(DBNull _/*isDBNull*/, int iStyleRef)
+    {
+        _iStyleRef = iStyleRef;
+        _type = CellValueType.IsDBNull;
+    }
+
     /// <summary>
     /// Converts the cell value to its string representation.
     /// </summary>
@@ -106,6 +112,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.Numeric => _doubleValue.ToString(InvariantCultureCache),
             CellValueType.DateTime => _dateTimeValue.ToString(InvariantCultureCache),
             CellValueType.Error => ((ExcelErrorCode)_doubleValue).ToString(),
+            CellValueType.IsDBNull => DBNull.Value.ToString(InvariantCultureCache),
             _ => null
         };
 
@@ -121,6 +128,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => _dateTimeValue,
             CellValueType.Error => (ExcelErrorCode)_doubleValue,
             CellValueType.String => _strValue,
+            CellValueType.IsDBNull => DBNull.Value,
             _ => null
         };
 
@@ -180,6 +188,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => _dateTimeValue.Ticks != 0,
             CellValueType.Error => (ExcelErrorCode)_doubleValue != ExcelErrorCode.Null,
             CellValueType.Numeric => _doubleValue != 0,
+            CellValueType.IsDBNull => false,
             _ => int.TryParse(_strValue, out int val) ? val != 0 : Convert.ToBoolean(_strValue!)
         };
 
@@ -203,6 +212,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => (int)_dateTimeValue.Ticks,
             CellValueType.Bool => _boolValue ? 1 : 0,
             CellValueType.Error => (int)_doubleValue,
+            CellValueType.IsDBNull => 0,
             _ => int.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
@@ -225,6 +235,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => _dateTimeValue.Ticks,
             CellValueType.Bool => _boolValue ? 1 : 0,
             CellValueType.Error => (long)_doubleValue,
+            CellValueType.IsDBNull => 0L,
             _ => long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
@@ -248,6 +259,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => _dateTimeValue.ToOADate(),
             CellValueType.Bool => _boolValue ? 1 : 0,
             CellValueType.Error => _doubleValue,
+            CellValueType.IsDBNull => 0.0,
             _ => double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
         };
 
@@ -271,6 +283,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.DateTime => (decimal)_dateTimeValue.ToOADate(),
             CellValueType.Bool => _boolValue ? 1 : 0,
             CellValueType.Error => (decimal)_doubleValue,
+            CellValueType.IsDBNull => 0m,
             _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
 
@@ -817,7 +830,7 @@ public sealed class CellValue : IEquatable<CellValue>
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
-    public override int GetHashCode() => HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue);
+    public override int GetHashCode() => HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue, _iStyleRef);
 
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
@@ -845,6 +858,7 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.Numeric => _doubleValue == other._doubleValue,
             CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
             //CellValueType.String => _strValue == other._strValue,
+            CellValueType.IsDBNull => true,
             _ => _strValue == other._strValue
         };
     }
