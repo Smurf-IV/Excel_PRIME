@@ -273,6 +273,7 @@ Lets take each of the above elements and explain:
 - ✅ Implement `System.DBNull` return option, for empty cells
   - ✅ Implement `INullRow` return option, for empty rows
   - ✅ Update tests to use `INullRow` detection
+- ✅ Implement `GetCell###(string columnLetters, ...)` #8
 
 -----
 
@@ -288,10 +289,13 @@ Lets take each of the above elements and explain:
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
     - [ ] Separate Nuget(s) ?
 - [ ] Benchmarks
+  - [ ] e.g. search isages of `Class PoolingArrayBufferWriter<T>`
+  - [ ] 
 -----
 
 ## Phase 6 - ideas 💡
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
+  - [ ] e.g. Search for `Class FileBufferingWriter`
 - [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?
     - [ ] Locking
     - [ ] How to deal with rows that are completely blank

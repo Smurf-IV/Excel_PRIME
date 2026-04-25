@@ -362,10 +362,30 @@ internal sealed class Row : IRowAsync
     }
 
     /// <InheritDoc />
-    public ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    /// <InheritDoc />
+    public async ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+        if (!_cellsLoaded)
+        {
+            await GetCellsAsync(ct).ConfigureAwait(false);
+        }
+
+        return await GetCellAsync(columnLetters.GetColNumber(), ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
-    public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public ICell? GetCell(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+
+        if (!_cellsLoaded)
+        {
+            GetCells(ct);
+        }
+
+        return GetCell(columnLetters.GetColNumber(), ct);
+    }
 
     // CHANGED: Removed AggressiveOptimization - tight loop benefits more from size reduction for i-cache
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)

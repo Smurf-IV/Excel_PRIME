@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
@@ -314,10 +316,29 @@ internal sealed class XlsbRow : IRowAsync
     }
 
     /// <InheritDoc />
-    public ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public async ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+        if (!_cellsLoaded)
+        {
+            await GetCellsAsync(ct).ConfigureAwait(false);
+        }
+
+        return await GetCellAsync(columnLetters.GetColNumber(), ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
-    public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public ICell? GetCell(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+
+        if (!_cellsLoaded)
+        {
+            GetCells(ct);
+        }
+
+        return GetCell(columnLetters.GetColNumber(), ct);
+    }
 
     // CHANGED: Removed AggressiveOptimization - tight loop benefits from smaller code
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
