@@ -42,8 +42,13 @@ public class CellValueStyleRefTests
 
         // Verify at least some cells exist
         int cellCount = 0;
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
+            if (row is null or INullRowAsync)
+            {
+                continue;
+            }
+
             IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
             {
@@ -70,12 +75,19 @@ public class CellValueStyleRefTests
         worksheet.Should().NotBeNull();
 
         int rowIndex = 0;
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             // Verify that cells have CellValue instances
             foreach (ICell? cell in rowCells)
@@ -121,12 +133,18 @@ public class CellValueStyleRefTests
         using ISheetAsync? worksheet = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet.Should().NotBeNull();
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -172,12 +190,18 @@ public class CellValueStyleRefTests
         using ISheetAsync? worksheet = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet.Should().NotBeNull();
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -229,12 +253,18 @@ public class CellValueStyleRefTests
         int successCount = 0;
         int failureCount = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -279,12 +309,18 @@ public class CellValueStyleRefTests
 
         int successCount = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -322,12 +358,18 @@ public class CellValueStyleRefTests
 
         int successCount = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -369,12 +411,18 @@ public class CellValueStyleRefTests
 
         int totalCells = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -427,12 +475,18 @@ public class CellValueStyleRefTests
 
         int numericConversions = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -477,12 +531,18 @@ public class CellValueStyleRefTests
 
         int dateConversions = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -532,12 +592,19 @@ public class CellValueStyleRefTests
 
         int cellCount = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -587,12 +654,19 @@ public class CellValueStyleRefTests
         int nonNullCount = 0;
         int nullCount = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {
@@ -643,12 +717,18 @@ public class CellValueStyleRefTests
         var cellValues = new List<CellValue>();
         int rowIndex = 0;
 
-        await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
+        await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
         {
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            
-            if (rowCells == null)
+            if (row is null or INullRowAsync)
+            {
                 continue;
+            }
+            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            row.Dispose();
+            if (rowCells == null)
+            {
+                continue;
+            }
 
             foreach (ICell? cell in rowCells)
             {

@@ -24,6 +24,10 @@ internal class RowTests
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    continue;
+                }
             }
         }
     }

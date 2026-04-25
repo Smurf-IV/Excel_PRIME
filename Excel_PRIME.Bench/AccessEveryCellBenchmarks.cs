@@ -116,7 +116,7 @@ public class AccessEveryCellBenchmarks
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
             {
-                if (row == null)
+                if (row is null or INullRowAsync)
                 {   // Because this returns upto the dimension of the sheet Height
                     break;
                 }
@@ -152,7 +152,7 @@ public class AccessEveryCellBenchmarks
             using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData())
             {
-                if (row == null)
+                if (row is null or INullRow)
                 {   // Because this returns upto the dimension of the sheet Height
                     break;
                 }
@@ -193,7 +193,7 @@ public class AccessEveryCellBenchmarks
                 using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
                 await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         // Because this returns upto the dimension of the sheet Height
                         break;
@@ -224,7 +224,7 @@ public class AccessEveryCellBenchmarks
                 using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
                 await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         // Because this returns upto the dimension of the sheet Height
                         break;

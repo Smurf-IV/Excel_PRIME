@@ -162,6 +162,10 @@ public class AccessEveryCellBenchmarksXlsb
                 {   // Because this returns upto the dimension of the sheet Height
                     break;
                 }
+                if (row is INullRowAsync)
+                {
+                    continue;
+                }
 
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 if (rowCells != null)
@@ -200,6 +204,10 @@ public class AccessEveryCellBenchmarksXlsb
                     break;
                 }
 
+                if (row is INullRow)
+                {
+                    continue;
+                }
                 IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
                 if (rowCells != null)
                 {
@@ -251,6 +259,10 @@ public class AccessEveryCellBenchmarksXlsb
                         break;
                     }
 
+                    if (row is INullRowAsync)
+                    {
+                        continue;
+                    }
                     IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                     if (rowCells != null)
                     {
@@ -283,6 +295,10 @@ public class AccessEveryCellBenchmarksXlsb
                         break;
                     }
 
+                    if (row is INullRowAsync)
+                    {
+                        continue;
+                    }
                     IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                     if (rowCells != null)
                     {

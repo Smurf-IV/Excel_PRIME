@@ -35,7 +35,7 @@ public class StylesExtractionExample
                 // Iterate through rows
                 foreach (IRow? row in sheet.GetRowData(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         continue;
                     }
@@ -91,7 +91,7 @@ public class StylesExtractionExample
 
                 foreach (IRow? row in sheet.GetRowData(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         continue;
                     }
@@ -142,7 +142,7 @@ public class NumberFormatExample
 
                 foreach (IRow? row in sheet.GetRowData(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         continue;
                     }

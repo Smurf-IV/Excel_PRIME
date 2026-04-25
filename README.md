@@ -120,8 +120,8 @@ Lets take each of the above elements and explain:
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
 - [V3 Changes ➡️](#v3-changes-)
 - [2026-01-16](#2026-01-16)
-  - [Phase V4 - Specific Cell value type(s) #️⃣ - RC2](#phase-v4---specific-cell-value-types----rc2)
-  - [Phase 5 - User Cell Value types & Third Party Nugets 📦](#phase-5---user-cell-value-types--third-party-nugets-)
+  - [Phase V4 - Specific Cell value type(s) #️⃣ - RC3](#phase-v4---specific-cell-value-types----rc3)
+  - [Phase 5 - User Cell Value type formatting & Third Party Nugets 📦](#phase-5---user-cell-value-type-formatting--third-party-nugets-)
   - [Phase 6 - ideas 💡](#phase-6---ideas-)
 <!-- TOC -->
 -----
@@ -172,6 +172,7 @@ Lets take each of the above elements and explain:
 - ✅ Nuget
     - ✅ Beta etc.
     - 🎊 Released as Nuget V1.yyMM.dd -> **`1.2511.14`**
+
 -----
 
 ## Phase 2 - RC
@@ -197,7 +198,9 @@ Lets take each of the above elements and explain:
 - ✅ Investigate _memory usage_(s) 🧑‍💻
     - ✅ Sacrificed a little speed ➡️ [Performance on 2025-12-07](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-07)
 - ✅ Release as Nuget V2.2512-10 💨
+
 -----
+
 ## V2 Changes ➡️
 ### 2025-12-14
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
@@ -251,7 +254,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase V4 - Specific Cell value type(s) #️⃣ - RC2
+## Phase V4 - Specific Cell value type(s) #️⃣ - RC3
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`
@@ -267,10 +270,13 @@ Lets take each of the above elements and explain:
 - ✅ Benchmarks
     - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
     - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
-- [ ] `System.DBNull` handling for empty cells
+- ✅ Implement `System.DBNull` return option, for empty cells
+  - ✅ Implement `INullRow` return option, for empty rows
+  - ✅ Update tests to use `INullRow` detection
+
 -----
 
-## Phase 5 - User Cell Value types & Third Party Nugets 📦
+## Phase 5 - User Cell Value type formatting & Third Party Nugets 📦
 - ⛓️‍💥 **Breaking Change(s)**
     - None yet.
 - [ ] Cell object type 📅

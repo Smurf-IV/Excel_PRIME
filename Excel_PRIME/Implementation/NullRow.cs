@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class NullRow(int rowOffset) : IRowAsync
+internal sealed class NullRow(int rowOffset) : INullRowAsync
 {
     public void Dispose()
     {

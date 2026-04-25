@@ -28,6 +28,11 @@ public class RowCellTests
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    continue;
+                }
+
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (ICell? cell in rowCells)
                 {
@@ -67,6 +72,12 @@ public class RowCellTests
         int r = 0;
         await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
         {
+            if (row is null or INullRowAsync)
+            {
+                r++;
+                continue;
+            }
+
             int c = 0;
             IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             foreach (ICell? cell in rowCells)
@@ -111,6 +122,11 @@ public class RowCellTests
         r = 0;
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
+            if (row is null or INullRowAsync)
+            {
+                r++;
+                continue;
+            }
             int c = 0;
             IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             foreach (ICell? cell in rowCells)
@@ -171,6 +187,11 @@ public class RowCellTests
             int r = 0;
             await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    r++;
+                    continue;
+                }
                 int c = 0;
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (ICell? cell in rowCells)
@@ -217,6 +238,11 @@ public class RowCellTests
             int r = 0;
             await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    r++;
+                    continue;
+                }
                 int c = 0;
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (ICell? cell in rowCells)
@@ -277,6 +303,11 @@ public class RowCellTests
             int r = 0;
             await foreach (IRowAsync? row in worksheet1.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    r++;
+                    continue;
+                }
                 int c = 0;
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (ICell? cell in rowCells)
@@ -318,6 +349,11 @@ public class RowCellTests
             int r = 0;
             await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
             {
+                if (row is null or INullRowAsync)
+                {
+                    r++;
+                    continue;
+                }
                 int c = 0;
                 IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (ICell? cell in rowCells)
@@ -361,6 +397,11 @@ public class RowCellTests
         int r = 0;
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
+            if (row is null or INullRowAsync)
+            {
+                r++;
+                continue;
+            }
             int c = 0;
             IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
@@ -416,6 +457,11 @@ public class RowCellTests
         int r = 0;
         await foreach (IRowAsync? row in worksheet2.GetRowDataAsync().ConfigureAwait(false))
         {
+            if (row is null or INullRowAsync)
+            {
+                r++;
+                continue;
+            }
             int c = 0;
             IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
