@@ -121,8 +121,9 @@ Lets take each of the above elements and explain:
 - [V3 Changes ➡️](#v3-changes-)
 - [2026-01-16](#2026-01-16)
   - [Phase V4 - Specific Cell value type(s) #️⃣ - RC3](#phase-v4---specific-cell-value-types----rc3)
-  - [Phase 5 - User Cell Value type formatting & Third Party Nugets 📦](#phase-5---user-cell-value-type-formatting--third-party-nugets-)
-  - [Phase 6 - ideas 💡](#phase-6---ideas-)
+  - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
+  - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
+  - [Phase 7 - ideas 💡](#phase-7---ideas-)
 <!-- TOC -->
 -----
 
@@ -264,12 +265,17 @@ Lets take each of the above elements and explain:
     - `CellValue` is now a `class`, therefore no need to use `.Value`
     - `ICell.CellValue` is now nullable
 - ✅ Cell object type 📅
-    - ✅ "Best Effort" `Operator` based conversion
-    - ✅ TryGet`Type` will return `out type`, if stored as that type.
-    - ✅ Unit Tests
+  - ✅ "Best Effort" `Operator` based conversion
+  - ✅ TryGet`Type` will return `out type`, if stored as that type.
+  - ✅ Unit Tests
 - ✅ Benchmarks
-    - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
-    - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
+  - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
+  - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
+  - ✅ Release-specific optimizations added
+    - ✅ EnableTrimAnalyzer: true
+    - ✅ TieredCompilation: true
+    - ✅ TieredCompilationQuickJit: true
+    - ✅ TieredCompilationQuickJitForLoops: true
 - ✅ Implement `System.DBNull` return option, for empty cells
   - ✅ Implement `INullRow` return option, for empty rows
   - ✅ Update tests to use `INullRow` detection
@@ -277,7 +283,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 5 - User Cell Value type formatting & Third Party Nugets 📦
+## Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️
 - ⛓️‍💥 **Breaking Change(s)**
     - None yet.
 - [ ] Cell object type 📅
@@ -286,6 +292,22 @@ Lets take each of the above elements and explain:
     - [ ] Formatter applied -> `CellConversion.ForceStyles`
     - [ ] Unit Tests
     - [ ] Deal with `DateOnly` / `TimeOnly` fields -> `CellConversion.NumberAndDates` 💹
+**Code-Level Optimizations**
+   - [ ] Implement `ISpanFormattable` in CellValue
+   - [ ] Use `CollectionsMarshal` for zero-copy operations
+   - [ ] Add `System.Runtime.Intrinsics` for SIMD
+**Advanced Scenarios**
+   - [ ] Enable `PublishTrimmed=true` with trim warnings resolved
+   - [ ] Native AOT compilation testing
+   - [ ] IAsyncEnumerable stream processing
+**Monitoring**
+   - [ ] Add performance regression tests
+   - [ ] Implement ETW profiling in CI/CD
+   - [ ] Track JIT compilation metrics
+
+## Phase 6 - Third Party Nugets 📦
+- ⛓️‍💥 **Breaking Change(s)**
+    - None yet.
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
     - [ ] Separate Nuget(s) ?
 - [ ] Benchmarks
@@ -293,7 +315,7 @@ Lets take each of the above elements and explain:
   - [ ] 
 -----
 
-## Phase 6 - ideas 💡
+## Phase 7 - ideas 💡
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
   - [ ] e.g. Search for `Class FileBufferingWriter`
 - [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?

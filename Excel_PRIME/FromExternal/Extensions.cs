@@ -8,6 +8,14 @@ internal static class Extensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IntParse(this string value) => value.AsSpan().IntParse();
 
+    /// <summary>
+    /// Optimized integer parsing with loop unrolling for .NET 8+ platforms.
+    /// Uses process 4 characters at a time with manual bounds checking to reduce allocations
+    /// and improve CPU cache efficiency. Compatible with custom XML parsing scenarios.
+    /// 
+    /// Performance improvement in .NET 8: Custom parsing remains faster than int.Parse(ReadOnlySpan)
+    /// due to bounds-check optimization and inline-friendly control flow.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static int IntParse(this ReadOnlySpan<char> value)
     {

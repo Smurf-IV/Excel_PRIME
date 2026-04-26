@@ -11,6 +11,13 @@
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<RootNamespace>ExcelPRIME.Bench</RootNamespace>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<!-- .NET 8+ Performance Optimizations for Benchmarking -->
+		<PublishReadyToRun>true</PublishReadyToRun>
+		<TieredCompilation>true</TieredCompilation>
+		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
 	</PropertyGroup>
 
 	<ItemGroup>
