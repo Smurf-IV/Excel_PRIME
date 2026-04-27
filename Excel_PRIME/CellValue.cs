@@ -6,6 +6,9 @@ using System.Text;
 
 using ExcelPRIME.Implementation;
 
+#if NET8_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace ExcelPRIME;
 
@@ -13,9 +16,14 @@ namespace ExcelPRIME;
 
 /// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
+/// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-public sealed class CellValue : IEquatable<CellValue>
+#if NET8_0_OR_GREATER
+public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
+#else
+public sealed class CellValue : IEquatable<CellValue>, IFormattable
+#endif
 {
     [FieldOffset(0)] private string? _strValue;
     [FieldOffset(8)] private bool _boolValue;
@@ -115,6 +123,65 @@ public sealed class CellValue : IEquatable<CellValue>
             CellValueType.IsDBNull => DBNull.Value.ToString(InvariantCultureCache),
             _ => null
         };
+
+    /// <summary>
+    /// Appends the cell value to the provided StringBuilder without allocating an intermediate string.
+    /// This is more efficient than calling ToString() when building formatted output.
+    /// </summary>
+    /// <param name="builder">The StringBuilder to append to.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="builder"/> is null.</exception>
+    internal void AppendTo(StringBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+#if NET8_0_OR_GREATER
+        // Try zero-allocation formatting using stackalloc buffer
+        Span<char> buffer = stackalloc char[64]; // Adjust size as needed
+        if (TryFormat(buffer, out int charsWritten, default, null))
+        {
+            builder.Append(buffer.Slice(0, charsWritten));
+            return;
+        }
+        // Fallback to string-based formatting if buffer is too small
+        builder.Append(ToString());
+#else
+        // Fast path: string value, no conversion
+        if (_strValue != null || _type == CellValueType.String)
+        {
+            if (_strValue != null)
+                builder.Append(_strValue);
+            return;
+        }
+        // Dispatch to type-specific formatting
+        AppendTo_Slow(builder);
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void AppendTo_Slow(StringBuilder builder)
+    {
+        switch (_type)
+        {
+            case CellValueType.Bool:
+                builder.Append(_boolValue ? bool.TrueString : bool.FalseString);
+                break;
+
+            case CellValueType.Numeric:
+                builder.Append(_doubleValue);
+                break;
+
+            case CellValueType.DateTime:
+                builder.Append(_dateTimeValue);
+                break;
+
+            case CellValueType.Error:
+                builder.Append((ExcelErrorCode)_doubleValue);
+                break;
+
+            case CellValueType.IsDBNull:
+                builder.Append(DBNull.Value);
+                break;
+        }
+    }
 
     /// <summary>
     /// Gets the raw "Boxed" value of the cell.
@@ -412,7 +479,7 @@ public sealed class CellValue : IEquatable<CellValue>
     /// Formats a number in accounting style with alignment spacing.
     /// </summary>
     private static string FormatAccountingNumber(double value, int decimals)
-    {
+        {
         string format = decimals switch
         {
             0 => "N0",
@@ -424,7 +491,7 @@ public sealed class CellValue : IEquatable<CellValue>
         if (value < 0)
         {
             return string.Concat("(", Math.Abs(value).ToString(format, CultureInfo.InvariantCulture), ")");
-        }
+    }
 
         // Add leading space for alignment
         return string.Concat(" ", value.ToString(format, CultureInfo.InvariantCulture), " ");
@@ -465,7 +532,7 @@ public sealed class CellValue : IEquatable<CellValue>
         if (intPart != 0)
         {
             result = string.Concat(Math.Truncate(intPart).ToString(CultureInfo.InvariantCulture), " ", result);
-        }
+    }
 
         return result;
     }
@@ -523,8 +590,8 @@ public sealed class CellValue : IEquatable<CellValue>
                 if (dotIndex >= 0)
                 {
                     decimalPlaces = beforeE.Length - dotIndex - 1;
-                }
             }
+        }
             return value.ToString("E" + decimalPlaces, CultureInfo.InvariantCulture);
         }
 
@@ -538,7 +605,7 @@ public sealed class CellValue : IEquatable<CellValue>
             {
                 if (c == '0' || c == '#')
                     decimals++;
-            }
+        }
         }
 
         // Check if thousands separator is present
@@ -681,7 +748,7 @@ public sealed class CellValue : IEquatable<CellValue>
         int minutes = value.Minute;
         int seconds = value.Second;
         return $"{totalHours}:{minutes:D2}:{seconds:D2}";
-    }
+        }
 
     /// <summary>
     /// Formats a DateTime value using a custom format code pattern.
@@ -693,7 +760,7 @@ public sealed class CellValue : IEquatable<CellValue>
         {
             string cleanFormat = formatCode.Replace("[Red]", "");
             return FormatCustomDateTime(value, cleanFormat, type);
-        }
+    }
 
         // Try to convert Excel format codes to .NET format codes
         string netFormat = ConvertExcelDateTimeFormatToNet(formatCode);
@@ -751,7 +818,7 @@ public sealed class CellValue : IEquatable<CellValue>
                     // This is minutes - keep as "mm"
                     sb.Append("mm");
                     i += 2;
-                }
+        }
                 else
                 {
                     // Check if preceded by digit or date separator, or followed by date pattern
@@ -761,22 +828,22 @@ public sealed class CellValue : IEquatable<CellValue>
                     if (i > 0 && (char.IsDigit(result[i - 1]) || result[i - 1] == '/' || result[i - 1] == '-' || result[i - 1] == '.'))
                     {
                         isProbablyMonth = true;
-                    }
+    }
 
                     // If followed by digit, date separator, or date character
                     if (i + 2 < result.Length)
-                    {
+    {
                         char next = result[i + 2];
                         if (char.IsDigit(next) || next == '/' || next == '-' || next == '.' || next == 'd' || next == 'y' || next == 'D' || next == 'Y')
-                        {
+        {
                             isProbablyMonth = true;
-                        }
+        }
                     }
 
                     if (isProbablyMonth)
-                    {
+        {
                         sb.Append("MM");
-                    }
+        }
                     else
                     {
                         sb.Append("mm");
@@ -853,7 +920,7 @@ public sealed class CellValue : IEquatable<CellValue>
         }
 
         return _type switch
-        {
+                {
             CellValueType.Bool => _boolValue == other._boolValue,
             CellValueType.Numeric => _doubleValue == other._doubleValue,
             CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
@@ -872,7 +939,7 @@ public sealed class CellValue : IEquatable<CellValue>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
     public static bool operator ==(CellValue? left, CellValue? right)
-    {
+                    {
         if (ReferenceEquals(left, right))
         {
             return true;
@@ -880,10 +947,10 @@ public sealed class CellValue : IEquatable<CellValue>
         if (left is null
             || right is null)
         {
-            return false;
-        }
+                        return false;
+                    }
         return left.Equals(right);
-    }
+                }
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.
@@ -906,18 +973,18 @@ public sealed class CellValue : IEquatable<CellValue>
     /// <c>true</c> if the cell value was successfully converted to a <see cref="DateTime"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetDateTime(out DateTime value)
-    {
+                {
         try
-        {
+                    {
             value = AsDateTime;
             return true;
         }
         catch
         {
             value = default;
-            return false;
-        }
-    }
+                        return false;
+                    }
+                }
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
@@ -926,18 +993,18 @@ public sealed class CellValue : IEquatable<CellValue>
     /// <c>true</c> if the cell value was successfully converted to a <see cref="DateOnly"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryDateOnly(out DateOnly value)
-    {
+                {
         try
-        {
+                    {
             value = DateOnly.FromDateTime(AsDateTime);
             return true;
         }
         catch
         {
             value = default;
-            return false;
-        }
-    }
+                        return false;
+                    }
+                }
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
@@ -950,7 +1017,7 @@ public sealed class CellValue : IEquatable<CellValue>
         try
         {
             value = TimeOnly.FromDateTime(AsDateTime);
-            return true;
+                return true;
         }
         catch
         {
@@ -994,12 +1061,12 @@ public sealed class CellValue : IEquatable<CellValue>
     /// <c>true</c> if the cell value was successfully converted to a <see cref="int"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetInt32(out int value)
-    {
+        {
         try
         {
             value = AsInt32;
             return true;
-        }
+    }
         catch
         {
             value = 0;
@@ -1042,7 +1109,7 @@ public sealed class CellValue : IEquatable<CellValue>
     /// <c>true</c> if the cell value was successfully converted to a <see cref="double"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetDouble(out double value)
-    {
+        {
         try
         {
             value = AsDouble;
@@ -1138,16 +1205,127 @@ public sealed class CellValue : IEquatable<CellValue>
     public static implicit operator DateTime(CellValue value) => value.AsDateTime;
 
     /// <summary>
-    /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="DateOnly"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DateOnly(CellValue value) => value.AsDateOnly;
 
     /// <summary>
-    /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
+    /// Implicitly converts a <see cref="CellValue"/> to a <see cref="TimeOnly"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator TimeOnly(CellValue value) => value.AsTimeOnly;
 
     #endregion
+#if NET8_0_OR_GREATER
+    #region ISpanFormattable Implementation
+
+    /// <summary>
+    /// Tries to format the cell value into the provided character span without allocations.
+    /// This zero-allocation method is available on .NET 8+.
+    /// </summary>
+    /// <param name="destination">The span where the formatted value should be written.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <param name="format">Unused; invariant culture is always applied.</param>
+    /// <param name="provider">Unused; invariant culture is always applied.</param>
+    /// <returns>true if successful; false if destination is too small.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        // Fast path: string value, no conversion
+        if (_strValue != null || _type == CellValueType.String)
+        {
+            return TryFormatString(destination, out charsWritten);
+        }
+
+        // Dispatch to type-specific handling
+        return TryFormat_Slow(destination, out charsWritten);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool TryFormatString(Span<char> destination, out int charsWritten)
+    {
+        if (_strValue == null)
+        {
+            charsWritten = 0;
+            return true;
+        }
+
+        if (destination.Length < _strValue.Length)
+        {
+            charsWritten = 0;
+            return false;
+        }
+
+        _strValue.AsSpan().CopyTo(destination);
+        charsWritten = _strValue.Length;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool TryFormat_Slow(Span<char> destination, out int charsWritten)
+    {
+        switch (_type)
+        {
+            case CellValueType.Numeric:
+                return _doubleValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+
+            case CellValueType.Bool:
+                {
+                    var boolStr = _boolValue ? bool.TrueString : bool.FalseString;
+                    if (destination.Length < boolStr.Length)
+                    {
+                        charsWritten = 0;
+                        return false;
+                    }
+                    boolStr.AsSpan().CopyTo(destination);
+                    charsWritten = boolStr.Length;
+                    return true;
+                }
+
+            case CellValueType.DateTime:
+                return _dateTimeValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+
+            case CellValueType.Error:
+                {
+                    var errorStr = ((ExcelErrorCode)_doubleValue).ToString();
+                    if (destination.Length < errorStr.Length)
+                    {
+                        charsWritten = 0;
+                        return false;
+                    }
+                    errorStr.AsSpan().CopyTo(destination);
+                    charsWritten = errorStr.Length;
+                    return true;
+                }
+
+            case CellValueType.IsDBNull:
+                {
+                    const string dbNullStr = "DBNull";
+                    if (destination.Length < dbNullStr.Length)
+                    {
+                        charsWritten = 0;
+                        return false;
+                    }
+                    dbNullStr.AsSpan().CopyTo(destination);
+                    charsWritten = dbNullStr.Length;
+                    return true;
+                }
+
+            default:
+                charsWritten = 0;
+                return true;
+        }
+    }
+
+    #endregion
+#endif
+
+
+    /// <summary>
+    /// Implements IFormattable.ToString for compatibility.
+    /// </summary>
+    string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
+        => ToString() ?? string.Empty;
+
 }

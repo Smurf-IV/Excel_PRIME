@@ -268,9 +268,10 @@ Lets take each of the above elements and explain:
   - ✅ "Best Effort" `Operator` based conversion
   - ✅ TryGet`Type` will return `out type`, if stored as that type.
   - ✅ Unit Tests
-- ✅ Benchmarks
+- ✅ Performance
   - ✅ Use `ValueTask` and reduce memory allocations in some hot paths
   - 🚀 [Fix fallout from making `CellValue` is now a `class`](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md##2026-01-31-v4-alpha)
+  - ✅ `ArrayPool` support has been added to ThreadStringBuilderPool using ArrayPool<char>.
   - ✅ Release-specific optimizations added
     - ✅ EnableTrimAnalyzer: true
     - ✅ TieredCompilation: true

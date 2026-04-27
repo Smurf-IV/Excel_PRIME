@@ -32,7 +32,7 @@
 - [2026-04-05 - V4 Beta](#2026-04-05---v4-beta)
 - [2026-04-10 - V4 - Beta](#2026-04-10---v4---beta)
 - [2026-04-22 - V4 - RC2](#2026-04-22---v4---rc2)
-- [2026-04-2# - V4 - RC3](#2026-04-2---v4---rc3)
+- [2026-04-27 - V4 - RC3](#2026-04-27---v4---rc3)
 <!-- TOC -->
 
 # Intro
@@ -1150,7 +1150,7 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.30x slower | 223000.0000 |  2000.0000 |          - | 2671.72 MB |  9.08x more |
 ```
 
-# 2026-04-2# - V4 - RC3
+# 2026-04-27 - V4 - RC3
 - Release-specific optimizations added
   - EnableTrimAnalyzer: true
   - TieredCompilation: true
@@ -1160,30 +1160,32 @@ And then slightly different versions of the following dependent on date:
   - Implement `INullRow` return option, for empty rows
   - Update tests to use `INullRow` detection
 - Implement `GetCell###(string columnLetters, ...)` #8
+- `ArrayPool` support has been added to ThreadStringBuilderPool using ArrayPool<char>.
 ```
 | Method                   | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
 |------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
 | SylvanRdr                | 100mb.xlsx           |     baseline |  29000.0000 | 27000.0000 |  4000.0000 |  338.72 MB |             |
-| XlsxHelper               | 100mb.xlsx           | 3.72x slower | 282000.0000 |  2000.0000 |  1000.0000 | 3380.58 MB |  9.98x more |
-| AsyncExcel_Prime         | 100mb.xlsx           | 1.33x slower | 184000.0000 | 36000.0000 |  5000.0000 | 2151.66 MB |  6.35x more |
-| Excel_Prime              | 100mb.xlsx           | 1.22x slower | 126000.0000 | 34000.0000 |  5000.0000 | 1459.34 MB |  4.31x more |
-| PrlAsyncExcel_PrimeTwice | 100mb.xlsx           | 2.16x slower | 314000.0000 | 42000.0000 |  5000.0000 |    3710 MB | 10.95x more |
+| XlsxHelper               | 100mb.xlsx           | 3.60x slower | 282000.0000 |  2000.0000 |  1000.0000 | 3380.58 MB |  9.98x more |
+| AsyncExcel_Prime         | 100mb.xlsx           | 1.28x slower | 184000.0000 | 36000.0000 |  5000.0000 | 2151.64 MB |  6.35x more |
+| Excel_Prime              | 100mb.xlsx           | 1.15x slower | 126000.0000 | 34000.0000 |  5000.0000 | 1459.35 MB |  4.31x more |
+| PrlAsyncExcel_PrimeTwice | 100mb.xlsx           | 2.14x slower | 314000.0000 | 42000.0000 |  5000.0000 | 3709.95 MB | 10.95x more |
 |                          |                      |              |             |            |            |            |             |
-| SylvanRdr                | Blank(...).xlsx [30] |     baseline |  27000.0000 |  2000.0000 |  1000.0000 |  318.92 MB |             |
+| SylvanRdr                | Blank(...).xlsx [30] |     baseline |  27000.0000 |  2000.0000 |  1000.0000 |   318.9 MB |             |
 | XlsxHelper               | Blank(...).xlsx [30] | 1.05x slower | 145000.0000 |  1000.0000 |          - | 1739.24 MB |  5.45x more |
-| AsyncExcel_Prime         | Blank(...).xlsx [30] | 1.11x slower | 268000.0000 | 42000.0000 | 41000.0000 | 2850.88 MB |  8.94x more |
-| Excel_Prime              | Blank(...).xlsx [30] | 1.05x faster | 173000.0000 | 42000.0000 | 41000.0000 | 1715.59 MB |  5.38x more |
-| PrlAsyncExcel_PrimeTwice | Blank(...).xlsx [30] | 2.51x slower | 538000.0000 | 83000.0000 | 83000.0000 | 5726.03 MB | 17.95x more |
+| AsyncExcel_Prime         | Blank(...).xlsx [30] | 1.13x slower | 268000.0000 | 42000.0000 | 41000.0000 | 2850.83 MB |  8.94x more |
+| Excel_Prime              | Blank(...).xlsx [30] | 1.01x slower | 173000.0000 | 42000.0000 | 41000.0000 | 1715.59 MB |  5.38x more |
+| PrlAsyncExcel_PrimeTwice | Blank(...).xlsx [30] | 2.56x slower | 538000.0000 | 83000.0000 | 83000.0000 |  5726.2 MB | 17.96x more |
 |                          |                      |              |             |            |            |            |             |
 | SylvanRdr                | sampl(...).xlsx [34] |     baseline |  22000.0000 |          - |          - |  265.67 MB |             |
-| XlsxHelper               | sampl(...).xlsx [34] | 1.08x faster |  66000.0000 |          - |          - |  799.73 MB |  3.01x more |
-| AsyncExcel_Prime         | sampl(...).xlsx [34] | 1.00x faster | 109000.0000 |  1000.0000 |          - | 1309.96 MB |  4.93x more |
-| Excel_Prime              | sampl(...).xlsx [34] | 1.12x faster |  66000.0000 |  1000.0000 |          - |  792.59 MB |  2.98x more |
-| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [34] | 2.30x slower | 219000.0000 |  1000.0000 |          - | 2628.98 MB |  9.90x more |
+| XlsxHelper               | sampl(...).xlsx [34] | 1.09x faster |  66000.0000 |          - |          - |  799.73 MB |  3.01x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [34] | 1.00x slower | 109000.0000 |  1000.0000 |          - | 1309.97 MB |  4.93x more |
+| Excel_Prime              | sampl(...).xlsx [34] | 1.17x faster |  66000.0000 |  1000.0000 |          - |  792.59 MB |  2.98x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [34] | 2.18x slower | 219000.0000 |  1000.0000 |          - | 2629.08 MB |  9.90x more |
 |                          |                      |              |             |            |            |            |             |
 | SylvanRdr                | sampl(...).xlsx [30] |     baseline |  24000.0000 |          - |          - |  294.16 MB |             |
 | XlsxHelper               | sampl(...).xlsx [30] | 1.08x faster |  62000.0000 |          - |          - |  742.13 MB |  2.52x more |
-| AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.00x faster | 111000.0000 |  1000.0000 |          - | 1333.23 MB |  4.53x more |
-| Excel_Prime              | sampl(...).xlsx [30] | 1.18x faster |  68000.0000 |  1000.0000 |          - |  816.25 MB |  2.77x more |
-| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.01x slower | 223000.0000 |  1000.0000 |          - | 2672.99 MB |  9.09x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.02x slower | 111000.0000 |  1000.0000 |          - | 1333.29 MB |  4.53x more |
+| Excel_Prime              | sampl(...).xlsx [30] | 1.16x faster |  68000.0000 |  1000.0000 |          - |  816.25 MB |  2.77x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.04x slower | 223000.0000 |          - |          - |  2673.1 MB |  9.09x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.09x slower | 223000.0000 |  1000.0000 |          - | 2672.97 MB |  9.09x more |
 ```
