@@ -12,6 +12,7 @@
 		<RootNamespace>ExcelPRIMEXlsb.RangeBench</RootNamespace>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<WarningLevel>7</WarningLevel>
 
 		<!-- .NET 8+ Performance Optimizations for Benchmarking -->
 		<TieredCompilation>true</TieredCompilation>

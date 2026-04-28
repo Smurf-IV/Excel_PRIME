@@ -17,7 +17,7 @@ internal sealed class Row : IRowAsync
     private static Row? t_row;
 
     private XmlReader? _reader;
-    private InstanceContext? _instanceContext;
+    private InstanceContext _instanceContext;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private Cell?[]? _cells;
@@ -97,7 +97,7 @@ internal sealed class Row : IRowAsync
     {
         _isDisposed = false;
         _reader = null;
-        _instanceContext = null;
+        _instanceContext = null!;
         _maxExcelColumnDimension = 0;
         _cells = null;
         _cellsLoaded = false;
@@ -172,7 +172,7 @@ internal sealed class Row : IRowAsync
                     && !_reader.IsEmptyElement    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext!, _readerAtomsRefForSafety, buffer, valueBuilder).ConfigureAwait(false);
+                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtomsRefForSafety, buffer, valueBuilder).ConfigureAwait(false);
                     if (cell != null)    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset - 1;
@@ -257,7 +257,7 @@ internal sealed class Row : IRowAsync
                     && !_reader.IsEmptyElement  // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext!, _readerAtomsRefForSafety, buffer, valueBuilder);
+                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext, _readerAtomsRefForSafety, buffer, valueBuilder);
                     if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset - 1;
@@ -401,7 +401,7 @@ internal sealed class Row : IRowAsync
         int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
         for (int ordinal = 0; ordinal < minLength; ++ordinal)
         {
-            values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;
+            values[ordinal] = _cells[ordinal]?.CellValue?.BoxedValue;
         }
     }
 }

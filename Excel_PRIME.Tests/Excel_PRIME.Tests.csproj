@@ -13,6 +13,7 @@
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<WarningLevel>7</WarningLevel>
 
 		<!-- .NET 8+ Performance Optimizations -->
 		<TieredCompilation>true</TieredCompilation>

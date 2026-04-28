@@ -20,7 +20,7 @@ internal sealed class XlsbRow : IRowAsync
     private static XlsbCell?[]? t_cellArrayPool;
 
     private XlsbStreamReader? _reader;
-    private InstanceContext? _instanceContext;
+    private InstanceContext _instanceContext;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private XlsbCell?[]? _cells;
@@ -86,7 +86,7 @@ internal sealed class XlsbRow : IRowAsync
         }
 
         _reader = null;
-        _instanceContext = null;
+        _instanceContext = null!;
         _maxExcelColumnDimension = 0;
         _cellsLoaded = false;
         RowOffset = 0;
@@ -130,7 +130,7 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
                     continue;
                 }
-                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext);
                 if (cell != null)
                 {
                     int offset = cell.ExcelColumnOffset - 1;
@@ -210,7 +210,7 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = _reader.ReadNextRecord();
                     continue;
                 }
-                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext);
                 if (cell != null)
                 {
                     int offset = cell.ExcelColumnOffset - 1;
