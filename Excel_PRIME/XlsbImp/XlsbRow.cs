@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ internal sealed class XlsbRow : IRowAsync
     private static XlsbCell?[]? t_cellArrayPool;
 
     private XlsbStreamReader? _reader;
-    private InstanceContext _instanceContext;
+    private InstanceContext _instanceContext = null!;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private XlsbCell?[]? _cells;
@@ -354,7 +353,7 @@ internal sealed class XlsbRow : IRowAsync
         int minLength = Math.Min(values.Length, _cells.Length);
         for (int ordinal = 0; ordinal < minLength; ++ordinal)
         {
-            values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;
+            values[ordinal] = _cells[ordinal]?.CellValue?.BoxedValue;
         }
     }
 }

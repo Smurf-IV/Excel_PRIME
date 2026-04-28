@@ -7,7 +7,6 @@ using System.Text;
 using ExcelPRIME.Implementation;
 
 #if NET8_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 namespace ExcelPRIME;

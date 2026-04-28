@@ -13,6 +13,7 @@
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<WarningLevel>7</WarningLevel>
+		<NoWarn>$(NoWarn);CS8600;CS8602;CS8604</NoWarn>
 
 		<!-- .NET 8+ Performance Optimizations for Benchmarking -->
 		<TieredCompilation>true</TieredCompilation>

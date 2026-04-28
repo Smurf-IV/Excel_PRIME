@@ -17,7 +17,7 @@ internal sealed class Row : IRowAsync
     private static Row? t_row;
 
     private XmlReader? _reader;
-    private InstanceContext _instanceContext;
+    private InstanceContext _instanceContext = null!;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private Cell?[]? _cells;
