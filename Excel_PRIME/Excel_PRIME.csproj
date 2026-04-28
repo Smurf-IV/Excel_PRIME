@@ -18,20 +18,12 @@
 		<RootNamespace>ExcelPRIME</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>../Excel.ico</ApplicationIcon>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 
 		<!-- .NET 8+ Performance Optimizations -->
-		<PublishReadyToRun>true</PublishReadyToRun>
-		<PublishTrimmed>false</PublishTrimmed>
-		<DebugType>embedded</DebugType>
 		<TieredCompilation>true</TieredCompilation>
 		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
 		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
-	</PropertyGroup>
-
-	<!-- Platform-specific optimizations for Release builds -->
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DebugSymbols>false</DebugSymbols>
-		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
