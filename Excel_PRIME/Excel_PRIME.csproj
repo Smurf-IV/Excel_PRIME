@@ -32,8 +32,16 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.2.26159.112" >
-			<!-- Used for source code linking in NuGet packages. -->
+		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
+		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.3.26207.106" >
+			<!-- Used for source code linking in NuGet packages.
+				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
+				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
+				  ├── Microsoft.Build.Tasks.Git/11.0.100-preview.2.26159.112
+				  │   └── System.IO.Hashing/11.0.0-preview.2.26159.112
+				  └── Microsoft.SourceLink.Common/11.0.100-preview.2.26159.112
+				  -->
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

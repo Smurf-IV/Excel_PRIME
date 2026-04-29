@@ -9,11 +9,12 @@ using System.Xml;
 
 using ExcelPRIME.FromExternal;
 
+
 namespace ExcelPRIME.Implementation;
 
 internal class XmlWorkBookReader : IOpenXmlWorkBookReader
 {
-    private protected IZipReader _zipReader;
+    private protected readonly IZipReader _zipReader;
     private protected Stream _streamWb;
     private protected XmlReader _readerWb;
     private bool _isDisposed;
@@ -217,7 +218,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
             if (isDisposing)
             {
                 _readerWb.Dispose();
-                _streamWb?.Dispose();
+                _streamWb.Dispose();
             }
 
             _isDisposed = true;
