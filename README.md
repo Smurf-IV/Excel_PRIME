@@ -283,6 +283,7 @@ Lets take each of the above elements and explain:
   - ✅ Implement `INullRow` return option, for empty rows
   - ✅ Update tests to use `INullRow` detection
 - ✅ Implement `GetCell###(string columnLetters, ...)` #8
+- 🚀 [2026-05-05](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-05-05---v4)
 
 -----
 

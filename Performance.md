@@ -1191,7 +1191,7 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.09x slower | 223000.0000 |  1000.0000 |          - | 2672.97 MB |  9.09x more |
 ```
 
-# 2026-05-## - V4
+# 2026-05-05 - V4
 - Small tweaks for performance
   - Remove `<PublishReadyToRun>true</PublishReadyToRun>`
   - Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
