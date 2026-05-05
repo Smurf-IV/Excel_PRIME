@@ -32,9 +32,9 @@
 
 
 	<ItemGroup>
-		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
-		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
-		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.3.26207.106" >
+		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.3.26207.106">
 			<!-- Used for source code linking in NuGet packages.
 				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
 				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
@@ -70,6 +70,8 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
+		<AssemblyVersion>26.5.6.5</AssemblyVersion>
+		<FileVersion>26.5.6.5</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

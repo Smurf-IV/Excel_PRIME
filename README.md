@@ -115,11 +115,9 @@ Lets take each of the above elements and explain:
   - [Phase Beta - Benchmarks ⏱️](#phase-beta---benchmarks-)
   - [Phase 1 - MVP 🔍](#phase-1---mvp-)
   - [Phase 2 - RC](#phase-2---rc)
-  - [V2 Changes ➡️](#v2-changes-)
-    - [2025-12-14](#2025-12-14)
+    - [V2 Changes ➡️ 2025-12-14](#v2-changes--2025-12-14)
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
-- [V3 Changes ➡️](#v3-changes-)
-- [2026-01-16](#2026-01-16)
+    - [V3 Changes ➡️ 2026-01-16](#v3-changes--2026-01-16)
   - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
   - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
   - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
@@ -202,8 +200,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## V2 Changes ➡️
-### 2025-12-14
+### V2 Changes ➡️ 2025-12-14
 - Implement [GetUserRange(...)](https://github.com/Smurf-IV/Excel_PRIME/issues/7)
   - [Range Performance on 2025-12-14](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2025-12-14)
 
@@ -248,8 +245,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-# V3 Changes ➡️
-# 2026-01-16
+### V3 Changes ➡️ 2026-01-16
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job
 - Implement "Hot-Paths" for cell type access
 - Reduce some memory allocations for ReadOnly CellCollections

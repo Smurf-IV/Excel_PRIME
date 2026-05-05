@@ -1187,7 +1187,6 @@ And then slightly different versions of the following dependent on date:
 | XlsxHelper               | sampl(...).xlsx [30] | 1.08x faster |  62000.0000 |          - |          - |  742.13 MB |  2.52x more |
 | AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.02x slower | 111000.0000 |  1000.0000 |          - | 1333.29 MB |  4.53x more |
 | Excel_Prime              | sampl(...).xlsx [30] | 1.16x faster |  68000.0000 |  1000.0000 |          - |  816.25 MB |  2.77x more |
-| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.04x slower | 223000.0000 |          - |          - |  2673.1 MB |  9.09x more |
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.09x slower | 223000.0000 |  1000.0000 |          - | 2672.97 MB |  9.09x more |
 ```
 
