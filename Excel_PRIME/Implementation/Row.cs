@@ -17,7 +17,7 @@ internal sealed class Row : IRowAsync
     private static Row? t_row;
 
     private XmlReader? _reader;
-    private InstanceContext? _instanceContext;
+    private InstanceContext _instanceContext = null!;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private Cell?[]? _cells;
@@ -97,7 +97,7 @@ internal sealed class Row : IRowAsync
     {
         _isDisposed = false;
         _reader = null;
-        _instanceContext = null;
+        _instanceContext = null!;
         _maxExcelColumnDimension = 0;
         _cells = null;
         _cellsLoaded = false;
@@ -168,11 +168,11 @@ internal sealed class Row : IRowAsync
                        && _reader.Depth > currentDepth)
             {
                 if (_reader.NodeType == XmlNodeType.Element
-                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety!.cRefAtom)
+                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety.cRefAtom)
                     && !_reader.IsEmptyElement    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext!, _readerAtomsRefForSafety!, buffer, valueBuilder).ConfigureAwait(false);
+                    Cell? cell = await Cell.ConstructCellAsync(_reader, _instanceContext, _readerAtomsRefForSafety, buffer, valueBuilder).ConfigureAwait(false);
                     if (cell != null)    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset - 1;
@@ -189,6 +189,17 @@ internal sealed class Row : IRowAsync
                 }
             }
 
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < localCells.Length; index++)
+                {
+                    localCells[index] ??= new Cell
+                    {
+                        CellValue = new CellValue(DBNull.Value, 0),
+                        ExcelColumnOffset = index + 1
+                    };
+                }
+            }
             // publish parsed cells once fully read to avoid partial-visible state
             _cells = localCells;
             _cellsLoaded = true;
@@ -242,11 +253,11 @@ internal sealed class Row : IRowAsync
                    && _reader.Depth > currentDepth)
             {
                 if (_reader.NodeType == XmlNodeType.Element
-                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety!.cRefAtom)
+                    && ReferenceEquals(_reader.LocalName, _readerAtomsRefForSafety.cRefAtom)
                     && !_reader.IsEmptyElement  // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                    )
                 {
-                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext!, _readerAtomsRefForSafety, buffer, valueBuilder);
+                    Cell? cell = Cell.ConstructCell(_reader, _instanceContext, _readerAtomsRefForSafety, buffer, valueBuilder);
                     if (cell != null) // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
                     {
                         int offset = cell.ExcelColumnOffset - 1;
@@ -258,6 +269,17 @@ internal sealed class Row : IRowAsync
                 }
             }
 
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < localCells.Length; index++)
+                {
+                    localCells[index] ??= new Cell
+                    {
+                        CellValue = new CellValue(DBNull.Value, 0),
+                        ExcelColumnOffset = index + 1
+                    };
+                }
+            }
             _cells = localCells;
             _cellsLoaded = true;
         }
@@ -271,17 +293,17 @@ internal sealed class Row : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple wrapper that calls GetCellsAsync, should inline well
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_cellsLoaded)
         {
-            return Task.FromResult<IReadOnlyList<ICell?>?>(_cells);
+            return ValueTask.FromResult<IReadOnlyList<ICell?>?>(_cells);
         }
 
         return GetAllCellsAsyncCore(ct);
     }
 
-    private async Task<IReadOnlyList<ICell?>?> GetAllCellsAsyncCore(CancellationToken ct)
+    private async ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsyncCore(CancellationToken ct)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         return _cells;
@@ -299,21 +321,21 @@ internal sealed class Row : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple accessor with bounds check, inline is sufficient
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
+    public ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         if (_cellsLoaded)
         {
             if (_cells == null || excelColumnIndex < 1 || excelColumnIndex > _maxExcelColumnDimension)
             {
-                return Task.FromResult<ICell?>(result: null);
+                return ValueTask.FromResult<ICell?>(result: null);
             }
-            return Task.FromResult<ICell?>(_cells[excelColumnIndex - 1]);
+            return ValueTask.FromResult<ICell?>(_cells[excelColumnIndex - 1]);
         }
 
         return GetCellAsyncCore(excelColumnIndex, ct);
     }
 
-    private async Task<ICell?> GetCellAsyncCore(int excelColumnIndex, CancellationToken ct)
+    private async ValueTask<ICell?> GetCellAsyncCore(int excelColumnIndex, CancellationToken ct)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         if (_cells == null || excelColumnIndex < 1 || excelColumnIndex > _maxExcelColumnDimension)
@@ -340,10 +362,30 @@ internal sealed class Row : IRowAsync
     }
 
     /// <InheritDoc />
-    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    /// <InheritDoc />
+    public async ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+        if (!_cellsLoaded)
+        {
+            await GetCellsAsync(ct).ConfigureAwait(false);
+        }
+
+        return await GetCellAsync(columnLetters.GetColNumber(), ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
-    public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public ICell? GetCell(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+
+        if (!_cellsLoaded)
+        {
+            GetCells(ct);
+        }
+
+        return GetCell(columnLetters.GetColNumber(), ct);
+    }
 
     // CHANGED: Removed AggressiveOptimization - tight loop benefits more from size reduction for i-cache
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
@@ -359,7 +401,7 @@ internal sealed class Row : IRowAsync
         int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
         for (int ordinal = 0; ordinal < minLength; ++ordinal)
         {
-            values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;
+            values[ordinal] = _cells[ordinal]?.CellValue?.BoxedValue;
         }
     }
 }

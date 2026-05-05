@@ -166,7 +166,7 @@ internal sealed class SheetRestrictedNameTable : NameTable
 
 internal sealed class WorkBookRestrictedNameTable : NameTable
 {
-    private const string idAtom = "id";
+    private const string idAtom = "r:id";
     private const string nameAtom = "name";
     private const string sheetAtom = "sheet";
     private const string sheetsAtom = "sheets";
@@ -196,9 +196,12 @@ internal sealed class WorkBookRestrictedNameTable : NameTable
                 {
                     return idAtom;
                 }
-
                 break;
             case 4:
+                if (value.SequenceEqual(idAtom))
+                {
+                    return idAtom;
+                }
                 if (value.SequenceEqual(nameAtom))
                 {
                     return nameAtom;

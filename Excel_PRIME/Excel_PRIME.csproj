@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<IsTrimmable>True</IsTrimmable>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 		<WarningLevel>8</WarningLevel>
 		<NeutralLanguage>en</NeutralLanguage>
 		<LangVersion>preview</LangVersion>
@@ -17,6 +18,12 @@
 		<RootNamespace>ExcelPRIME</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>../Excel.ico</ApplicationIcon>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+
+		<!-- .NET 8+ Performance Optimizations -->
+		<TieredCompilation>true</TieredCompilation>
+		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +32,19 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
+		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="all"/>
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.3.26207.106" >
+			<!-- Used for source code linking in NuGet packages.
+				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
+				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
+				  ├── Microsoft.Build.Tasks.Git/11.0.100-preview.2.26159.112
+				  │   └── System.IO.Hashing/11.0.0-preview.2.26159.112
+				  └── Microsoft.SourceLink.Common/11.0.100-preview.2.26159.112
+				  -->
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<PropertyGroup>
@@ -41,8 +60,8 @@
 		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
-		<VersionPrefix>3.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
-		<!--<VersionSuffix>beta</VersionSuffix>-->
+		<VersionPrefix>4.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
+		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
 		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageIcon>Excel.png</PackageIcon>

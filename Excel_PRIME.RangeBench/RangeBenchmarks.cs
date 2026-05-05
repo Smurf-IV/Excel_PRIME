@@ -34,15 +34,15 @@ public class RangeBenchmarks
         //< definedName name = "DışVeri_1" localSheetId = "0" hidden = "1" > 'Worksheet (2)'!$A$1:$H$27001 </ definedName >
         //< definedName name = "DışVeri_1" localSheetId = "1" hidden = "1" > 'Worksheet (3)'!$A$1:$H$4001 </ definedName >
         //< definedName name = "DışVeri_2" localSheetId = "3" hidden = "1" > Worksheet!$A$952351:$H$985351 </ definedName >
-        IEnumerable<IEnumerable<object?>> rangeTablo3 = getRanger.GetDefinedRange("DışVeri_1", 2);
+        IEnumerable<IEnumerable<object?>> rangeTablo3 = getRanger.GetDefinedRange("DışVeri_1");
         int cells = rangeTablo3.Sum(row => row.Count());
-        IEnumerable<IEnumerable<object?>> rangeWorksheet = getRanger.GetDefinedRange("DışVeri_1", 3);
+        IEnumerable<IEnumerable<object?>> rangeWorksheet = getRanger.GetDefinedRange("DışVeri_1");
         cells += rangeWorksheet.Sum(row => row.Count());
-        IEnumerable<IEnumerable<object?>> rangeWorksheet2 = getRanger.GetDefinedRange("DışVeri_1", 0);
+        IEnumerable<IEnumerable<object?>> rangeWorksheet2 = getRanger.GetDefinedRange("DışVeri_1");
         cells += rangeWorksheet2.Sum(row => row.Count());
-        IEnumerable<IEnumerable<object?>> rangeWorksheet3 = getRanger.GetDefinedRange("DışVeri_1", 1);
+        IEnumerable<IEnumerable<object?>> rangeWorksheet3 = getRanger.GetDefinedRange("DışVeri_1");
         cells += rangeWorksheet3.Sum(row => row.Count());
-        IEnumerable<IEnumerable<object?>> rangeDışVeri_2 = getRanger.GetDefinedRange("DışVeri_2", 3);
+        IEnumerable<IEnumerable<object?>> rangeDışVeri_2 = getRanger.GetDefinedRange("DışVeri_2");
         cells += rangeDışVeri_2.Sum(row => row.Count());
 
         return cells;
@@ -62,7 +62,7 @@ public class RangeBenchmarks
         getRanger.LoadFile("Data\\pivot-tables.xlsx");
 
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase", 2);
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         int cells = filterDatabaseSheet.Sum(row => row.Count());
         IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_xlnm._FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());

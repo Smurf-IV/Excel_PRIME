@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
@@ -13,8 +14,12 @@ internal sealed class XlsbRow : IRowAsync
     [ThreadStatic]
     private static XlsbRow? t_row;
 
+    // Thread-local pool for cell arrays to reduce repeated allocations
+    [ThreadStatic]
+    private static XlsbCell?[]? t_cellArrayPool;
+
     private XlsbStreamReader? _reader;
-    private InstanceContext? _instanceContext;
+    private InstanceContext _instanceContext = null!;
     private int _maxExcelColumnDimension;
     private bool _isDisposed;
     private XlsbCell?[]? _cells;
@@ -71,10 +76,17 @@ internal sealed class XlsbRow : IRowAsync
     private void Reset()
     {
         _isDisposed = false;
+
+        // Return cell array to thread-local pool for reuse
+        if (_cells != null)
+        {
+            t_cellArrayPool = _cells;
+            _cells = null;
+        }
+
         _reader = null;
-        _instanceContext = null;
+        _instanceContext = null!;
         _maxExcelColumnDimension = 0;
-        _cells = null;
         _cellsLoaded = false;
         RowOffset = 0;
     }
@@ -88,8 +100,20 @@ internal sealed class XlsbRow : IRowAsync
             return;
         }
 
-        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
+        // Reuse pooled array if available, otherwise allocate new one
+        XlsbCell?[] localCells = t_cellArrayPool ?? new XlsbCell?[_maxExcelColumnDimension];
+
+        // If pooled array was reused but is wrong size, resize it (rare case)
+        if (localCells.Length != _maxExcelColumnDimension)
+        {
+            localCells = new XlsbCell?[_maxExcelColumnDimension];
+        }
+        else
+        {
+            // Clear pooled array for reuse
+            Array.Clear(localCells, 0, localCells.Length);
+        }
+
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
         try
         {
@@ -105,7 +129,7 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
                     continue;
                 }
-                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext);
                 if (cell != null)
                 {
                     int offset = cell.ExcelColumnOffset - 1;
@@ -130,8 +154,20 @@ internal sealed class XlsbRow : IRowAsync
             }
         }
 
+        if (_instanceContext.Options.ReturnDBNull)
+        {
+            for (int index = 0; index < localCells.Length; index++)
+            {
+                localCells[index] ??= new XlsbCell
+                {
+                    CellValue = new CellValue(DBNull.Value, 0),
+                    ExcelColumnOffset = index + 1
+                };
+            }
+        }
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
+        t_cellArrayPool = null; // Mark pooled array as consumed
         _cellsLoaded = true;
     }
 
@@ -144,8 +180,20 @@ internal sealed class XlsbRow : IRowAsync
             return;
         }
 
-        // Defer allocating the cell array until we actually parse cells to keep Row light-weight when unused.
-        XlsbCell?[] localCells = new XlsbCell?[_maxExcelColumnDimension];
+        // Reuse pooled array if available, otherwise allocate new one
+        XlsbCell?[] localCells = t_cellArrayPool ?? new XlsbCell?[_maxExcelColumnDimension];
+
+        // If pooled array was reused but is wrong size, resize it (rare case)
+        if (localCells.Length != _maxExcelColumnDimension)
+        {
+            localCells = new XlsbCell?[_maxExcelColumnDimension];
+        }
+        else
+        {
+            // Clear pooled array for reuse
+            Array.Clear(localCells, 0, localCells.Length);
+        }
+
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
         try
         {
@@ -161,7 +209,7 @@ internal sealed class XlsbRow : IRowAsync
                     nextRecord = _reader.ReadNextRecord();
                     continue;
                 }
-                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext!);
+                XlsbCell? cell = XlsbCell.ConstructCell(nextRecord, _instanceContext);
                 if (cell != null)
                 {
                     int offset = cell.ExcelColumnOffset - 1;
@@ -186,8 +234,20 @@ internal sealed class XlsbRow : IRowAsync
             }
         }
 
+        if (_instanceContext.Options.ReturnDBNull)
+        {
+            for (int index = 0; index < localCells.Length; index++)
+            {
+                localCells[index] ??= new XlsbCell
+                {
+                    CellValue = new CellValue(DBNull.Value, 0),
+                    ExcelColumnOffset = index + 1
+                };
+            }
+        }
         // Publish parsed cells once fully read to avoid partial-visible state
         _cells = localCells;
+        t_cellArrayPool = null; // Mark pooled array as consumed
         _cellsLoaded = true;
     }
 
@@ -207,7 +267,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple wrapper, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public async ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         return _cells;
@@ -225,7 +285,7 @@ internal sealed class XlsbRow : IRowAsync
     /// <InheritDoc />
     // CHANGED: Removed AggressiveOptimization - simple accessor, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
+    public async ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default)
     {
         await GetCellsAsync(ct).ConfigureAwait(false);
         if (_cells == null
@@ -255,10 +315,29 @@ internal sealed class XlsbRow : IRowAsync
     }
 
     /// <InheritDoc />
-    public Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public async ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+        if (!_cellsLoaded)
+        {
+            await GetCellsAsync(ct).ConfigureAwait(false);
+        }
+
+        return await GetCellAsync(columnLetters.GetColNumber(), ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
-    public ICell? GetCell(string columnLetters, CancellationToken ct = default) => throw new NotImplementedException();
+    public ICell? GetCell(string columnLetters, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(columnLetters);
+
+        if (!_cellsLoaded)
+        {
+            GetCells(ct);
+        }
+
+        return GetCell(columnLetters.GetColNumber(), ct);
+    }
 
     // CHANGED: Removed AggressiveOptimization - tight loop benefits from smaller code
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
@@ -271,10 +350,10 @@ internal sealed class XlsbRow : IRowAsync
             throw new InvalidOperationException("Cells are not initialized.");
         }
 
-        int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
+        int minLength = Math.Min(values.Length, _cells.Length);
         for (int ordinal = 0; ordinal < minLength; ++ordinal)
         {
-            values[ordinal] = _cells[ordinal]?.CellValue.BoxedValue;
+            values[ordinal] = _cells[ordinal]?.CellValue?.BoxedValue;
         }
     }
 }

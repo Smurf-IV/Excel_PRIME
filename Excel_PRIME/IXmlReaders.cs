@@ -13,12 +13,13 @@ public interface IOpenXmlWorkBookReader : IDisposable
     /// <summary>
     /// What it says on the tin
     /// </summary>
-    IEnumerable<KeyValuePair<string, int>> GetSheetNames(CancellationToken ct);
+    IEnumerable<KeyValuePair<string, string>> GetSheetNames(CancellationToken ct);
 
     /// <summary>
     /// What it says on the tin
     /// </summary>
-    IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct);
+    IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(
+        IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct);
 }
 
 /// <summary>
@@ -29,13 +30,13 @@ public interface IOpenXmlWorkBookReaderAsync : IOpenXmlWorkBookReader
     /// <summary>
     /// What it says on the tin
     /// </summary>
-    IAsyncEnumerable<KeyValuePair<string, int>> GetSheetNamesAsync(CancellationToken ct);
+    IAsyncEnumerable<KeyValuePair<string, string>> GetSheetNamesAsync(CancellationToken ct);
 
     /// <summary>
     /// What it says on the tin
     /// </summary>
     Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(
-        IReadOnlyDictionary<string, int> sheetNamesToOffsetSheetId, CancellationToken ct);
+        IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct);
 }
 
 /// <summary>

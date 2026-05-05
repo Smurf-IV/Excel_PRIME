@@ -32,10 +32,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
-        prices[0][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
-        prices[1][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
-        prices[2][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
-        prices[3][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
+        prices[0][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
     }
 
     [Test]
@@ -50,10 +50,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
         prices.Should().HaveCount(4);
-        prices[0][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
-        prices[1][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
-        prices[2][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
-        prices[3][0].Value.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
+        prices[0][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0].BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
     }
 
     [Test]
@@ -81,21 +81,21 @@ internal class DefinedRangeTestsXlsb
         // <definedName name="OrderSize">Solution!$C$12:$E$12</definedName>
         CellValue?[] orderSizeS = await workbook.GetDefinedRangeAsync("OrderSize").FirstAsync();
         orderSizeS.Should().HaveCount(3);
-        orderSizeS[0].Value.BoxedValue.Should().Be(94);
-        orderSizeS[1].Value.BoxedValue.Should().Be(54);
-        orderSizeS[2].Value.BoxedValue.Should().Be(0);
+        orderSizeS[0].BoxedValue.Should().Be(94);
+        orderSizeS[1].BoxedValue.Should().Be(54);
+        orderSizeS[2].BoxedValue.Should().Be(0);
 
         CellValue?[] orderSizeU = await workbook.GetDefinedRangeAsync("OrderSize", "Try it Yourself").FirstAsync();
         orderSizeU.Should().HaveCount(3);
-        orderSizeU[0].Value.BoxedValue.Should().Be(0);
-        orderSizeU[1].Value.BoxedValue.Should().Be(0);
-        orderSizeU[2].Value.BoxedValue.Should().Be(0);
+        orderSizeU[0].BoxedValue.Should().Be(0);
+        orderSizeU[1].BoxedValue.Should().Be(0);
+        orderSizeU[2].BoxedValue.Should().Be(0);
 
         CellValue?[] orderSizeT = await workbook.GetDefinedRangeAsync("OrderSize (Try it Yourself)").FirstAsync();
         orderSizeT.Should().HaveCount(3);
-        orderSizeT[0].Value.BoxedValue.Should().Be(0);
-        orderSizeT[1].Value.BoxedValue.Should().Be(0);
-        orderSizeT[2].Value.BoxedValue.Should().Be(0);
+        orderSizeT[0].BoxedValue.Should().Be(0);
+        orderSizeT[1].BoxedValue.Should().Be(0);
+        orderSizeT[2].BoxedValue.Should().Be(0);
     }
 
     [Test]
@@ -130,7 +130,7 @@ internal class DefinedRangeTestsXlsb
         //<definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
         // In the Xlsb, the `_xlnm.` portion of the name is dropped
         //<definedName name="_FilterDatabase" localSheetId="2" hidden="1">Sheet1!$A$1:$F$214</definedName>
-        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_FilterDatabase", 2);
+        IEnumerable<IEnumerable<object?>> filterDatabaseSheet = getRanger.GetDefinedRange("_FilterDatabase");
         int cells = filterDatabaseSheet.Sum(row => row.Count());
         IEnumerable<IEnumerable<object?>> filterDatabase = getRanger.GetDefinedRange("_FilterDatabase");
         cells += filterDatabase.Sum(row => row.Count());
@@ -156,23 +156,23 @@ internal class DefinedRangeTestsXlsb
 
         CellValue?[] orderSizeS = (await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync());
         orderSizeS.Should().HaveCount(3);
-        orderSizeS[0].Value.BoxedValue.Should().Be(94);
-        orderSizeS[1].Value.BoxedValue.Should().Be(54);
-        orderSizeS[2].Value.BoxedValue.Should().Be(0);
+        orderSizeS[0].BoxedValue.Should().Be(94);
+        orderSizeS[1].BoxedValue.Should().Be(54);
+        orderSizeS[2].BoxedValue.Should().Be(0);
 
         CellValue?[] orderSizeD = await workbook.GetUserRangeAsync("$C$12:$E$12", "Solution").FirstAsync();
         orderSizeD.Should().HaveCount(3);
-        orderSizeD[0].Value.BoxedValue.Should().Be(94);
-        orderSizeD[1].Value.BoxedValue.Should().Be(54);
-        orderSizeD[2].Value.BoxedValue.Should().Be(0);
+        orderSizeD[0].BoxedValue.Should().Be(94);
+        orderSizeD[1].BoxedValue.Should().Be(54);
+        orderSizeD[2].BoxedValue.Should().Be(0);
 
         CellValue?[] orderSizeU = await workbook.GetUserRangeAsync("C12", "Solution").FirstAsync();
         orderSizeU.Should().HaveCount(1);
-        orderSizeU[0].Value.BoxedValue.Should().Be(94);
+        orderSizeU[0].BoxedValue.Should().Be(94);
 
         CellValue?[] orderSizeC = await workbook.GetUserRangeAsync("$C$12", "Solution").FirstAsync();
         orderSizeC.Should().HaveCount(1);
-        orderSizeC[0].Value.BoxedValue.Should().Be(94);
+        orderSizeC[0].BoxedValue.Should().Be(94);
     }
 
 }

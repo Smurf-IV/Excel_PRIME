@@ -115,9 +115,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in integerSamples)
         {
-            ReadOnlySpan<char> span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (!containsDecimal && span.Length < 12)
             {
@@ -139,9 +139,9 @@ public class NumericParsingBenchmark
     public object ParseIntegersOptimized()
     {
         object? result = null;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in integerSamples)
         {
-            ReadOnlySpan<char> span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             if (span.Length < 12 && span[0] != '-')
             {
                 result = CustomIntParse(span);
@@ -156,9 +156,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in integerSamples)
         {
-            ReadOnlySpan<char> span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             if (int.TryParse(span, NumberStyles.Integer, invariant, out int resultI))
             {
                 result = resultI;
@@ -173,9 +173,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in negativeSamples)
         {
-            ReadOnlySpan<char> span = negativeSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (!containsDecimal && span.Length < 12)
             {
@@ -198,9 +198,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in decimalSamples)
         {
-            ReadOnlySpan<char> span = decimalSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (containsDecimal)
             {
@@ -223,9 +223,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in decimalSamples)
         {
-            ReadOnlySpan<char> span = decimalSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (containsDecimal)
             {
@@ -248,9 +248,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in largeIntegerSamples)
         {
-            ReadOnlySpan<char> span = largeIntegerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (!containsDecimal && span.Length < 20)
             {
@@ -268,9 +268,9 @@ public class NumericParsingBenchmark
     public bool MeasureContainsCheckCost()
     {
         bool result = false;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in integerSamples)
         {
-            ReadOnlySpan<char> span = integerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             result = span.Contains('.');
         }
         return result;
@@ -282,9 +282,9 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        for (int i = 0; i < NumSamples; i++)
+        foreach (var sample in bigIntegerSamples)
         {
-            ReadOnlySpan<char> span = bigIntegerSamples[i].Span;
+            ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
             if (!containsDecimal && span.Length > 18)
             {

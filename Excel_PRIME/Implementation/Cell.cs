@@ -12,7 +12,7 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{CellValue.ToString(),raw}")]
+[DebuggerDisplay("{ToString(),raw}")]
 internal sealed record Cell : ICell
 {
     private static readonly char[]?[] s_columnLetterCache = new char[256][];
@@ -27,13 +27,17 @@ internal sealed record Cell : ICell
         int col = -1;
         int bufferSize = buffer.Length;
         int len;
+        int style = -1;
+        bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
+        bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
+        bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
         void ReadValue()
         {
             len = reader.ReadValueChunk(buffer, 0, bufferSize);
         }
 
-        int expectedAttributes = 2;
+        int expectedAttributes = noCellStyle ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
             // Retrieve the atomized name directly.
@@ -50,11 +54,13 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
+            else if (!noCellStyle
+                && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
+                )
             {
-                // TODO: the style, therefore converting into time only etc.
-                //ReadValue();
-                //style = GetStyleOffset(buffer, len);
+                ReadValue();
+                style = GetStyleOffset(buffer, len);
+                expectedAttributes--;
             }
         }
 
@@ -65,70 +71,119 @@ internal sealed record Cell : ICell
         {
             // Move to data
             await reader.ReadAsync().ConfigureAwait(false);
-            if (instanceContext.Options.CellConversionType == CellConversion.None)
+            if (noCellConversion)
             {
                 if (type == CellType.SharedString)
                 {
                     ReadValue();
-                    value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()]);
+                    if (len == 0
+                        && returnDBNull)
+                    {
+                        value = new CellValue(DBNull.Value, style);
+                    }
+                    else
+                    {
+                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                    }
                 }
                 else
                 {
-                    value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                    string? str = ReadString(reader, valueBuilder, buffer);
+                    value = returnDBNull
+                            && string.IsNullOrEmpty(str)
+                        ? new CellValue(DBNull.Value, style)
+                        : new CellValue(str, style);
                 }
             }
-            else
-            {
+            else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            {   // Perform conversion
                 switch (type)
                 {
                     case CellType.Unknown:
                     case CellType.Formula:
                     case CellType.InlineString:
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                        {
+                            string? str = ReadString(reader, valueBuilder, buffer);
+                            value = returnDBNull
+                                    && string.IsNullOrEmpty(str)
+                                ? new CellValue(DBNull.Value, style)
+                                : new CellValue(str, style);
+                        }
                         break;
 
                     case CellType.Numeric:
+                        ReadValue();
+                        if (len == 0
+                            && returnDBNull)
                         {
-                            ReadValue();
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
                             ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
                             value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double numericValue)
-                                ? new CellValue(numericValue)
+                                ? new CellValue(numericValue, style)
                                 // If numeric parsing fails, treat as string but avoid intermediate allocation
-                                : new CellValue(numericSpan.ToString());
+                                : new CellValue(numericSpan.ToString(), style);
                         }
                         break;
 
                     case CellType.SharedString:
                         ReadValue();
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()]);
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()],
+                                style);
+                        }
+
                         break;
 
                     case CellType.Boolean:
                         ReadValue();
-                        value = new CellValue(buffer[0] != '0');
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(buffer[0] != '0');
+                        }
+
                         break;
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                        value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
                         break;
 
                     case CellType.Date:
+                        ReadValue();
+                        if (len == 0
+                            && returnDBNull)
                         {
-                            ReadValue();
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
                             ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
                             if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
                             {
-                                value = new CellValue(DateTime.FromOADate(dateTimeValue));
+                                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
                             }
                             else if (DateTime.TryParse(dateSpan, out DateTime result))
                             {
-                                value = new CellValue(result);
+                                value = new CellValue(result, style);
                             }
                             else
                             {
                                 // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                                value = new CellValue(dateSpan.ToString());
+                                value = new CellValue(dateSpan.ToString(), style);
                             }
                         }
                         break;
@@ -140,18 +195,18 @@ internal sealed record Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value == null
+        return value is null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
-                CellValue = value.Value
+                CellValue = value
             };
     }
 
-    // CHANGED: Use stackalloc for small attribute buffers
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
@@ -160,13 +215,17 @@ internal sealed record Cell : ICell
         int col = -1;
         int bufferSize = buffer.Length;
         int len;
+        int style = -1;
+        bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
+        bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
+        bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
         void ReadValue()
         {
             len = reader.ReadValueChunk(buffer, 0, bufferSize);
         }
 
-        int expectedAttributes = 2;
+        int expectedAttributes = noCellStyle ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
             // Retrieve the atomized name directly.
@@ -183,11 +242,13 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom))
+            else if (!noCellStyle
+                     && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
+                    )
             {
-                // TODO: the style, therefore converting into time only etc.
-                //ReadValue();
-                //style = GetStyleOffset(buffer, len);
+                ReadValue();
+                style = GetStyleOffset(buffer, len);
+                expectedAttributes--;
             }
         }
 
@@ -198,71 +259,120 @@ internal sealed record Cell : ICell
         {
             // Move to data
             reader.Read();
-            if (instanceContext.Options.CellConversionType == CellConversion.None)
+            if (noCellConversion)
             {
                 if (type == CellType.SharedString)
                 {
                     ReadValue();
-                    value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()]);
+                    if (len == 0
+                        && returnDBNull)
+                    {
+                        value = new CellValue(DBNull.Value, style);
+                    }
+                    else
+                    {
+                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                    }
                 }
                 else
                 {
-                    value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                    string? str = ReadString(reader, valueBuilder, buffer);
+                    value = returnDBNull
+                            && string.IsNullOrEmpty(str)
+                        ? new CellValue(DBNull.Value, style)
+                        : new CellValue(str, style);
                 }
             }
-            else
-            {
+            else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
+            {   // Perform conversion
                 switch (type)
                 {
                     case CellType.Unknown:
                     case CellType.Formula:
                     case CellType.InlineString:
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                        {
+                            string? str = ReadString(reader, valueBuilder, buffer);
+                            value = returnDBNull
+                                    && string.IsNullOrEmpty(str)
+                                ? new CellValue(DBNull.Value, style)
+                                : new CellValue(str, style);
+                        }
                         break;
 
                     case CellType.Numeric:
+                        ReadValue();
+                        if (len == 0
+                            && returnDBNull)
                         {
-                            ReadValue();
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
                             ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
-                            value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double numericValue)
-                                ? new CellValue(numericValue)
+                            value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture,
+                                out double numericValue)
+                                ? new CellValue(numericValue, style)
                                 // If numeric parsing fails, treat as string but avoid intermediate allocation
-                                : new CellValue(numericSpan.ToString());
+                                : new CellValue(numericSpan.ToString(), style);
                         }
                         break;
 
                     case CellType.SharedString:
                         ReadValue();
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()]);
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()],
+                                style);
+                        }
                         break;
 
                     case CellType.Boolean:
                         ReadValue();
-                        value = new CellValue(buffer[0] != '0');
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(buffer[0] != '0');
+                        }
                         break;
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer));
+                        value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
                         break;
 
                     case CellType.Date:
                         {
                             ReadValue();
+                            if (len == 0
+                                && returnDBNull)
+                            {
+                                value = new CellValue(DBNull.Value, style);
+                                break;
+                            }
+
                             ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
                             if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture,
                                     out double dateTimeValue))
                             {
-                                value = new CellValue(DateTime.FromOADate(dateTimeValue));
+                                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
                             }
                             else if (DateTime.TryParse(dateSpan, out DateTime result))
                             {
-                                value = new CellValue(result);
+                                value = new CellValue(result, style);
                             }
                             else
                             {
                                 // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                                value = new CellValue(dateSpan.ToString());
+                                value = new CellValue(dateSpan.ToString(), style);
                             }
                         }
                         break;
@@ -274,24 +384,24 @@ internal sealed record Cell : ICell
         }
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value == null
+        return value is null
             ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
             : new Cell
             {
                 //RowNumber = row;
                 ExcelColumnOffset = col,
                 RawExcelType = type,
-                CellValue = value.Value
+                CellValue = value
             };
     }
 
     #region Borrowed and some finessing from XMLReader source
     // CHANGED: Removed AggressiveOptimization - complex method with loops and branches
-    private static string ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
+    private static string? ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
     {
         if (reader.ReadState != ReadState.Interactive)
         {
-            return string.Empty;
+            return null;
         }
 
         // If we're positioned on an element, parse its inner textual content by
@@ -301,7 +411,7 @@ internal sealed record Cell : ICell
         {
             if (reader.IsEmptyElement)
             {
-                return string.Empty;
+                return null;
             }
 
             int startDepth = reader.Depth;
@@ -309,11 +419,11 @@ internal sealed record Cell : ICell
             // Move to the first node inside the element
             if (!reader.Read())
             {
-                return string.Empty;
+                return null;
             }
 
             valueBuilder.Length = 0;
-            bool wroteAny = false;
+            bool readAny = false;
 
             // Use chunked reading to avoid extra allocations
             while (reader.Depth > startDepth)
@@ -330,7 +440,7 @@ internal sealed record Cell : ICell
                         if (read > 0)
                         {
                             valueBuilder.Append(buffer, 0, read);
-                            wroteAny = true;
+                            readAny = true;
                         }
                     } while (read > 0);
                 }
@@ -341,7 +451,7 @@ internal sealed record Cell : ICell
                 }
             }
 
-            return wroteAny ? valueBuilder.ToString() : string.Empty;
+            return readAny ? valueBuilder.ToString() : string.Empty;
         }
 
         // Not positioned on an element - return value if textual
@@ -354,7 +464,7 @@ internal sealed record Cell : ICell
     #endregion
 
     /// <InheritDoc />
-    public CellValue CellValue { get; private init; }
+    public CellValue? CellValue { get; internal init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }
@@ -395,11 +505,14 @@ internal sealed record Cell : ICell
     }
 
     /// <InheritDoc />
-    public int ExcelColumnOffset { get; private init; }
+    public int ExcelColumnOffset { get; internal init; }
+
+    /// <InheritDoc />
+    public override string? ToString() => CellValue?.ToString() ?? base.ToString();
 
     // CHANGED: Removed AggressiveOptimization - simple switch on first char, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static CellType GetCellType(in char[] b, int l)
+    private static CellType GetCellType(char[] b, int l)
     {
         if (l == 0)
         {
@@ -418,4 +531,6 @@ internal sealed record Cell : ICell
             _ => throw new InvalidDataException()
         };
     }
+
+    private static int GetStyleOffset(char[] b, int l) => l == 0 ? -1 : b.AsSpan(0, l).IntParse();
 }

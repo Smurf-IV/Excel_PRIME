@@ -40,16 +40,6 @@ public interface IExcelImp : IDisposable
         [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
-    /// From the `definedName`s in the xlsx, use the name to return the range data
-    /// </summary>
-    /// <param name="rangeName"></param>
-    /// <param name="useLocalSheetId">If passed in, then check that the range exists in that first, before switching to the global name</param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, int useLocalSheetId,
-        [EnumeratorCancellation] CancellationToken ct = default);
-
-    /// <summary>
     /// User defined range (With or Without `$`'s, e.g., `A1:B2`)
     /// </summary>
     /// <param name="range"></param>

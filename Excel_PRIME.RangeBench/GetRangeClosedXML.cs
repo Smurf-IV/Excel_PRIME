@@ -10,7 +10,9 @@ public class GRClosedXML : IGetRange
 {
     private XLWorkbook? wb;
 
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
     {
         wb?.Dispose();
         wb = null;
@@ -22,13 +24,13 @@ public class GRClosedXML : IGetRange
         return wb != null;
     }
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
         IXLRanges rangesLocal;
         // worksheet scope
-        if (localSheetId.HasValue)
+        if (sheetName != null)
         {
-            IXLWorksheet worksheet = wb!.Worksheets.ElementAt(localSheetId.Value);
+            wb!.Worksheets.TryGetWorksheet(sheetName, out IXLWorksheet? worksheet);
             rangesLocal = worksheet.Ranges(definedName);
         }
         else
@@ -41,7 +43,7 @@ public class GRClosedXML : IGetRange
         {
             foreach (IXLRangeRow? row in range.Rows())
             {
-                yield return row.Cells().Select(c => c.Value.ToString());
+                yield return row.Cells().Select(c => c.ToString());
             }
         }
     }

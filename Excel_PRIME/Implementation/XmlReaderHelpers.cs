@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -75,18 +76,14 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 
 
     /// <InheritDoc />
-    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.xml", ct).ConfigureAwait(false);
-        return new XmlWorkBookReader(stream!, ct);
+        IOpenXmlWorkBookReaderAsync xmlWorkBookReaderAsync = new XmlWorkBookReaderAsync(zipReader, ct);
+        return Task.FromResult(xmlWorkBookReaderAsync);
     }
 
     /// <InheritDoc />
-    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
-    {
-        Stream? stream = zipReader.GetEntry("xl/workbook.xml");
-        return new XmlWorkBookReader(stream!, ct);
-    }
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XmlWorkBookReader(zipReader, ct);
 
 
     /// <InheritDoc />
@@ -98,12 +95,22 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         return Task.FromResult(reader);
     }
 
-    public string GetSheetFileName(int offsetSheetId) => $"xl/worksheets/sheet{offsetSheetId}.xml";
+    public async Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    {
+        using StylesExtractor extractor = new(zipReader);
+        return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
     public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
         => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
+
+    public IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
+    {
+        using StylesExtractor extractor = new(zipReader);
+        return extractor.ExtractStyles(ct);
+    }
 
     public void Dispose() => _shareStrings?.Dispose();
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +10,7 @@ using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME.XlsbImp;
 
-internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisposable
+internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
 {
     private TempFile? _shareStrings;
     public void Dispose()
@@ -83,18 +83,10 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisp
 
 
     /// <InheritDoc />
-    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
-    {
-        Stream? stream = await zipReader.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
-        return new XlsbWorkBookReader(stream!, ct);
-    }
+    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct) => new XlsbWorkBookReaderAsync(zipReader, ct);
 
     /// <InheritDoc />
-    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct)
-    {
-        Stream? stream = zipReader.GetEntry("xl/workbook.bin");
-        return new XlsbWorkBookReader(stream!, ct);
-    }
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XlsbWorkBookReader(zipReader, ct);
 
 
     /// <InheritDoc />
@@ -107,11 +99,20 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync, IDisp
         return Task.FromResult(reader);
     }
 
-    public string GetSheetFileName(int offsetSheetId) => $"xl/worksheets/sheet{offsetSheetId}.bin";
+    public async Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    {
+        using XlsbStylesExtractor extractor = new(zipReader);
+        return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+    }
 
     /// <InheritDoc />
     public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable _, CancellationToken ct)
         => new XlsbSheetReader(new BufferedStream(stream, 64 * 1024), instanceContext, ct);
 
+    public IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
+    {
+        using XlsbStylesExtractor extractor = new(zipReader);
+        return extractor.ExtractStyles(ct);
+    }
 }

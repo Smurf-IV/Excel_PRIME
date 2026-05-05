@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v6.0.2
       with:
         lfs: true
         fetch-depth: 0
@@ -24,10 +24,10 @@ jobs:
       run: git lfs checkout
       
     - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2.0.1
+      uses: NuGet/setup-nuget@v3.0.0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v5.2.0
       with:
         dotnet-version: | 
           8.x

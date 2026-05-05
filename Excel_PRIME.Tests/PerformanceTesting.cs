@@ -24,7 +24,7 @@ internal class PerformanceTesting
     public void A010_AccessEveryCellExcel_Prime(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
-        int cells = aecB.AccessEveryCellExcel_Prime();
+        int cells = aecB.Excel_Prime();
         cells.Should().Be(expectedCells);
     }
 
@@ -37,7 +37,7 @@ internal class PerformanceTesting
     public void A011_AccessEveryCellExcel_Prime_Xlsb(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarksXlsb aecB = new() { FileName = fileName };
-        int cells = aecB.AccessEveryCellExcel_PrimeXlsb();
+        int cells = aecB.Excel_PrimeXlsb();
         cells.Should().Be(expectedCells);
     }
 
@@ -50,7 +50,7 @@ internal class PerformanceTesting
     public void A020_AccessEveryCellXlsxHelper(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
-        int cells = aecB.AccessEveryCellXlsxHelper();
+        int cells = aecB.XlsxHelper();
         cells.Should().BeGreaterThan(expectedCells);
     }
 
@@ -63,7 +63,7 @@ internal class PerformanceTesting
     public async Task A030_AccessEveryCellSylvan(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
-        int cells = await aecB.AccessEveryCellSylvan().ConfigureAwait(false);
+        int cells = await aecB.SylvanRdr().ConfigureAwait(false);
         cells.Should().BeGreaterThan(expectedCells);
     }
 
@@ -76,7 +76,7 @@ internal class PerformanceTesting
     //public void A040_AccessEveryCellFastExcel(string fileName, int expectedCells)
     //{
     //    AccessEveryCellBenchmarks aecB = new AccessEveryCellBenchmarks { FileName = fileName };
-    //    int cells = aecB.AccessEveryCellFastExcel();
+    //    int cells = aecB.FastExcel();
     //    cells.Should().Be(expectedCells);
     //}
 
@@ -89,7 +89,7 @@ internal class PerformanceTesting
     public async Task A040_ParallelEveryCellAsyncExcel_PrimeTwice(string fileName, int expectedCells)
     {
         AccessEveryCellBenchmarks aecB = new() { FileName = fileName };
-        int cells = await aecB.ParallelEveryCellAsyncExcel_PrimeTwice().ConfigureAwait(false);
+        int cells = await aecB.PrlAsyncExcel_PrimeTwice().ConfigureAwait(false);
         cells.Should().Be(expectedCells);
     }
 }

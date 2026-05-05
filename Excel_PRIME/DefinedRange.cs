@@ -14,7 +14,7 @@ public record DefinedRange
     /// </summary>
     /// <param name="reference">Reference string i.e. Sheet1!$A$1:$A$4</param>
     /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
-    internal DefinedRange(in string reference)
+    internal DefinedRange(string reference)
     {
         ReadOnlySpan<char> span = reference.AsSpan();
         int exclIndex = span.IndexOf('!');
@@ -72,11 +72,10 @@ public record DefinedRange
     /// <param name="rowStart">First row number</param>
     /// <param name="rowEnd">last row number [Excel 2010 specifies 1_048_576, but Power Query can go upto  1_999_999_997]</param>
     /// <param name="sheetName">The Sheet this will be applied to.</param>
-    public DefinedRange(in string sheetName, ReadOnlySpan<char> columnStart, ReadOnlySpan<char> columnEnd, int rowStart = 1, int rowEnd = 1_048_576)
+    public DefinedRange(string sheetName, ReadOnlySpan<char> columnStart, ReadOnlySpan<char> columnEnd, int rowStart = 1, int rowEnd = 1_048_576)
     {
         SheetName = sheetName;
         Name = string.Empty;
-        SheetIdReference = string.Empty;
         ExcelColumnStart = columnStart.GetColNumber();
         ExcelColumnEnd = columnEnd.GetColNumber();
         ExcelRowStart = rowStart;
@@ -88,7 +87,7 @@ public record DefinedRange
     /// </summary>
     /// <param name="userRange"></param>
     /// <param name="sheetName"></param>
-    public DefinedRange(in string userRange, in string sheetName)
+    public DefinedRange(string userRange, string sheetName)
     {
         if (string.IsNullOrWhiteSpace(userRange))
         {
@@ -101,7 +100,6 @@ public record DefinedRange
 
         SheetName = sheetName;
         Name = userRange;
-        SheetIdReference = string.Empty;
         if (userRange.Contains(':'))
         {
             DoExtractBasedOnCellRange(userRange);
@@ -224,7 +222,7 @@ public record DefinedRange
     }
 
     /// <summary>
-    /// Xml.Attribute("name").Value; 
+    /// Xml.Attribute("name"); 
     /// </summary>
     public string Name { get; init; }
 
@@ -253,13 +251,13 @@ public record DefinedRange
     /// </summary>
     public int ExcelRowEnd { get; private set; }
 
-    /// <summary>
-    /// Xml.Value;
-    /// </summary>
-    public string SheetIdReference { get; init; }
+    ///// <summary>
+    ///// Xml;
+    ///// </summary>
+    //public string SheetIdReference { get; init; }
 
     /// <summary>
-    /// Xml.Value;
+    /// Xml;
     /// </summary>
     public string? ConstValue { get; private set; }
 }

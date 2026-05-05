@@ -30,6 +30,11 @@ internal class BugTesting
                     break;
                 }
 
+                if (row is INullRow)
+                {
+                    continue;
+                }
+
                 IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
                 row.Dispose();
                 if ( rowCells == null)

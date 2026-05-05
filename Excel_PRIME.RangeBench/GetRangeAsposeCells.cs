@@ -11,7 +11,9 @@ public class GRAsposeCells : IGetRange
 {
     private Workbook? _workbook;
 
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
     {
         _workbook?.Dispose();
         _workbook = null;
@@ -23,19 +25,15 @@ public class GRAsposeCells : IGetRange
         return true;
     }
 
-    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, int? localSheetId = null)
+    public IEnumerable<IEnumerable<object?>> GetDefinedRange(string definedName, string? sheetName = null)
     {
         Aspose.Cells.Range namedRange;
-        if (localSheetId.HasValue)
-        {
+        
+        namedRange = !string.IsNullOrEmpty(sheetName)
             //Get a specific named range in the worksheet
-            namedRange = _workbook.Worksheets.GetRangeByName(definedName, localSheetId.Value, false);
-        }
-        else
-        {
+            ? null! //_workbook.Worksheets.GetRangeByName(definedName, sheetName, false)
             //Get a specific named range in the workbook
-            namedRange = _workbook.Worksheets.GetRangeByName(definedName);
-        }
+            : _workbook.Worksheets.GetRangeByName(definedName);
         if (namedRange != null)
         {
             //Get range
@@ -49,7 +47,7 @@ public class GRAsposeCells : IGetRange
                 // Iterate through each column in the range to access individual cell values
                 for (int j = 0; j < columnCount; j++)
                 {
-                    rowData.Add(namedRange.GetCellOrNull(i, j).Value.ToString());
+                    rowData.Add(namedRange.GetCellOrNull(i, j).ToString());
                 }
                 yield return rowData;
             }

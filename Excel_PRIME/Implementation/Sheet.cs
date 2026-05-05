@@ -19,21 +19,17 @@ internal sealed class Sheet : ISheetAsync
     private readonly NonClosingStream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
-    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, int index, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, InstanceContext instanceContext)
     {
         _stream = new NonClosingStream(stream);
         _xmlReaderHelper = xmlReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
         Name = name;
-        Index = index;
     }
 
     /// <InheritDoc />
     public string Name { get; }
-
-    /// <InheritDoc />
-    public int Index { get; }
 
     /// <inheritdoc/>
     public (int Height, int Width) SheetDimensions
@@ -60,7 +56,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
+    public IEnumerable<IRow?> GetRowData(int startRow = 0, RowCellGet cellGetMode = RowCellGet.None, [EnumeratorCancellation] CancellationToken ct = default)
     {
         CheckLocation(startRow, ct);
         while (_sheetReader!.CurrentRow < SheetDimensions.Height
@@ -210,7 +206,7 @@ internal sealed class Sheet : ISheetAsync
         }
     }
 
-    private void CheckLocation(int startRow, CancellationToken ct)
+    private void CheckLocation(int startRow, [EnumeratorCancellation] CancellationToken ct)
     {
         if (_sheetReader == null
             || _sheetReader.CurrentRow > startRow

@@ -25,7 +25,7 @@ internal class SheetTests
     }
 
     [Test]
-    [TestCase("Data/multisheet1.xlsx", new[] { "one", "two", "three", "b", "a" })]
+    [TestCase("Data/multisheet1.xlsx", new[] { "one", "two", "three", "b", "a", "a (2)", "a (3)", "b (2)", "one (3)", "two (3)", "three (3)", "b (3)" })]
     [TestCase("Data/singlesheet.xlsx", new[] { "one" })]
     [TestCase("Data/sample_file_bad.xlsx", new[] { "MasterInvoice_Detailed_XLSX" })] // This file contains package relations that use absolute rooted paths instead of relative paths. "/xl/workbook.xml" vs "xl/workbook.xml"
     [TestCase("Data/sample_file_good.xlsx", new[] { "MasterInvoice_Detailed_XLSX" })]

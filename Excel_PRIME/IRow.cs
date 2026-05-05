@@ -61,15 +61,38 @@ public interface IRowAsync : IRow
     /// <summary>
     /// Retrieves _All_ cells within the row, `0` indexed
     /// </summary>
-    Task<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
+    ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
     /// </summary>
-    Task<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
+    ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves (If exists) the cell data
     /// </summary>
-    Task<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
+    ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
+}
+
+
+/// <summary>
+/// Represents a marker interface for a row that contains only null values.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface indicate that all columns in the row are null. This can be used to
+/// distinguish between rows with actual data and those that are intentionally empty or uninitialized.
+/// </remarks>
+public interface INullRow : IRow
+{
+}
+
+/// <summary>
+/// Represents a marker interface for a row that contains only null values.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface indicate that all columns in the row are null. This can be used to
+/// distinguish between rows with actual data and those that are intentionally empty or uninitialized.
+/// </remarks>
+public interface INullRowAsync : INullRow, IRowAsync
+{
 }

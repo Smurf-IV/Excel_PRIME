@@ -15,15 +15,23 @@ public enum CellConversion
     Unknown = 0,
 
     /// <summary>
-    /// default  - Normally the Fastest option, Will leave the value as a string.
+    /// default  - Normally the Fastest option, Will leave the value as the read type (i.e. as string from XLSX).
     /// </summary>
-    /// 
     None,
 
     /// <summary>
-    /// As NumberAndDates, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    /// Will convert to the CLR type specified by the celltype.
+    /// </summary>  
+    ExcelCellType,
+
+    /// <summary>
+    /// Will read the "Excel style" and convert the Date / Time / Numbers accordingly
     /// </summary>
-    [Obsolete("Not Implemented yet!")]
+    ExcelCellStyle,
+
+    /// <summary>
+    /// As ExcelCellStyle, and also takes into account the number of decimal places etc. from the style when converting / formatting
+    /// </summary>
     ForceStyles 
 }
 
@@ -45,4 +53,11 @@ public record Options
     /// `true`: Default, Use the internal rented buffer from the zipArchive; Therefore single threaded access to Excel file.
     /// </remarks>
     public bool AccessExcelFileInForwardOnlyMode { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether <see langword="System.DBNull" /> should be returned 
+    /// for empty or null cells during data conversion.
+    /// Null Rows are (_probably_) still null rows, not rows with DBNull.Value in all cells
+    /// </summary>
+    public bool ReturnDBNull { get; init; }
 }

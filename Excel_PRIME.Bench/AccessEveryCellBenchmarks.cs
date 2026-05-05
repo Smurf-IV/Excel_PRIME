@@ -32,7 +32,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark(Baseline = true)]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellSylvan()
+    public async Task<int> SylvanRdr()
     {
         int cells = 0;
         // ReSharper disable once MethodHasAsyncOverload
@@ -57,10 +57,10 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellXlsxHelper()
+    public int XlsxHelper()
     {
         int cells = 0;
-        Workbook workbook = XlsxReader.OpenWorkbook(RootFolder + FileName);
+        using Workbook workbook = XlsxReader.OpenWorkbook(RootFolder + FileName);
         foreach (Worksheet worksheet in workbook.Worksheets)
         {
             using WorksheetReader worksheetReader = worksheet.WorksheetReader;
@@ -81,7 +81,7 @@ public class AccessEveryCellBenchmarks
 
     //[Benchmark]
     //[MethodImpl(MethodImplOptions.NoOptimization)]
-    //public int AccessEveryCellFastExcel()
+    //public int FastExcel()
     //{
     //    int cells = 0;
     //    string filePath = Path.Combine(Environment.CurrentDirectory, RootFolder + FileName);
@@ -96,7 +96,7 @@ public class AccessEveryCellBenchmarks
     //        {
     //            foreach (FastExcel.Cell cell in row.Cells)
     //            {
-    //                _ = cell.Value;
+    //                _ = cell;
     //                cells++;
     //            }
     //        }
@@ -106,7 +106,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> AccessEveryCellAsyncExcel_Prime()
+    public async Task<int> AsyncExcel_Prime()
     {
         int cells = 0;
         using Excel_PRIME workbook = new();
@@ -116,7 +116,7 @@ public class AccessEveryCellBenchmarks
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
             {
-                if (row == null)
+                if (row is null or INullRowAsync)
                 {   // Because this returns upto the dimension of the sheet Height
                     break;
                 }
@@ -127,7 +127,7 @@ public class AccessEveryCellBenchmarks
                     foreach (ICell? cell in rowCells)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                        if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                         {
                             cells++;
                         }
@@ -142,7 +142,7 @@ public class AccessEveryCellBenchmarks
 
     [Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public int AccessEveryCellExcel_Prime()
+    public int Excel_Prime()
     {
         int cells = 0;
         using Excel_PRIME workbook = new();
@@ -152,7 +152,7 @@ public class AccessEveryCellBenchmarks
             using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData())
             {
-                if (row == null)
+                if (row is null or INullRow)
                 {   // Because this returns upto the dimension of the sheet Height
                     break;
                 }
@@ -160,7 +160,7 @@ public class AccessEveryCellBenchmarks
                 IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
                 if (rowCells != null)
                 {
-                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue.ToString()));
+                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue?.ToString()));
                 }
                 row.Dispose();
             }
@@ -175,7 +175,7 @@ public class AccessEveryCellBenchmarks
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
     // Memory is between 80% and 110% more
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public async Task<int> ParallelEveryCellAsyncExcel_PrimeTwice()
+    public async Task<int> PrlAsyncExcel_PrimeTwice()
     {
         using Excel_PRIME workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
@@ -193,7 +193,7 @@ public class AccessEveryCellBenchmarks
                 using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
                 await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         // Because this returns upto the dimension of the sheet Height
                         break;
@@ -205,7 +205,7 @@ public class AccessEveryCellBenchmarks
                         foreach (ICell? cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                             {
                                 Interlocked.Increment(ref cells);
                             }
@@ -224,7 +224,7 @@ public class AccessEveryCellBenchmarks
                 using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName, false, ct);
                 await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(ct: ct))
                 {
-                    if (row == null)
+                    if (row is null or INullRowAsync)
                     {
                         // Because this returns upto the dimension of the sheet Height
                         break;
@@ -236,7 +236,7 @@ public class AccessEveryCellBenchmarks
                         foreach (ICell? cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue.ToString()))
+                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
                             {
                                 Interlocked.Increment(ref cells);
                             }

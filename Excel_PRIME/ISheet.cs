@@ -17,11 +17,6 @@ public interface ISheet : IDisposable
     string Name { get; }
 
     /// <summary>
-    /// Excel Index of this worksheet (Starts at 1)
-    /// </summary>
-    int Index { get; }
-
-    /// <summary>
     /// What are the Max dimension defined [Excel Rows, Excel Cells] (Many may be blank)
     /// </summary>
     (int Height, int Width) SheetDimensions { get; }
@@ -98,5 +93,4 @@ public interface ISheetAsync : ISheet
     /// Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
     /// </summary>
     IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
-
 }

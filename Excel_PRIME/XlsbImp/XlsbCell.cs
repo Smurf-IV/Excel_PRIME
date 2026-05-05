@@ -8,7 +8,7 @@ using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME.Implementation;
 
-[DebuggerDisplay("{CellValue}")]
+[DebuggerDisplay("{ToString(),raw}")]
 internal sealed record XlsbCell : ICell
 {
     // Static cache for column letter arrays to avoid repeated allocations
@@ -19,26 +19,27 @@ internal sealed record XlsbCell : ICell
     public static XlsbCell? ConstructCell(PooledRecordBuffer reader, InstanceContext instanceContext)
     {
         int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
+        int styleRef = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle ? -1 : reader.GetInt32(4);
 
         CellType cellType;
         CellValue? cellValue;
         switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader)));
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8)));
+                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
                 (cellType, cellValue) = (CellType.Boolean, new CellValue(reader.GetByte(8) != 0));
                 break;
             case RecordTypeIdentifier.CELLST or RecordTypeIdentifier.CELLFMLASTRING:
-                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8)));
+                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLISST:
                 (cellType, cellValue) = (CellType.SharedString,
-                    new CellValue(GetSharedString(instanceContext, reader)));
+                    new CellValue(GetSharedString(instanceContext, reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
                 (cellType, cellValue) = (CellType.Error, new CellValue((ExcelErrorCode)reader.GetByte(8)));
@@ -53,7 +54,7 @@ internal sealed record XlsbCell : ICell
         {
             ExcelColumnOffset = columnOffset,
             RawExcelType = cellType,
-            CellValue = cellValue.Value
+            CellValue = cellValue
         };
     }
 
@@ -93,7 +94,7 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public CellValue CellValue { get; private init; }
+    public CellValue? CellValue { get; internal init; }
 
     /// <InheritDoc />
     public CellType RawExcelType { get; private init; }
@@ -129,5 +130,9 @@ internal sealed record XlsbCell : ICell
     }
 
     /// <InheritDoc />
-    public int ExcelColumnOffset { get; private init; }
+    public int ExcelColumnOffset { get; internal init; }
+
+    /// <InheritDoc />
+    public override string? ToString() => CellValue?.ToString() ?? base.ToString();
+
 }

@@ -12,6 +12,7 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
 {
     private bool _isDisposed;
     private ZipArchive? _archive;
+    private const int BufferSize = 81920 / 2; // Stop internal ArrayPool from doubling and bursting into the LOH
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OpenArchive(Stream fileStream, CancellationToken ct) =>
@@ -32,9 +33,8 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
         }
         targetStream.SetLength(entry.Length);   // Just saves a few moments.. And also checks if the OS can actually take the size
         using Stream decompressor = entry.Open();
-        const int bufferSize = 81920 / 2; // Stop internal ArrayPool from doubling and bursting into the LOH !!
         //decompressor.CopyTo(targetStream, 81920 / 2);
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
         try
         {
             int bytesRead;
@@ -68,8 +68,7 @@ internal sealed class ZipReaderAsync : IZipReaderAsync
 #else
         using Stream decompressor = entry.Open();
 #endif
-        // "81920 / 2" -> Stop internal ArrayPool from doubling and bursting into the LOH !!
-        await decompressor.CopyToAsync(targetStream, 81920 / 2, ct)
+        await decompressor.CopyToAsync(targetStream, BufferSize, ct)
                 .ConfigureAwait(false);
         await decompressor.FlushAsync(ct).ConfigureAwait(false);
         return true;

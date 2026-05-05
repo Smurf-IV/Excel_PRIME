@@ -30,7 +30,7 @@ public interface ICell
     /// <remarks>
     /// Could be the actual value type if specified, otherwise `string?`
     /// </remarks>
-    CellValue CellValue { get; }
+    CellValue? CellValue { get; }
 
     /// <summary>
     /// Returns the type as specified in the Excel file attribute
@@ -46,4 +46,9 @@ public interface ICell
     /// Excel 1 Based
     /// </summary>
     int ExcelColumnOffset { get; }
+
+    /// <summary>
+    /// Converts the cell to the internal value string representation.
+    /// </summary>
+    string? ToString();
 }

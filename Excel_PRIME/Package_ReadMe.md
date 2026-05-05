@@ -6,8 +6,8 @@
 # What does that mean?
 - _Yet another Excel reader ?_, 
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
-    - V9 gives an extra 5% boost, 
-    - V10 Another 5% over 9 ;-)
+    - .Net9 gives an extra 5% boost, 
+    - .Net10 Another 5% over .Net9 ;-)
 
 Lets take each of the above elements and explain:
 
