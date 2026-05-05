@@ -120,7 +120,7 @@ Lets take each of the above elements and explain:
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
 - [V3 Changes ➡️](#v3-changes-)
 - [2026-01-16](#2026-01-16)
-  - [Phase V4 - Specific Cell value type(s) #️⃣ - RC3](#phase-v4---specific-cell-value-types----rc3)
+  - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
   - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
   - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
   - [Phase 7 - ideas 💡](#phase-7---ideas-)
@@ -245,7 +245,9 @@ Lets take each of the above elements and explain:
 - ✅ Investigate Performance and edge cases, then Release as Stable
    - 🚀 Big Performance improvements [2026-01-11](Performance.md#2026-01-11)
 - 🎊 Released **V3** as Nuget `V3.2601.11`
+
 -----
+
 # V3 Changes ➡️
 # 2026-01-16
 - Remove some `AggressiveOptimization` and allow `i-cache` to do its job
@@ -255,7 +257,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase V4 - Specific Cell value type(s) #️⃣ - RC3
+## Phase V4 - Specific Cell value type(s) #️⃣
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`
@@ -306,6 +308,8 @@ Lets take each of the above elements and explain:
    - [ ] Implement ETW profiling in CI/CD
    - [ ] Track JIT compilation metrics
 
+-----
+
 ## Phase 6 - Third Party Nugets 📦
 - ⛓️‍💥 **Breaking Change(s)**
     - None yet.
@@ -314,6 +318,7 @@ Lets take each of the above elements and explain:
 - [ ] Benchmarks
   - [ ] e.g. search isages of `Class PoolingArrayBufferWriter<T>`
   - [ ] 
+
 -----
 
 ## Phase 7 - ideas 💡
