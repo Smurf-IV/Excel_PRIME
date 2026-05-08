@@ -30,21 +30,30 @@ public class AccessEveryCellBenchmarks
     public string FileName { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
+    
+    static ExcelDataReaderOptions ErrorsAsString = 
+        new ExcelDataReaderOptions { 
+            // formula errors read as their string values
+            FormulaErrorHandling = FormulaErrorHandling.String 
+        };
+
     [Benchmark(Baseline = true)]
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public async Task<int> SylvanRdr()
     {
         int cells = 0;
-        // ReSharper disable once MethodHasAsyncOverload
-        using ExcelDataReader reader = ExcelDataReader.Create(RootFolder + FileName);
-        //using ExcelDataReader reader = await ExcelDataReader.CreateAsync(RootFolder + FileName).ConfigureAwait(true);
+        using ExcelDataReader reader = await ExcelDataReader.CreateAsync(RootFolder + FileName, ErrorsAsString).ConfigureAwait(true);
         do
         {
+            // include the headers in the populated cell count
+            cells += reader.FieldCount;
             while (await reader.ReadAsync().ConfigureAwait(true))
             {
                 for (int ordinal = 0; ordinal < reader.RowFieldCount; ordinal++)
                 {
-                    if (!string.IsNullOrEmpty(reader.GetExcelValue(ordinal).ToString()))
+                    // this also passes the unit test, and is much more efficient
+                    //if (!reader.IsDBNull(ordinal)) 
+                    if (!string.IsNullOrEmpty(reader.GetString(ordinal)))
                     {
                         cells++;
                     }
