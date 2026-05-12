@@ -15,7 +15,7 @@ public enum CellType
     InlineString,   // Probably a RichText string
     Boolean,    // 0 or 1 converted to `bool`
     Error,      // Excel error TODO interpret this please.
-    Date        // ISO 8601 Format
+    Date        // ISO 8601 Format. Only applicable when "Strict" Excel save type is used
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 

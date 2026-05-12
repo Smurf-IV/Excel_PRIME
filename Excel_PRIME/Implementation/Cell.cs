@@ -32,11 +32,6 @@ internal sealed record Cell : ICell
         bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
         bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
-        void ReadValue()
-        {
-            len = reader.ReadValueChunk(buffer, 0, bufferSize);
-        }
-
         int expectedAttributes = noCellStyle ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
@@ -44,13 +39,13 @@ internal sealed record Cell : ICell
             string currentAttributeName = reader.LocalName;
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 col = ExcelColumns.ParseColumnOffset(buffer, len);
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
@@ -58,7 +53,7 @@ internal sealed record Cell : ICell
                 && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
                 )
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 style = GetStyleOffset(buffer, len);
                 expectedAttributes--;
             }
@@ -73,26 +68,34 @@ internal sealed record Cell : ICell
             await reader.ReadAsync().ConfigureAwait(false);
             if (noCellConversion)
             {
-                if (type == CellType.SharedString)
+                switch (type)
                 {
-                    ReadValue();
-                    if (len == 0
-                        && returnDBNull)
-                    {
-                        value = new CellValue(DBNull.Value, style);
-                    }
-                    else
-                    {
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
-                    }
-                }
-                else
-                {
-                    string? str = ReadString(reader, valueBuilder, buffer);
-                    value = returnDBNull
-                            && string.IsNullOrEmpty(str)
-                        ? new CellValue(DBNull.Value, style)
-                        : new CellValue(str, style);
+                    case CellType.SharedString:
+                        len = ReadValue(reader, buffer, bufferSize);
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                        }
+                        break;
+
+                    case CellType.Date:
+                        value = ConvertToDate(reader, buffer, returnDBNull, style);
+                        break;
+
+                    default:
+                        {
+                            string? str = ReadString(reader, valueBuilder, buffer);
+                            value = returnDBNull
+                                    && string.IsNullOrEmpty(str)
+                                ? new CellValue(DBNull.Value, style)
+                                : new CellValue(str, style);
+                            break;
+                        }
                 }
             }
             else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
@@ -112,7 +115,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -129,7 +132,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.SharedString:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -144,7 +147,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Boolean:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -163,29 +166,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Date:
-                        ReadValue();
-                        if (len == 0
-                            && returnDBNull)
-                        {
-                            value = new CellValue(DBNull.Value, style);
-                        }
-                        else
-                        {
-                            ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
-                            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
-                            {
-                                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
-                            }
-                            else if (DateTime.TryParse(dateSpan, out DateTime result))
-                            {
-                                value = new CellValue(result, style);
-                            }
-                            else
-                            {
-                                // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                                value = new CellValue(dateSpan.ToString(), style);
-                            }
-                        }
+                        value = ConvertToDate(reader, buffer, returnDBNull, style);
                         break;
 
                     default:
@@ -206,6 +187,39 @@ internal sealed record Cell : ICell
             };
     }
 
+    private static int ReadValue(XmlReader reader, char[] buffer, int bufferSize) 
+        => reader.ReadValueChunk(buffer, 0, bufferSize);
+
+    private static CellValue ConvertToDate(XmlReader reader, char[] buffer, bool returnDBNull, int style)
+    {
+        CellValue value;
+        int len = ReadValue(reader, buffer, buffer.Length);
+        if (len == 0
+            && returnDBNull)
+        {
+            value = new CellValue(DBNull.Value, style);
+        }
+        else
+        {
+            ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
+            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
+            {
+                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
+            }
+            else if (DateTime.TryParse(dateSpan, out DateTime result))
+            {
+                value = new CellValue(result, style);
+            }
+            else
+            {
+                // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
+                value = new CellValue(dateSpan.ToString(), style);
+            }
+        }
+
+        return value;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
@@ -220,11 +234,6 @@ internal sealed record Cell : ICell
         bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
         bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
-        void ReadValue()
-        {
-            len = reader.ReadValueChunk(buffer, 0, bufferSize);
-        }
-
         int expectedAttributes = noCellStyle ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
@@ -232,13 +241,13 @@ internal sealed record Cell : ICell
             string currentAttributeName = reader.LocalName;
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 col = ExcelColumns.ParseColumnOffset(buffer, len);
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
@@ -246,7 +255,7 @@ internal sealed record Cell : ICell
                      && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
                     )
             {
-                ReadValue();
+                len = ReadValue(reader, buffer, bufferSize);
                 style = GetStyleOffset(buffer, len);
                 expectedAttributes--;
             }
@@ -261,26 +270,34 @@ internal sealed record Cell : ICell
             reader.Read();
             if (noCellConversion)
             {
-                if (type == CellType.SharedString)
+                switch (type)
                 {
-                    ReadValue();
-                    if (len == 0
-                        && returnDBNull)
-                    {
-                        value = new CellValue(DBNull.Value, style);
-                    }
-                    else
-                    {
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
-                    }
-                }
-                else
-                {
-                    string? str = ReadString(reader, valueBuilder, buffer);
-                    value = returnDBNull
-                            && string.IsNullOrEmpty(str)
-                        ? new CellValue(DBNull.Value, style)
-                        : new CellValue(str, style);
+                    case CellType.SharedString:
+                        len = ReadValue(reader, buffer, bufferSize);
+                        if (len == 0
+                            && returnDBNull)
+                        {
+                            value = new CellValue(DBNull.Value, style);
+                        }
+                        else
+                        {
+                            value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                        }
+                        break;
+
+                    case CellType.Date:
+                        value = ConvertToDate(reader, buffer, returnDBNull, style);
+                        break;
+
+                    default:
+                        {
+                            string? str = ReadString(reader, valueBuilder, buffer);
+                            value = returnDBNull
+                                    && string.IsNullOrEmpty(str)
+                                ? new CellValue(DBNull.Value, style)
+                                : new CellValue(str, style);
+                            break;
+                        }
                 }
             }
             else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
@@ -300,7 +317,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -318,7 +335,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.SharedString:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -332,7 +349,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Boolean:
-                        ReadValue();
+                        len = ReadValue(reader, buffer, bufferSize);
                         if (len == 0
                             && returnDBNull)
                         {
@@ -350,31 +367,7 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Date:
-                        {
-                            ReadValue();
-                            if (len == 0
-                                && returnDBNull)
-                            {
-                                value = new CellValue(DBNull.Value, style);
-                                break;
-                            }
-
-                            ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
-                            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture,
-                                    out double dateTimeValue))
-                            {
-                                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
-                            }
-                            else if (DateTime.TryParse(dateSpan, out DateTime result))
-                            {
-                                value = new CellValue(result, style);
-                            }
-                            else
-                            {
-                                // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                                value = new CellValue(dateSpan.ToString(), style);
-                            }
-                        }
+                        value = ConvertToDate(reader, buffer, returnDBNull, style);
                         break;
 
                     default:

@@ -57,3 +57,5 @@ nunit-*.xml
 /.idea
 *.log
 /Excel_PRIME/XlsbImp/.~lock.[MS-XLSB].pdf#
+~$*.xlsx
+/.junie

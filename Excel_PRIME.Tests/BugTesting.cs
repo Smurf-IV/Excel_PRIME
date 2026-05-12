@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
+
+using AwesomeAssertions;
 
 using NUnit.Framework;
 
@@ -55,4 +59,30 @@ internal class BugTesting
         }
 
     }
+
+    public static Options[] Option =
+    [
+        new Options(),
+        new Options { ReturnDBNull = true },
+        new Options { CellConversionType = CellConversion.ExcelCellType},
+        new Options { CellConversionType = CellConversion.ExcelCellType, ReturnDBNull = true }
+         // V5 - new Options { CellConversionType = CellConversion.ExcelCellStyle},
+         // V5 - new Options { CellConversionType = CellConversion.ExcelCellStyle, ReturnDBNull = true },
+         // V5 - new Options { CellConversionType = CellConversion.ForceStyles }
+    ];
+
+    [Test]
+    [TestCaseSource(nameof(Option))]
+    [Explicit]
+    public async Task Bug_019_DateInObj(Options options)
+    {
+        const string fileName = "Data/65K_Records_Data.xlsx";
+        using Excel_PRIME workbook = new();
+        await workbook.OpenAsync(fileName, options).ConfigureAwait(false);
+        ISheetAsync? valSheet = await workbook.GetSheetAsync("500000 Sales Records").ConfigureAwait(false);
+        IRowAsync? row = await valSheet.GetRowDataAsync(1, RowCellGet.None).FirstAsync();
+        ICell cell = await row.GetCellAsync(6).ConfigureAwait(false)!;
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>();//.And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+    }
+
 }

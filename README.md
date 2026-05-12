@@ -119,6 +119,7 @@ Lets take each of the above elements and explain:
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
     - [V3 Changes ➡️ 2026-01-16](#v3-changes--2026-01-16)
   - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
+  - [V4 changes ➡️ 2026-05-##](#v4-changes--2026-05-)
   - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
   - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
   - [Phase 7 - ideas 💡](#phase-7---ideas-)
@@ -280,6 +281,11 @@ Lets take each of the above elements and explain:
   - ✅ Update tests to use `INullRow` detection
 - ✅ Implement `GetCell###(string columnLetters, ...)` #8
 - 🚀 [2026-05-05](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-05-05---v4)
+
+-----
+## V4 changes ➡️ 2026-05-##
+- Fix "Always get as date" issue for some cells #19
+
 
 -----
 

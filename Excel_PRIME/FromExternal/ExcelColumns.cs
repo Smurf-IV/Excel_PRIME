@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 // ReSharper disable ForCanBeConvertedToForeach
@@ -12,6 +13,7 @@ namespace ExcelPRIME.FromExternal;
 /// </summary>
 internal static class ExcelColumns
 {
+    private static readonly SearchValues<char> s_asciiLetters = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     // Precomputed lookup table for first 64 columns (A-)
     private static readonly string[] s_columnNameCache = new string[64 + 1];
 
@@ -85,18 +87,12 @@ internal static class ExcelColumns
     {
         ReadOnlySpan<char> span = columnRowRef.AsSpan();
         int colExcel = -1;
-        int i = 0;
-        for (; i < span.Length; i++)
+        int i = span.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1) i = span.Length;
+
+        for (int j = 0; j < i; j++)
         {
-            ref readonly char c = ref span[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            colExcel = ((colExcel + 1) * 26) + (span[j] - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -109,18 +105,12 @@ internal static class ExcelColumns
     public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRowRefSpan)
     {
         int colExcel = -1;
-        int i = 0;
-        for (; i < columnRowRefSpan.Length; i++)
+        int i = columnRowRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1) i = columnRowRefSpan.Length;
+
+        for (int j = 0; j < i; j++)
         {
-            ref readonly char c = ref columnRowRefSpan[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            colExcel = ((colExcel + 1) * 26) + (columnRowRefSpan[j] - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -133,17 +123,12 @@ internal static class ExcelColumns
     public static int GetColNumber(this ReadOnlySpan<char> columnRefSpan)
     {
         int colExcel = -1;
-        for (int i = 0; i < columnRefSpan.Length; i++)
+        int i = columnRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1) i = columnRefSpan.Length;
+
+        for (int j = 0; j < i; j++)
         {
-            ref readonly char c = ref columnRefSpan[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            colExcel = ((colExcel + 1) * 26) + (columnRefSpan[j] - 'A');
         }
 
         return ++colExcel; // Make it into the Excel 1 offset #

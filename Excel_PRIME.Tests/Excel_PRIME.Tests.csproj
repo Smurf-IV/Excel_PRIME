@@ -84,6 +84,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="Data\65K_Records_Data.xlsb">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Data\65K_Records_Data.xlsx">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Data\delete1.xlsb">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

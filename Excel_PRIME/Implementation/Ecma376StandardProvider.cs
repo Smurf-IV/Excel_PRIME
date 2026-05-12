@@ -41,7 +41,7 @@ internal static class Ecma376StandardProvider
     /// - No per-lookup allocations
     /// - 30-40% faster than Dictionary for read-only workloads
     /// </summary>
-    public static readonly IReadOnlyDictionary<int, (string FormatCode, FormattingType Type)> BuiltInNumberFormats = new Dictionary<int, (string, FormattingType)>
+    public static readonly FrozenDictionary<int, (string FormatCode, FormattingType Type)> BuiltInNumberFormats = new Dictionary<int, (string, FormattingType)>
     {
         // General formats
         { 0, ("General", FormattingType.General) },
