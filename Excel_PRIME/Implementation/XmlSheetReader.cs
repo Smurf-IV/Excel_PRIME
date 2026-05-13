@@ -70,18 +70,22 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
                 string? dim = _reader.GetAttribute("ref");
                 if (dim != null)
                 {
-                    string[] idx = dim.Split(':');
-                    (int rowExcel, int _, ReadOnlyMemory<char> _) = idx[0].GetRowColNumbers();
-                    _startRow = rowExcel - 1; // Take it back to the array offset
-                    // Might be an empty sheet (i.e. only "A1")
-                    if (idx.Length == 1)
+                    ReadOnlySpan<char> dimSpan = dim.AsSpan();
+                    int colonIndex = dimSpan.IndexOf(':');
+                    if (colonIndex == -1)
                     {
-                        SheetDimensions = new ValueTuple<int, int>(1, 1);
+                        (int rowExcel, int _, _) = dimSpan.GetRowColNumbers();
+                        _startRow = rowExcel - 1; // Take it back to the array offset
+                        SheetDimensions = (1, 1);
                     }
                     else
                     {
-                        (int rowMax, int colMax, ReadOnlyMemory<char> _) = idx[1].GetRowColNumbers();
-                        SheetDimensions = new ValueTuple<int, int>(rowMax, colMax);
+                        ReadOnlySpan<char> firstPart = dimSpan[..colonIndex];
+                        ReadOnlySpan<char> secondPart = dimSpan[(colonIndex + 1)..];
+                        (int rowExcel, int _, _) = firstPart.GetRowColNumbers();
+                        _startRow = rowExcel - 1; // Take it back to the array offset
+                        (int rowMax, int colMax, _) = secondPart.GetRowColNumbers();
+                        SheetDimensions = (rowMax, colMax);
                     }
                 }
                 else

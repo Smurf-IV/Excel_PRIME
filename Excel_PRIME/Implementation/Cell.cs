@@ -40,7 +40,7 @@ internal sealed record Cell : ICell
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
                 len = ReadValue(reader, buffer, bufferSize);
-                col = ExcelColumns.ParseColumnOffset(buffer, len);
+                col = ExcelColumns.ParseColumnOffset(buffer.AsSpan(0, len));
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))
@@ -242,7 +242,7 @@ internal sealed record Cell : ICell
             if (ReferenceEquals(currentAttributeName, readerAtoms.rRefAtom))
             {
                 len = ReadValue(reader, buffer, bufferSize);
-                col = ExcelColumns.ParseColumnOffset(buffer, len);
+                col = ExcelColumns.ParseColumnOffset(buffer.AsSpan(0, len));
                 expectedAttributes--;
             }
             else if (ReferenceEquals(currentAttributeName, readerAtoms.tRefAtom))

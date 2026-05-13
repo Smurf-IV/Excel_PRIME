@@ -55,16 +55,14 @@ internal sealed class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int read = 0;
-        while (read < count)
+        try
         {
-            int bytesRead = _stream.Read(buffer, read, count - read);
-            if (bytesRead == 0)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-                throw new EndOfStreamException();
-            }
-            read += bytesRead;
+            _stream.ReadExactly(buffer.AsSpan(0, count));
+        }
+        catch (EndOfStreamException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
         }
 
         return buffer;
@@ -75,16 +73,19 @@ internal sealed class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int read = 0;
-        while (read < count)
+        try
         {
-            int bytesRead = await _stream.ReadAsync(buffer.AsMemory(read, count- read), ct).ConfigureAwait(false);
-            if (bytesRead == 0)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-                throw new EndOfStreamException();
-            }
-            read += bytesRead;
+            await _stream.ReadExactlyAsync(buffer.AsMemory(0, count), ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
+        }
+        catch (EndOfStreamException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
         }
 
         return buffer;

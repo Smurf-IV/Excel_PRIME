@@ -54,23 +54,16 @@ internal static class ExcelColumns
         return new string(buffer.Slice(pos));
     }
 
-    // CHANGED: Use ref readonly for better performance
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int ParseColumnOffset(char[] buffer, int len)
+    public static int ParseColumnOffset(ReadOnlySpan<char> buffer)
     {
         int colExcel = -1;
-        int i = 0;
-        for (; i < len; i++)
+        int i = buffer.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1) i = buffer.Length;
+
+        for (int j = 0; j < i; j++)
         {
-            ref readonly char c = ref buffer[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            colExcel = ((colExcel + 1) * 26) + (buffer[j] - 'A');
         }
         return colExcel + 1; // Make it into the Excel 1 offset #
     }

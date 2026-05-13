@@ -26,7 +26,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private readonly IZipReaderAsync _zipReader;
     private Stream? _fs;
     private readonly Dictionary<string /*pathOffsetSheet*/, TempFile> _sheetFiles = [];
-    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>().AsReadOnly();
+    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new System.Collections.Generic.OrderedDictionary<string, string>(StringComparer.Ordinal);
     private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
@@ -135,13 +135,21 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     {
         using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
-        _sheetNamesToPathOffset = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
+#if NET9_0_OR_GREATER
+        _sheetNamesToPathOffset = new OrderedDictionary<string, string>(wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct), StringComparer.OrdinalIgnoreCase);
+#else
+        _sheetNamesToPathOffset = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary(StringComparer.OrdinalIgnoreCase);
+#endif
     }
 
     private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
     {
         using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
-        _sheetNamesToPathOffset = wbr.GetSheetNames(ct).ToDictionary();
+#if NET9_0_OR_GREATER
+        _sheetNamesToPathOffset = new OrderedDictionary<string, string>(wbr.GetSheetNames(ct), StringComparer.OrdinalIgnoreCase);
+#else
+        _sheetNamesToPathOffset = wbr.GetSheetNames(ct).ToDictionary(StringComparer.OrdinalIgnoreCase);
+#endif
     }
 
     /// <InheritDoc />
