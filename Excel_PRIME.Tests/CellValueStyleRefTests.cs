@@ -94,7 +94,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 cellValue.Should().NotBeNull();
 
                 // When ToStyledString is called, it should return either the styled format or the plain string
@@ -150,7 +150,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 
                 // Try various conversions - should not throw
                 try
@@ -207,7 +207,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 
                 // Try datetime conversion - should not throw
                 try
@@ -270,7 +270,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 bool success = cellValue.TryGetDateTime(out DateTime result);
                 
                 if (success)
@@ -326,7 +326,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 if (cellValue.TryGetDouble(out double result))
                 {
                     successCount++;
@@ -375,7 +375,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 if (cellValue.TryGetInt32(out int result))
                 {
                     successCount++;
@@ -428,7 +428,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 object? boxedValue = cellValue.BoxedValue;
                 totalCells++;
 
@@ -492,7 +492,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 
                 // Test implicit conversion to double
                 try
@@ -548,7 +548,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 
                 // Test implicit conversion to DateTime
                 try
@@ -610,7 +610,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 
                 // Get both representations
                 object? boxedValue = cellValue.BoxedValue;
@@ -672,7 +672,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue;
+                CellValue cellValue = cell.CellValue!.Value;
                 string? toString = cellValue.ToString();
                 
                 if (toString != null)
@@ -713,7 +713,7 @@ public class CellValueStyleRefTests
         using ISheetAsync? worksheet = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet.Should().NotBeNull();
 
-        var cellValues = new List<CellValue>();
+        var cellValues = new List<CellValue?>();
         int rowIndex = 0;
 
         await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
@@ -749,8 +749,8 @@ public class CellValueStyleRefTests
         for (int i = 0; i < cellValues.Count - 1; i++)
         {
             // Create equality test
-            CellValue val1 = cellValues[i];
-            CellValue val2 = cellValues[i];
+            CellValue? val1 = cellValues[i];
+            CellValue? val2 = cellValues[i];
             
             // Same cell should equal itself
             (val1 == val2).Should().Be(true);

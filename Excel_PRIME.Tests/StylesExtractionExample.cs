@@ -54,7 +54,7 @@ public class StylesExtractionExample
                         }
 
                         // Example 1: Get the basic string representation
-                        string basicString = cell.CellValue.ToString() ?? "null";
+                        string basicString = cell.CellValue?.ToString() ?? "null";
                         Console.WriteLine($"Cell value: {basicString}");
 
                         // Example 2: Get the styled string representation using extracted styles
@@ -111,7 +111,7 @@ public class StylesExtractionExample
 
                         // Use ToStyledString with available styles
                         // Note: You may need to pass styles through your application's context
-                        string value = cell.CellValue.ToString() ?? "";
+                        string value = cell.CellValue?.ToString() ?? "";
                         Console.WriteLine($"Value: {value}");
                     }
                 }
@@ -160,7 +160,7 @@ public class NumberFormatExample
                             continue;
                         }
 
-                        CellValue cellValue = cell.CellValue;
+                        CellValue cellValue = cell.CellValue!.Value;
 
                         // For numeric values, the style's number format can be applied
                         try

@@ -82,7 +82,7 @@ internal class BugTesting
         ISheetAsync? valSheet = await workbook.GetSheetAsync("500000 Sales Records").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(1, RowCellGet.None).FirstAsync();
         ICell cell = await row.GetCellAsync(6).ConfigureAwait(false)!;
-        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>();//.And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+        cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>();//.And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
     }
 
 }

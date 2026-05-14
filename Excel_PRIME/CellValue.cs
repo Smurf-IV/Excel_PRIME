@@ -18,16 +18,12 @@ namespace ExcelPRIME;
 /// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-#if NET8_0_OR_GREATER
-public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
-#else
-public sealed class CellValue : IEquatable<CellValue>, IFormattable
-#endif
+public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
-    [FieldOffset(0)] private string? _strValue;
-    [FieldOffset(8)] private bool _boolValue;
-    [FieldOffset(8)] private double _doubleValue;
-    [FieldOffset(8)] private DateTime _dateTimeValue;
+    [FieldOffset(0)] private readonly string? _strValue;
+    [FieldOffset(8)] private readonly bool _boolValue;
+    [FieldOffset(8)] private readonly double _doubleValue;
+    [FieldOffset(8)] private readonly DateTime _dateTimeValue;
     [FieldOffset(16)] private readonly CellValueType _type;
     [FieldOffset(20)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
 
@@ -49,6 +45,9 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     internal CellValue(string? strValue, int iStyleRef)
     {
         // TODO: iStyleRef might make the string conversion different in future
+        _boolValue = default;
+        _doubleValue = default;
+        _dateTimeValue = default;
         _strValue = strValue ?? string.Empty;
         _type = CellValueType.String;
         _iStyleRef = iStyleRef;
@@ -57,13 +56,20 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     // Remove AggressiveOptimization from Constructors
     internal CellValue(bool boolValue)
     {
+        _strValue = default;
+        _doubleValue = default;
+        _dateTimeValue = default;
         _boolValue = boolValue;
         _type = CellValueType.Bool;
+        _iStyleRef = 0;
     }
 
     // Remove AggressiveOptimization from Constructors
     internal CellValue(double doubleValue, int iStyleRef)
     {
+        _strValue = default;
+        _boolValue = default;
+        _dateTimeValue = default;
         _doubleValue = doubleValue;
         _type = CellValueType.Numeric;
         _iStyleRef = iStyleRef;
@@ -72,6 +78,9 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     // Remove AggressiveOptimization from Constructors
     internal CellValue(DateTime dateTimeValue, int iStyleRef)
     {
+        _strValue = default;
+        _boolValue = default;
+        _doubleValue = default;
         _dateTimeValue = dateTimeValue;
         _type = CellValueType.DateTime;
         _iStyleRef = iStyleRef;
@@ -80,12 +89,20 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     // Remove AggressiveOptimization from Constructors
     internal CellValue(ExcelErrorCode errorCodeValue)
     {
+        _strValue = default;
+        _boolValue = default;
+        _dateTimeValue = default;
         _doubleValue = (int)errorCodeValue;
         _type = CellValueType.Error;
+        _iStyleRef = 0;
     }
 
     internal CellValue(DBNull _/*isDBNull*/, int iStyleRef)
     {
+        _strValue = default;
+        _boolValue = default;
+        _doubleValue = default;
+        _dateTimeValue = default;
         _iStyleRef = iStyleRef;
         _type = CellValueType.IsDBNull;
     }
@@ -478,7 +495,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// Formats a number in accounting style with alignment spacing.
     /// </summary>
     private static string FormatAccountingNumber(double value, int decimals)
-        {
+    {
         string format = decimals switch
         {
             0 => "N0",
@@ -490,7 +507,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
         if (value < 0)
         {
             return string.Concat("(", Math.Abs(value).ToString(format, CultureInfo.InvariantCulture), ")");
-    }
+        }
 
         // Add leading space for alignment
         return string.Concat(" ", value.ToString(format, CultureInfo.InvariantCulture), " ");
@@ -531,7 +548,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
         if (intPart != 0)
         {
             result = string.Concat(Math.Truncate(intPart).ToString(CultureInfo.InvariantCulture), " ", result);
-    }
+        }
 
         return result;
     }
@@ -589,8 +606,8 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
                 if (dotIndex >= 0)
                 {
                     decimalPlaces = beforeE.Length - dotIndex - 1;
+                }
             }
-        }
             return value.ToString("E" + decimalPlaces, CultureInfo.InvariantCulture);
         }
 
@@ -604,7 +621,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
             {
                 if (c == '0' || c == '#')
                     decimals++;
-        }
+            }
         }
 
         // Check if thousands separator is present
@@ -747,7 +764,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
         int minutes = value.Minute;
         int seconds = value.Second;
         return $"{totalHours}:{minutes:D2}:{seconds:D2}";
-        }
+    }
 
     /// <summary>
     /// Formats a DateTime value using a custom format code pattern.
@@ -759,7 +776,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
         {
             string cleanFormat = formatCode.Replace("[Red]", "");
             return FormatCustomDateTime(value, cleanFormat, type);
-    }
+        }
 
         // Try to convert Excel format codes to .NET format codes
         string netFormat = ConvertExcelDateTimeFormatToNet(formatCode);
@@ -817,7 +834,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
                     // This is minutes - keep as "mm"
                     sb.Append("mm");
                     i += 2;
-        }
+                }
                 else
                 {
                     // Check if preceded by digit or date separator, or followed by date pattern
@@ -827,22 +844,22 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
                     if (i > 0 && (char.IsDigit(result[i - 1]) || result[i - 1] == '/' || result[i - 1] == '-' || result[i - 1] == '.'))
                     {
                         isProbablyMonth = true;
-    }
+                    }
 
                     // If followed by digit, date separator, or date character
                     if (i + 2 < result.Length)
-    {
+                    {
                         char next = result[i + 2];
                         if (char.IsDigit(next) || next == '/' || next == '-' || next == '.' || next == 'd' || next == 'y' || next == 'D' || next == 'Y')
-        {
+                        {
                             isProbablyMonth = true;
-        }
+                        }
                     }
 
                     if (isProbablyMonth)
-        {
+                    {
                         sb.Append("MM");
-        }
+                    }
                     else
                     {
                         sb.Append("mm");
@@ -910,16 +927,15 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// For example, numeric values are compared numerically, strings are compared using string equality,
     /// and dates are compared using date-time equality.
     /// </remarks>
-    public bool Equals(CellValue? other)
+    public bool Equals(CellValue other)
     {
-        if (other is null
-            || _type != other._type)
+        if (_type != other._type)
         {
             return false;
         }
 
         return _type switch
-                {
+        {
             CellValueType.Bool => _boolValue == other._boolValue,
             CellValueType.Numeric => _doubleValue == other._doubleValue,
             CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
@@ -937,19 +953,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <returns>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator ==(CellValue? left, CellValue? right)
-                    {
-        if (ReferenceEquals(left, right))
-        {
-            return true;
-        }
-        if (left is null
-            || right is null)
-        {
-                        return false;
-                    }
-        return left.Equals(right);
-                }
+    public static bool operator ==(CellValue left, CellValue right) => left.Equals(right);
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.
@@ -959,7 +963,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <returns>
     /// <c>true</c> if the specified<see cref="CellValue"/> instances are not equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator !=(CellValue? left, CellValue? right) => !(left == right);
+    public static bool operator !=(CellValue left, CellValue right) => !left.Equals(right);
 
     /// <summary>
     /// Attempts to get the value of the cell as a <see cref="DateTime"/> object.
@@ -972,18 +976,18 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <c>true</c> if the cell value was successfully converted to a <see cref="DateTime"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetDateTime(out DateTime value)
-                {
+    {
         try
-                    {
+        {
             value = AsDateTime;
             return true;
         }
         catch
         {
             value = default;
-                        return false;
-                    }
-                }
+            return false;
+        }
+    }
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateOnly"/> object, if possible.
@@ -992,18 +996,18 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <c>true</c> if the cell value was successfully converted to a <see cref="DateOnly"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryDateOnly(out DateOnly value)
-                {
+    {
         try
-                    {
+        {
             value = DateOnly.FromDateTime(AsDateTime);
             return true;
         }
         catch
         {
             value = default;
-                        return false;
-                    }
-                }
+            return false;
+        }
+    }
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="TimeOnly"/> object, if possible.
@@ -1016,7 +1020,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
         try
         {
             value = TimeOnly.FromDateTime(AsDateTime);
-                return true;
+            return true;
         }
         catch
         {
@@ -1060,12 +1064,12 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <c>true</c> if the cell value was successfully converted to a <see cref="int"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetInt32(out int value)
-        {
+    {
         try
         {
             value = AsInt32;
             return true;
-    }
+        }
         catch
         {
             value = 0;
@@ -1108,7 +1112,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// <c>true</c> if the cell value was successfully converted to a <see cref="double"/>; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetDouble(out double value)
-        {
+    {
         try
         {
             value = AsDouble;
@@ -1286,17 +1290,7 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
                 return _dateTimeValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
 
             case CellValueType.Error:
-                {
-                    var errorStr = ((ExcelErrorCode)_doubleValue).ToString();
-                    if (destination.Length < errorStr.Length)
-                    {
-                        charsWritten = 0;
-                        return false;
-                    }
-                    errorStr.AsSpan().CopyTo(destination);
-                    charsWritten = errorStr.Length;
-                    return true;
-                }
+                return TryFormatError(_doubleValue, destination, out charsWritten);
 
             case CellValueType.IsDBNull:
                 {
@@ -1315,6 +1309,32 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
                 charsWritten = 0;
                 return true;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool TryFormatError(double value, Span<char> destination, out int charsWritten)
+    {
+        string errorStr = (ExcelErrorCode)value switch
+        {
+            ExcelErrorCode.Null => "#NULL!",
+            ExcelErrorCode.DivideByZero => "#DIV/0!",
+            ExcelErrorCode.Value => "#VALUE!",
+            ExcelErrorCode.Reference => "#REF!",
+            ExcelErrorCode.Name => "#NAME?",
+            ExcelErrorCode.Number => "#NUM!",
+            ExcelErrorCode.NotAvailable => "#N/A",
+            _ => "Error"
+        };
+
+        if (destination.Length < errorStr.Length)
+        {
+            charsWritten = 0;
+            return false;
+        }
+
+        errorStr.AsSpan().CopyTo(destination);
+        charsWritten = errorStr.Length;
+        return true;
     }
 
     #endregion
