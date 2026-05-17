@@ -1222,3 +1222,10 @@ And then slightly different versions of the following dependent on date:
 | Excel_Prime              | sampl(...).xlsx [30] | 1.07x faster |  68000.0000 |  1000.0000 |          - |  816.25 MB |  2.77x more |
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.10x slower | 223000.0000 |  1000.0000 |          - |  2671.4 MB |  9.08x more |
 ```
+
+# 2026-05-12 - V4 - Bug fixes
+- Return null when `EndValue` is potted in the xml #22
+- Return null for not found SheetId #23
+- Update nugets
+- Changed CellValue to an abstract base class and removed all [FieldOffset(0)] fields.
+- Introduced internal sealed class CellValue<T> : CellValue to store values of type T without boxing for value types.

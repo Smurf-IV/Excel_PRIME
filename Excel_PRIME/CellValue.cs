@@ -15,17 +15,21 @@ namespace ExcelPRIME;
 /// Represents a strongly-typed cell value with custom ToString conversion.
 /// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
-[StructLayout(LayoutKind.Explicit)]
-public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
+public abstract class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
-    [FieldOffset(0)] private string? _strValue;
-    [FieldOffset(0)] private bool _boolValue;
-    [FieldOffset(0)] private double _doubleValue;
-    [FieldOffset(0)] private DateTime _dateTimeValue;
-    [FieldOffset(8)] private readonly CellValueType _type;
-    [FieldOffset(12)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+    /// <summary>
+    /// The style reference index.
+    /// </summary>
+    protected readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+    /// <summary>
+    /// The type of the cell value.
+    /// </summary>
+    protected readonly CellValueType _type;
 
-    private enum CellValueType
+    /// <summary>
+    /// Represents the type of value stored in a cell.
+    /// </summary>
+    public enum CellValueType : byte
     {
         Unknown,
         Numeric,
@@ -47,52 +51,30 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     /// <param name="iStyleRef">The style reference index.</param>
     /// <returns>A <see cref="CellValue"/> instance.</returns>
     public static CellValue GetDBNull(int iStyleRef) 
-        => DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(DBNull.Value, style));
+        => DBNullCache.GetOrAdd(iStyleRef, static style => Create(DBNull.Value, style));
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(string? strValue, int iStyleRef)
+    internal static CellValue Create(string? strValue, int iStyleRef) => new CellValue<string>(strValue ?? string.Empty, CellValueType.String, iStyleRef);
+    internal static CellValue Create(bool boolValue) => new CellValue<bool>(boolValue, CellValueType.Bool, 0);
+    internal static CellValue Create(double doubleValue, int iStyleRef) => new CellValue<double>(doubleValue, CellValueType.Numeric, iStyleRef);
+    internal static CellValue Create(DateTime dateTimeValue, int iStyleRef) => new CellValue<DateTime>(dateTimeValue, CellValueType.DateTime, iStyleRef);
+    internal static CellValue Create(ExcelErrorCode errorCodeValue) => new CellValue<double>((int)errorCodeValue, CellValueType.Error, -1);
+    internal static CellValue Create(DBNull _, int iStyleRef) => new CellValue<DBNull>(DBNull.Value, CellValueType.IsDBNull, iStyleRef);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CellValue"/> class.
+    /// </summary>
+    /// <param name="type">The type of the cell value.</param>
+    /// <param name="iStyleRef">The style reference index.</param>
+    protected CellValue(CellValueType type, int iStyleRef)
     {
-        // TODO: iStyleRef might make the string conversion different in future
-        _strValue = strValue ?? string.Empty;
-        _type = CellValueType.String;
+        _type = type;
         _iStyleRef = iStyleRef;
     }
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(bool boolValue)
-    {
-        _boolValue = boolValue;
-        _type = CellValueType.Bool;
-    }
-
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(double doubleValue, int iStyleRef)
-    {
-        _doubleValue = doubleValue;
-        _type = CellValueType.Numeric;
-        _iStyleRef = iStyleRef;
-    }
-
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(DateTime dateTimeValue, int iStyleRef)
-    {
-        _dateTimeValue = dateTimeValue;
-        _type = CellValueType.DateTime;
-        _iStyleRef = iStyleRef;
-    }
-
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(ExcelErrorCode errorCodeValue)
-    {
-        _doubleValue = (int)errorCodeValue;
-        _type = CellValueType.Error;
-    }
-
-    internal CellValue(DBNull _/*isDBNull*/, int iStyleRef)
-    {
-        _iStyleRef = iStyleRef;
-        _type = CellValueType.IsDBNull;
-    }
+    /// <summary>
+    /// Gets the raw "Boxed" value of the cell.
+    /// </summary>
+    public abstract object? BoxedValue { get; }
 
     /// <summary>
     /// Converts the cell value to its string representation.
@@ -106,9 +88,9 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     // Remove AggressiveOptimization from Constructors
     public override string? ToString()
     {
-        if (_strValue != null || _type == CellValueType.String)
+        if (_type == CellValueType.String)
         {
-            return _strValue;
+            return (string?)BoxedValue;
         }
 
         return ToString_Slow();
@@ -118,11 +100,11 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     private string? ToString_Slow() =>
         _type switch
         {
-            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
+            CellValueType.Bool => ((bool)BoxedValue!) ? bool.TrueString : bool.FalseString,
             // Micro-optimization: Use cached CultureInfo instead of property access
-            CellValueType.Numeric => _doubleValue.ToString(InvariantCultureCache),
-            CellValueType.DateTime => _dateTimeValue.ToString(InvariantCultureCache),
-            CellValueType.Error => ((ExcelErrorCode)_doubleValue).ToString(),
+            CellValueType.Numeric => ((double)BoxedValue!).ToString(InvariantCultureCache),
+            CellValueType.DateTime => ((DateTime)BoxedValue!).ToString(InvariantCultureCache),
+            CellValueType.Error => ((ExcelErrorCode)(double)BoxedValue!).ToString(),
             CellValueType.IsDBNull => DBNull.Value.ToString(InvariantCultureCache),
             _ => null
         };
@@ -148,10 +130,11 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
         builder.Append(ToString());
 #else
         // Fast path: string value, no conversion
-        if (_strValue != null || _type == CellValueType.String)
+        if (_type == CellValueType.String)
         {
-            if (_strValue != null)
-                builder.Append(_strValue);
+            var str = (string?)BoxedValue;
+            if (str != null)
+                builder.Append(str);
             return;
         }
         // Dispatch to type-specific formatting
@@ -165,19 +148,19 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
         switch (_type)
         {
             case CellValueType.Bool:
-                builder.Append(_boolValue ? bool.TrueString : bool.FalseString);
+                builder.Append((bool)BoxedValue! ? bool.TrueString : bool.FalseString);
                 break;
 
             case CellValueType.Numeric:
-                builder.Append(_doubleValue);
+                builder.Append((double)BoxedValue!);
                 break;
 
             case CellValueType.DateTime:
-                builder.Append(_dateTimeValue);
+                builder.Append((DateTime)BoxedValue!);
                 break;
 
             case CellValueType.Error:
-                builder.Append((ExcelErrorCode)_doubleValue);
+                builder.Append((ExcelErrorCode)(double)BoxedValue!);
                 break;
 
             case CellValueType.IsDBNull:
@@ -186,21 +169,6 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
         }
     }
 
-    /// <summary>
-    /// Gets the raw "Boxed" value of the cell.
-    /// </summary>
-    public object? BoxedValue =>
-        _type switch
-        {
-            CellValueType.Unknown => null,
-            CellValueType.Bool => _boolValue,
-            CellValueType.Numeric => _doubleValue,
-            CellValueType.DateTime => _dateTimeValue,
-            CellValueType.Error => (ExcelErrorCode)_doubleValue,
-            CellValueType.String => _strValue,
-            CellValueType.IsDBNull => DBNull.Value,
-            _ => null
-        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateTime"/> object, if possible.
@@ -212,15 +180,15 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public DateTime AsDateTime =>
         // Simplified without branches for common case
         _type == CellValueType.DateTime
-            ? _dateTimeValue
+            ? (DateTime)BoxedValue!
             : AsDateTime_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private DateTime AsDateTime_Slow() =>
         _type switch
         {
-            CellValueType.Numeric => DateTime.FromOADate(_doubleValue),
-            _ => double.TryParse(_strValue, out double val)
+            CellValueType.Numeric => DateTime.FromOADate((double)BoxedValue!),
+            _ => double.TryParse((string?)BoxedValue, out double val)
                 ? // Excel stores the DateTime as a double OADate
                 DateTime.FromOADate(val)
                 : DateTime.Parse(ToString()!, CultureInfo.InvariantCulture)
@@ -248,18 +216,18 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public bool AsBoolean =>
         // Simplified without branches for common case
         _type == CellValueType.Bool
-            ? _boolValue
+            ? (bool)BoxedValue!
             : AsBoolean_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private bool AsBoolean_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.Ticks != 0,
-            CellValueType.Error => (ExcelErrorCode)_doubleValue != ExcelErrorCode.Null,
-            CellValueType.Numeric => _doubleValue != 0,
+            CellValueType.DateTime => ((DateTime)BoxedValue!).Ticks != 0,
+            CellValueType.Error => (ExcelErrorCode)((double)BoxedValue!) != ExcelErrorCode.Null,
+            CellValueType.Numeric => (double)BoxedValue! != 0,
             CellValueType.IsDBNull => false,
-            _ => int.TryParse(_strValue, out int val) ? val != 0 : Convert.ToBoolean(_strValue!)
+            _ => int.TryParse((string?)BoxedValue, out int val) ? val != 0 : Convert.ToBoolean((string?)BoxedValue!)
         };
 
     /// <summary>
@@ -272,18 +240,18 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public int AsInt32 =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (int)_doubleValue
+            ? (int)(double)BoxedValue!
             : AsInt32_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private int AsInt32_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (int)_dateTimeValue.Ticks,
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (int)_doubleValue,
+            CellValueType.DateTime => (int)((DateTime)BoxedValue!).Ticks,
+            CellValueType.Bool => (bool)BoxedValue! ? 1 : 0,
+            CellValueType.Error => (int)(double)BoxedValue!,
             CellValueType.IsDBNull => 0,
-            _ => int.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            _ => int.Parse((string?)BoxedValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -295,18 +263,18 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     // Remove AggressiveOptimization from properties
     public long AsInt64 =>
         _type == CellValueType.Numeric
-            ? (long)_doubleValue
+            ? (long)(double)BoxedValue!
             : AsInt64_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private long AsInt64_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.Ticks,
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (long)_doubleValue,
+            CellValueType.DateTime => ((DateTime)BoxedValue!).Ticks,
+            CellValueType.Bool => (bool)BoxedValue! ? 1 : 0,
+            CellValueType.Error => (long)(double)BoxedValue!,
             CellValueType.IsDBNull => 0L,
-            _ => long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            _ => long.Parse((string?)BoxedValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -319,18 +287,18 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public double AsDouble =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? _doubleValue
+            ? (double)BoxedValue!
             : AsDouble_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private double AsDouble_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.ToOADate(),
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => _doubleValue,
+            CellValueType.DateTime => ((DateTime)BoxedValue!).ToOADate(),
+            CellValueType.Bool => (bool)BoxedValue! ? 1 : 0,
+            CellValueType.Error => (double)BoxedValue!,
             CellValueType.IsDBNull => 0.0,
-            _ => double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
+            _ => double.Parse((string?)BoxedValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -343,18 +311,18 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public decimal AsDecimal =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (decimal)_doubleValue
+            ? (decimal)(double)BoxedValue!
             : AsDecimal_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private decimal AsDecimal_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (decimal)_dateTimeValue.ToOADate(),
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (decimal)_doubleValue,
+            CellValueType.DateTime => (decimal)((DateTime)BoxedValue!).ToOADate(),
+            CellValueType.Bool => (bool)BoxedValue! ? 1 : 0,
+            CellValueType.Error => (decimal)((double)BoxedValue!),
             CellValueType.IsDBNull => 0m,
-            _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
+            _ => decimal.Parse((string?)BoxedValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
 
     #region Styled Formatters
@@ -385,9 +353,9 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     private string? FormatValueWithStyle(string formatCode, FormattingType type) =>
         _type switch
         {
-            CellValueType.Numeric => FormatNumericWithNumberFormat(_doubleValue, formatCode, type),
-            CellValueType.DateTime => FormatDateTimeWithNumberFormat(_dateTimeValue, formatCode, type),
-            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
+            CellValueType.Numeric => FormatNumericWithNumberFormat((double)BoxedValue!, formatCode, type),
+            CellValueType.DateTime => FormatDateTimeWithNumberFormat((DateTime)BoxedValue!, formatCode, type),
+            CellValueType.Bool => (bool)BoxedValue! ? bool.TrueString : bool.FalseString,
             _ => ToString() // TODO: What happens if the formatCode is applied to a string type ?
         };
 
@@ -906,7 +874,7 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
         {
             return (int)CellValueType.IsDBNull;
         }
-        return HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue, _iStyleRef);
+        return HashCode.Combine(_type, BoxedValue, _iStyleRef);
     }
 
     /// <summary>
@@ -931,12 +899,12 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
 
         return _type switch
                 {
-            CellValueType.Bool => _boolValue == other._boolValue,
-            CellValueType.Numeric => _doubleValue == other._doubleValue,
-            CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
+            CellValueType.Bool => (bool)BoxedValue! == (bool)other.BoxedValue!,
+            CellValueType.Numeric => (double)BoxedValue! == (double)other.BoxedValue!,
+            CellValueType.DateTime => (DateTime)BoxedValue! == (DateTime)other.BoxedValue!,
             //CellValueType.String => _strValue == other._strValue,
             CellValueType.IsDBNull => true,
-            _ => _strValue == other._strValue
+            _ => Equals(BoxedValue, other.BoxedValue)
         };
     }
 
@@ -1243,7 +1211,7 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         // Fast path: string value, no conversion
-        if (_strValue != null || _type == CellValueType.String)
+        if (_type == CellValueType.String)
         {
             return TryFormatString(destination, out charsWritten);
         }
@@ -1255,20 +1223,21 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     [MethodImpl(MethodImplOptions.NoInlining)]
     private bool TryFormatString(Span<char> destination, out int charsWritten)
     {
-        if (_strValue == null)
+        var strValue = (string?)BoxedValue;
+        if (strValue == null)
         {
             charsWritten = 0;
             return true;
         }
 
-        if (destination.Length < _strValue.Length)
+        if (destination.Length < strValue.Length)
         {
             charsWritten = 0;
             return false;
         }
 
-        _strValue.AsSpan().CopyTo(destination);
-        charsWritten = _strValue.Length;
+        strValue.AsSpan().CopyTo(destination);
+        charsWritten = strValue.Length;
         return true;
     }
 
@@ -1278,11 +1247,11 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
         switch (_type)
         {
             case CellValueType.Numeric:
-                return _doubleValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+                return ((double)BoxedValue!).TryFormat(destination, out charsWritten, default, InvariantCultureCache);
 
             case CellValueType.Bool:
                 {
-                    var boolStr = _boolValue ? bool.TrueString : bool.FalseString;
+                    var boolStr = (bool)BoxedValue! ? bool.TrueString : bool.FalseString;
                     if (destination.Length < boolStr.Length)
                     {
                         charsWritten = 0;
@@ -1294,11 +1263,11 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
                 }
 
             case CellValueType.DateTime:
-                return _dateTimeValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+                return ((DateTime)BoxedValue!).TryFormat(destination, out charsWritten, default, InvariantCultureCache);
 
             case CellValueType.Error:
                 {
-                    var errorStr = ((ExcelErrorCode)_doubleValue).ToString();
+                    var errorStr = ((ExcelErrorCode)(double)BoxedValue!).ToString();
                     if (destination.Length < errorStr.Length)
                     {
                         charsWritten = 0;
@@ -1338,4 +1307,26 @@ public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormat
     string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         => ToString() ?? string.Empty;
 
+}
+
+internal sealed class CellValue<T> : CellValue
+{
+    private readonly T _value;
+
+    internal CellValue(T value, CellValueType type, int iStyleRef)
+        : base(type, iStyleRef)
+    {
+        _value = value;
+    }
+
+    public override object? BoxedValue => _value;
+    
+    public override string? ToString()
+    {
+        if (_type == CellValueType.String)
+        {
+            return _value as string;
+        }
+        return base.ToString();
+    }
 }

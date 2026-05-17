@@ -165,7 +165,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [new CellValue(definedRange.ConstValue, -1)];
+            yield return [CellValue.Create(definedRange.ConstValue, -1)];
             yield break;
         }
 
@@ -219,7 +219,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
 
         if (definedRange.ConstValue != null)
         {
-            yield return [new CellValue(definedRange.ConstValue, -1)];
+            yield return [CellValue.Create(definedRange.ConstValue, -1)];
             yield break;
         }
 
