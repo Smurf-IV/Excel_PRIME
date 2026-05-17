@@ -182,7 +182,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         using ISheetAsync? targetSheet = await GetSheetAsync(definedRangeSheetName, false, ct).ConfigureAwait(false);
         if (targetSheet == null)
         {
-            yield break;
+            throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
         await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
@@ -235,7 +235,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         using ISheet? targetSheet = GetSheet( definedRangeSheetName, false, ct);
         if (targetSheet == null)
         {
-            yield break;
+            throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
@@ -251,7 +251,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
         if (targetSheet == null)
         {
-            yield break;
+            throw new KeyNotFoundException($"{sheetName} does not exist");
         }
         DefinedRange definedRange = new DefinedRange(range, sheetName);
 
@@ -267,7 +267,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
         if (targetSheet == null)
         {
-            yield break;
+            throw new KeyNotFoundException($"{sheetName} does not exist");
         }
         DefinedRange definedRange = new DefinedRange(range, sheetName);
 
@@ -282,7 +282,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     {
         if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string? pathOffsetSheet))
         {
-            throw new KeyNotFoundException($"{sheetName} does not exist");
+            return null; // ($"{sheetName} does not exist");
         }
 
         Stream stream;
@@ -317,7 +317,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         // Find Id
         if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string? pathOffsetSheet))
         {
-            throw new KeyNotFoundException($"{sheetName} does not exist");
+            return null; // ($"{sheetName} does not exist");
         }
 
         Stream stream;

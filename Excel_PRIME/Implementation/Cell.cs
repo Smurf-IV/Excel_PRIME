@@ -196,7 +196,7 @@ internal sealed record Cell : ICell
         if (returnDBNull
             && value == null)
         {
-            value = new CellValue(DBNull.Value, style);
+            value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,
@@ -390,7 +390,7 @@ internal sealed record Cell : ICell
         if (returnDBNull
             && value == null)
         {
-            value = new CellValue(DBNull.Value, style);
+            value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,

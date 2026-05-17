@@ -195,7 +195,7 @@ internal sealed class Row : IRowAsync
                 {
                     localCells[index] ??= new Cell
                     {
-                        CellValue = new CellValue(DBNull.Value, 0),
+                        CellValue = CellValue.GetDBNull(0),
                         ExcelColumnOffset = index + 1
                     };
                 }
@@ -275,7 +275,7 @@ internal sealed class Row : IRowAsync
                 {
                     localCells[index] ??= new Cell
                     {
-                        CellValue = new CellValue(DBNull.Value, 0),
+                        CellValue = CellValue.GetDBNull(0),
                         ExcelColumnOffset = index + 1
                     };
                 }

@@ -1,13 +1,11 @@
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using ExcelPRIME.Implementation;
-
-#if NET8_0_OR_GREATER
-#endif
 
 namespace ExcelPRIME;
 
@@ -18,18 +16,14 @@ namespace ExcelPRIME;
 /// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-#if NET8_0_OR_GREATER
 public sealed class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
-#else
-public sealed class CellValue : IEquatable<CellValue>, IFormattable
-#endif
 {
     [FieldOffset(0)] private string? _strValue;
-    [FieldOffset(8)] private bool _boolValue;
-    [FieldOffset(8)] private double _doubleValue;
-    [FieldOffset(8)] private DateTime _dateTimeValue;
-    [FieldOffset(16)] private readonly CellValueType _type;
-    [FieldOffset(20)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+    [FieldOffset(0)] private bool _boolValue;
+    [FieldOffset(0)] private double _doubleValue;
+    [FieldOffset(0)] private DateTime _dateTimeValue;
+    [FieldOffset(8)] private readonly CellValueType _type;
+    [FieldOffset(12)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
 
     private enum CellValueType
     {
@@ -44,6 +38,16 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
 
     // Micro-optimization: Cache frequently allocated strings
     private static readonly CultureInfo InvariantCultureCache = CultureInfo.InvariantCulture;
+
+    private static readonly ConcurrentDictionary<int, CellValue> DBNullCache = new();
+
+    /// <summary>
+    /// Returns a cached <see cref="CellValue"/> instance representing a DBNull value with the specified style.
+    /// </summary>
+    /// <param name="iStyleRef">The style reference index.</param>
+    /// <returns>A <see cref="CellValue"/> instance.</returns>
+    public static CellValue GetDBNull(int iStyleRef) 
+        => DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(DBNull.Value, style));
 
     // Remove AggressiveOptimization from Constructors
     internal CellValue(string? strValue, int iStyleRef)
@@ -896,7 +900,14 @@ public sealed class CellValue : IEquatable<CellValue>, IFormattable
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
-    public override int GetHashCode() => HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue, _iStyleRef);
+    public override int GetHashCode()
+    {
+        if (_type == CellValueType.IsDBNull)
+        {
+            return (int)CellValueType.IsDBNull;
+        }
+        return HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue, _iStyleRef);
+    }
 
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
