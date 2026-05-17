@@ -129,6 +129,9 @@
 		<None Update="Data\invalidfile.xlsx">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Data\MissingCells.xlsx">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Data\missingworkbook.xlsx">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
