@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -26,23 +26,23 @@ internal sealed record XlsbCell : ICell
         switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(MagicConvertRK(reader), styleRef));
+                (cellType, cellValue) = (CellType.Numeric, CellValue.Create(MagicConvertRK(reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, new CellValue(reader.GetDouble(8), styleRef));
+                (cellType, cellValue) = (CellType.Numeric, CellValue.Create(reader.GetDouble(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
-                (cellType, cellValue) = (CellType.Boolean, new CellValue(reader.GetByte(8) != 0));
+                (cellType, cellValue) = (CellType.Boolean, CellValue.Create(reader.GetByte(8) != 0));
                 break;
             case RecordTypeIdentifier.CELLST or RecordTypeIdentifier.CELLFMLASTRING:
-                (cellType, cellValue) = (CellType.InlineString, new CellValue(reader.GetString(8), styleRef));
+                (cellType, cellValue) = (CellType.InlineString, CellValue.Create(reader.GetString(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLISST:
                 (cellType, cellValue) = (CellType.SharedString,
-                    new CellValue(GetSharedString(instanceContext, reader), styleRef));
+                    CellValue.Create(GetSharedString(instanceContext, reader), styleRef));
                 break;
             case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
-                (cellType, cellValue) = (CellType.Error, new CellValue((ExcelErrorCode)reader.GetByte(8)));
+                (cellType, cellValue) = (CellType.Error, CellValue.Create((ExcelErrorCode)reader.GetByte(8)));
                 break;
             default:
                 // Break out early

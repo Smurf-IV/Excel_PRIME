@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -755,6 +755,46 @@ public class CellValueStyleRefTests
             // Same cell should equal itself
             (val1 == val2).Should().Be(true);
         }
+    }
+
+    #endregion
+
+    #region DBNull Caching Tests
+
+    /// <summary>
+    /// Verifies that GetDBNull returns cached instances for the same style.
+    /// </summary>
+    [Test]
+    public void GetDBNull_WithSameStyle_ShouldReturnCachedInstance()
+    {
+        var val1 = CellValue.GetDBNull(0);
+        var val2 = CellValue.GetDBNull(0);
+        
+        ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(0) should return cached instances to reduce allocation");
+    }
+
+    /// <summary>
+    /// Verifies that GetDBNull returns cached instances for style -1.
+    /// </summary>
+    [Test]
+    public void GetDBNull_WithStyleNeg1_ShouldReturnCachedInstance()
+    {
+        var val1 = CellValue.GetDBNull(-1);
+        var val2 = CellValue.GetDBNull(-1);
+        
+        ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(-1) should return cached instances");
+    }
+
+    /// <summary>
+    /// Verifies that DBNull instances with different styles have same hash code to match equality.
+    /// </summary>
+    [Test]
+    public void GetHashCode_ForDBNull_ShouldBeIndependentOfStyle()
+    {
+        var val1 = CellValue.GetDBNull(0);
+        var val2 = CellValue.GetDBNull(1);
+        
+        val1.GetHashCode().Should().Be(val2.GetHashCode(), "Hash code for DBNull should be independent of style to match Equals");
     }
 
     #endregion

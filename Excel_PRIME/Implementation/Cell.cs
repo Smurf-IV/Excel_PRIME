@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -87,7 +87,7 @@ internal sealed record Cell : ICell
                         goto setter;
                     }
 
-                    value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                    value = CellValue.Create(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
                 }
                 else
                 {
@@ -95,11 +95,11 @@ internal sealed record Cell : ICell
                     if (returnDBNull
                         && string.IsNullOrEmpty(str))
                     {
-                        returnDBNull = true;
+                        //returnDBNull = true;
                         goto setter;
                     }
 
-                    value = new CellValue(str, style);
+                    value = CellValue.Create(str, style);
                 }
             }
             else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
@@ -114,11 +114,11 @@ internal sealed record Cell : ICell
                             if (returnDBNull
                                 && string.IsNullOrEmpty(str))
                             {
-                                returnDBNull = true;
+                                //returnDBNull = true;
                                 goto setter;
                             }
 
-                            value = new CellValue(str, style);
+                            value = CellValue.Create(str, style);
                         }
                         break;
 
@@ -131,9 +131,9 @@ internal sealed record Cell : ICell
 
                         ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
                         value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double numericValue)
-                            ? new CellValue(numericValue, style)
+                            ? CellValue.Create(numericValue, style)
                             // If numeric parsing fails, treat as string but avoid intermediate allocation
-                            : new CellValue(numericSpan.ToString(), style);
+                            : CellValue.Create(numericSpan.ToString(), style);
                         break;
 
                     case CellType.SharedString:
@@ -143,7 +143,7 @@ internal sealed record Cell : ICell
                             goto setter;
                         }
 
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()],
+                        value = CellValue.Create(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()],
                             style);
 
                         break;
@@ -155,13 +155,13 @@ internal sealed record Cell : ICell
                             goto setter;
                         }
 
-                        value = new CellValue(buffer[0] != '0');
+                        value = CellValue.Create(buffer[0] != '0');
 
                         break;
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
+                        value = CellValue.Create(ReadString(reader, valueBuilder, buffer), style);
                         break;
 
                     case CellType.Date:
@@ -174,16 +174,16 @@ internal sealed record Cell : ICell
                         ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
                         if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
                         {
-                            value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
+                            value = CellValue.Create(DateTime.FromOADate(dateTimeValue), style);
                         }
                         else if (DateTime.TryParse(dateSpan, out DateTime result))
                         {
-                            value = new CellValue(result, style);
+                            value = CellValue.Create(result, style);
                         }
                         else
                         {
                             // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                            value = new CellValue(dateSpan.ToString(), style);
+                            value = CellValue.Create(dateSpan.ToString(), style);
                         }
                         break;
 
@@ -196,7 +196,7 @@ internal sealed record Cell : ICell
         if (returnDBNull
             && value == null)
         {
-            value = new CellValue(DBNull.Value, style);
+            value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,
@@ -268,7 +268,7 @@ internal sealed record Cell : ICell
             if (reader.NodeType == XmlNodeType.EndElement)
             {
                 // Handle empty value "EndElement" cell, e.g. <c r="F7"/>
-                returnDBNull = true;
+                //returnDBNull = true;
                 goto setter;
             }
             if (noCellConversion)
@@ -281,7 +281,7 @@ internal sealed record Cell : ICell
                         goto setter;
                     }
 
-                    value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                    value = CellValue.Create(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
                 }
                 else
                 {
@@ -289,11 +289,11 @@ internal sealed record Cell : ICell
                     if (returnDBNull
                         && string.IsNullOrEmpty(str))
                     {
-                        returnDBNull = true;
+                        //returnDBNull = true;
                         goto setter;
                     }
 
-                    value = new CellValue(str, style);
+                    value = CellValue.Create(str, style);
                 }
             }
             else //if (instanceContext.Options.CellConversionType >= CellConversion.ExcelCellType)
@@ -312,7 +312,7 @@ internal sealed record Cell : ICell
                                 goto setter;
                             }
 
-                            value = new CellValue(str, style);
+                            value = CellValue.Create(str, style);
                         }
                         break;
 
@@ -326,9 +326,9 @@ internal sealed record Cell : ICell
                         ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
                         value = double.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture,
                             out double numericValue)
-                            ? new CellValue(numericValue, style)
+                            ? CellValue.Create(numericValue, style)
                             // If numeric parsing fails, treat as string but avoid intermediate allocation
-                            : new CellValue(numericSpan.ToString(), style);
+                            : CellValue.Create(numericSpan.ToString(), style);
                         break;
 
                     case CellType.SharedString:
@@ -337,7 +337,7 @@ internal sealed record Cell : ICell
                         {
                             goto setter;
                         }
-                        value = new CellValue(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
+                        value = CellValue.Create(instanceContext?.SharedStrings?[buffer.AsSpan(0, len).IntParse()], style);
                         break;
 
                     case CellType.Boolean:
@@ -347,12 +347,12 @@ internal sealed record Cell : ICell
                             goto setter;
                         }
 
-                        value = new CellValue(buffer[0] != '0');
+                        value = CellValue.Create(buffer[0] != '0');
                         break;
 
                     case CellType.Error:
                         // TODO: Decrypt the error
-                        value = new CellValue(ReadString(reader, valueBuilder, buffer), style);
+                        value = CellValue.Create(ReadString(reader, valueBuilder, buffer), style);
                         break;
 
                     case CellType.Date:
@@ -367,16 +367,16 @@ internal sealed record Cell : ICell
                             if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture,
                                     out double dateTimeValue))
                             {
-                                value = new CellValue(DateTime.FromOADate(dateTimeValue), style);
+                                value = CellValue.Create(DateTime.FromOADate(dateTimeValue), style);
                             }
                             else if (DateTime.TryParse(dateSpan, out DateTime result))
                             {
-                                value = new CellValue(result, style);
+                                value = CellValue.Create(result, style);
                             }
                             else
                             {
                                 // If date parsing fails, treat as string; create once from buffer (not dateTimeValue!)
-                                value = new CellValue(dateSpan.ToString(), style);
+                                value = CellValue.Create(dateSpan.ToString(), style);
                             }
                         }
                         break;
@@ -390,7 +390,7 @@ internal sealed record Cell : ICell
         if (returnDBNull
             && value == null)
         {
-            value = new CellValue(DBNull.Value, style);
+            value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,
@@ -536,6 +536,7 @@ internal sealed record Cell : ICell
             'b' => CellType.Boolean,
             'e' => CellType.Error,
             's' => l == 1 ? CellType.SharedString : /*"str"*/CellType.Formula,
+            'f' => CellType.Formula,
             'i' => /*"inlineStr"*/CellType.InlineString,
             'd' => CellType.Date,
             'n' => CellType.Numeric,

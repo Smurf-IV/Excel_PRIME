@@ -160,7 +160,7 @@ internal sealed class XlsbRow : IRowAsync
             {
                 localCells[index] ??= new XlsbCell
                 {
-                    CellValue = new CellValue(DBNull.Value, 0),
+                    CellValue = CellValue.GetDBNull(0),
                     ExcelColumnOffset = index + 1
                 };
             }
@@ -240,7 +240,7 @@ internal sealed class XlsbRow : IRowAsync
             {
                 localCells[index] ??= new XlsbCell
                 {
-                    CellValue = new CellValue(DBNull.Value, 0),
+                    CellValue = CellValue.GetDBNull(0),
                     ExcelColumnOffset = index + 1
                 };
             }
