@@ -486,9 +486,15 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     {
         if (value < 0)
         {
-            return string.Concat("(", Math.Abs(value).ToString(format, CultureInfo.InvariantCulture), ")");
+            Span<char> buffer = stackalloc char[128];
+            buffer[0] = '(';
+            if (Math.Abs(value).TryFormat(buffer.Slice(1), out int written, format, InvariantCultureCache))
+            {
+                buffer[written + 1] = ')';
+                return new string(buffer.Slice(0, written + 2));
+            }
         }
-        return value.ToString(format, CultureInfo.InvariantCulture);
+        return value.ToString(format, InvariantCultureCache);
     }
 
     /// <summary>
@@ -496,21 +502,40 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// </summary>
     private static string FormatAccountingNumber(double value, int decimals)
     {
-        string format = decimals switch
+        Span<char> format = stackalloc char[12];
+        format[0] = 'N';
+        if (!decimals.TryFormat(format.Slice(1), out int fWritten, default, InvariantCultureCache))
         {
-            0 => "N0",
-            1 => "N1",
-            2 => "N2",
-            _ => "N" + decimals
-        };
+            // Fallback
+            return value.ToString("N" + decimals, InvariantCultureCache);
+        }
+
+        ReadOnlySpan<char> formatSpan = format.Slice(0, 1 + fWritten);
+        Span<char> buffer = stackalloc char[128];
+        int pos = 0;
 
         if (value < 0)
         {
-            return string.Concat("(", Math.Abs(value).ToString(format, CultureInfo.InvariantCulture), ")");
+            buffer[pos++] = '(';
+            if (Math.Abs(value).TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, InvariantCultureCache))
+            {
+                pos += vWritten;
+                buffer[pos++] = ')';
+                return new string(buffer.Slice(0, pos));
+            }
+        }
+        else
+        {
+            buffer[pos++] = ' ';
+            if (value.TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, InvariantCultureCache))
+            {
+                pos += vWritten;
+                buffer[pos++] = ' ';
+                return new string(buffer.Slice(0, pos));
+            }
         }
 
-        // Add leading space for alignment
-        return string.Concat(" ", value.ToString(format, CultureInfo.InvariantCulture), " ");
+        return value.ToString(formatSpan.ToString(), InvariantCultureCache);
     }
 
     /// <summary>
@@ -540,14 +565,14 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
         if (numerator == 0)
         {
-            return Math.Round(value).ToString(CultureInfo.InvariantCulture);
+            return Math.Round(value).ToString(InvariantCultureCache);
         }
 
         string result = string.Concat(numerator, "/", denominator);
 
         if (intPart != 0)
         {
-            result = string.Concat(Math.Truncate(intPart).ToString(CultureInfo.InvariantCulture), " ", result);
+            result = string.Concat(Math.Truncate(intPart).ToString(InvariantCultureCache), " ", result);
         }
 
         return result;
@@ -591,7 +616,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
                 }
             }
 
-            return (value * 100).ToString("F" + decimalPlaces, CultureInfo.InvariantCulture) + "%";
+            Span<char> formatBuffer = stackalloc char[12];
+            formatBuffer[0] = 'F';
+            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            {
+                Span<char> resultBuffer = stackalloc char[128];
+                if ((value * 100).TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                {
+                    resultBuffer[vWritten] = '%';
+                    return new string(resultBuffer.Slice(0, vWritten + 1));
+                }
+            }
+            return (value * 100).ToString("F" + decimalPlaces, InvariantCultureCache) + "%";
         }
 
         // Check for scientific notation
@@ -608,7 +644,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
                     decimalPlaces = beforeE.Length - dotIndex - 1;
                 }
             }
-            return value.ToString("E" + decimalPlaces, CultureInfo.InvariantCulture);
+
+            Span<char> formatBuffer = stackalloc char[12];
+            formatBuffer[0] = 'E';
+            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            {
+                Span<char> resultBuffer = stackalloc char[128];
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                {
+                    return new string(resultBuffer.Slice(0, vWritten));
+                }
+            }
+            return value.ToString("E" + decimalPlaces, InvariantCultureCache);
         }
 
         // Count decimal places from format code
@@ -627,16 +674,36 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         // Check if thousands separator is present
         if (span.Contains(','))
         {
-            return value.ToString("N" + decimals, CultureInfo.InvariantCulture);
+            Span<char> formatBuffer = stackalloc char[12];
+            formatBuffer[0] = 'N';
+            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            {
+                Span<char> resultBuffer = stackalloc char[128];
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                {
+                    return new string(resultBuffer.Slice(0, vWritten));
+                }
+            }
+            return value.ToString("N" + decimals, InvariantCultureCache);
         }
 
         // Default fixed-point format
         if (decimals > 0)
         {
-            return value.ToString("F" + decimals, CultureInfo.InvariantCulture);
+            Span<char> formatBuffer = stackalloc char[12];
+            formatBuffer[0] = 'F';
+            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            {
+                Span<char> resultBuffer = stackalloc char[128];
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                {
+                    return new string(resultBuffer.Slice(0, vWritten));
+                }
+            }
+            return value.ToString("F" + decimals, InvariantCultureCache);
         }
 
-        return Math.Round(value).ToString(CultureInfo.InvariantCulture);
+        return Math.Round(value).ToString(InvariantCultureCache);
     }
 
     /// <summary>
@@ -763,6 +830,26 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         int totalHours = timeOnly.Hour;
         int minutes = value.Minute;
         int seconds = value.Second;
+
+        Span<char> buffer = stackalloc char[32];
+        int pos = 0;
+        if (totalHours.TryFormat(buffer, out int written, default, InvariantCultureCache))
+        {
+            pos += written;
+            buffer[pos++] = ':';
+            if (minutes.TryFormat(buffer.Slice(pos), out written, "D2", InvariantCultureCache))
+            {
+                pos += written;
+                buffer[pos++] = ':';
+                if (seconds.TryFormat(buffer.Slice(pos), out written, "D2", InvariantCultureCache))
+                {
+                    pos += written;
+                    return new string(buffer.Slice(0, pos));
+                }
+            }
+        }
+        
+        // Fallback
         return $"{totalHours}:{minutes:D2}:{seconds:D2}";
     }
 

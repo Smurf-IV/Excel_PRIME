@@ -21,6 +21,8 @@ internal sealed class PooledRecordBuffer : IDisposable
 
     public ref readonly byte this[int index] => ref _array[index];
 
+    public ReadOnlySpan<byte> AsSpan(int offset, int length) => _array.AsSpan(offset, length);
+
     public RecordTypeIdentifier RecordType { get; }
 
     public bool Succeeded { get; }

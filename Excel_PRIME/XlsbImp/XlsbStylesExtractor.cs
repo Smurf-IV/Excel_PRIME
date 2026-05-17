@@ -282,13 +282,8 @@ internal sealed class XlsbStylesExtractor : IDisposable
 
             // The actual string data starts at offset + 4
             // In XLSB, strings are UTF-16 LE encoded
-            byte[] buffer = new byte[length * 2];
-            for (int i = 0; i < length * 2; i++)
-            {
-                buffer[i] = record.GetByte(offset + 4 + i);
-            }
-
-            return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+            // Use span-based GetString to avoid intermediate byte array allocation
+            return Encoding.Unicode.GetString(record.AsSpan(offset + 4, length * 2)).TrimEnd('\0');
         }
         catch
         {
