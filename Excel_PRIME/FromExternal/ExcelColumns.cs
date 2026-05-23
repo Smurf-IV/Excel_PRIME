@@ -15,7 +15,7 @@ internal static class ExcelColumns
 {
     private static readonly SearchValues<char> s_asciiLetters = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     // Precomputed lookup table for first 64 columns (A-)
-    private static readonly string[] s_columnNameCache = new string[64 + 1];
+    private static readonly char[][] s_columnNameCache = new char[64 + 1][];
 
     static ExcelColumns()
     {
@@ -27,7 +27,7 @@ internal static class ExcelColumns
 
     // CHANGED: Use lookup table for common columns, reduces allocations
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string GetExcelColumnName(this int columnNumber)
+    public static char[] GetExcelColumnName(this int columnNumber)
     {
         if (columnNumber > 0 && columnNumber < s_columnNameCache.Length)
         {
@@ -37,7 +37,7 @@ internal static class ExcelColumns
         return ComputeColumnName(columnNumber);
     }
 
-    private static string ComputeColumnName(int columnNumber)
+    private static char[] ComputeColumnName(int columnNumber)
     {
         // Use stackalloc for temp buffer (max 3 chars for column names up to XFD/16384)
         Span<char> buffer = stackalloc char[4];
@@ -51,7 +51,7 @@ internal static class ExcelColumns
             dividend = (dividend - modulo) / 26;
         }
 
-        return new string(buffer.Slice(pos));
+        return buffer.Slice(pos).ToArray();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

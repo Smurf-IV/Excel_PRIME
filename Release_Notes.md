@@ -1,4 +1,10 @@
-﻿# 2026-05-05 - V4
+﻿# 2026-05-12 - V4 - Bug fixes
+- Return null when `EndValue` is potted in the xml #22
+- Return null for not found SheetId #23
+- Changed CellValue to an abstract base class and removed all [FieldOffset(0)] fields.
+- Introduced internal sealed class CellValue<T> : CellValue to store values of type T without boxing for value types.
+
+# 2026-05-05 - V4
 - ⛓️‍💥 **Breaking Change(s)**
     - Removal of `GetSheetFileName(int offsetSheetId);`
     - Removal of `GetDefinedRange` via `int sheetId`

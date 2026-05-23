@@ -119,7 +119,7 @@ Lets take each of the above elements and explain:
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
     - [V3 Changes ➡️ 2026-01-16](#v3-changes--2026-01-16)
   - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
-  - [V4 changes ➡️ 2026-05-##](#v4-changes--2026-05-)
+    - [V4 Changes ➡️](#v4-changes-)
   - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
   - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
   - [Phase 7 - ideas 💡](#phase-7---ideas-)
@@ -287,6 +287,11 @@ Lets take each of the above elements and explain:
 - Fix "Always get as date" issue for some cells #19
 
 
+-----
+
+### V4 Changes ➡️
+- 2026-05-17 Fix "EndElement" when extracting with `types` #22
+- 
 -----
 
 ## Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️

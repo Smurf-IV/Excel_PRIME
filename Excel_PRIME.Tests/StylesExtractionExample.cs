@@ -160,7 +160,7 @@ public class NumberFormatExample
                             continue;
                         }
 
-                        CellValue cellValue = cell.CellValue!.Value;
+                        CellValue cellValue = cell.CellValue;
 
                         // For numeric values, the style's number format can be applied
                         try

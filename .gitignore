@@ -59,3 +59,4 @@ nunit-*.xml
 /Excel_PRIME/XlsbImp/.~lock.[MS-XLSB].pdf#
 ~$*.xlsx
 /.junie
+BenchmarkDotNet.Artifacts/

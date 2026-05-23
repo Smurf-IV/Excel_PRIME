@@ -92,16 +92,13 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 cellValue.Should().NotBeNull();
 
                 // When ToStyledString is called, it should return either the styled format or the plain string
                 string? styledString = cellValue.ToStyledString();
                 // String can be null for null values
-                if (styledString != null)
-                {
-                    styledString.Should().BeOfType<string>();
-                }
+                styledString?.Should().BeOfType<string>();
             }
 
             rowIndex++;
@@ -148,7 +145,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Try various conversions - should not throw
                 try
@@ -205,7 +202,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Try datetime conversion - should not throw
                 try
@@ -269,7 +266,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 bool success = cellValue.TryGetDateTime(out DateTime result);
                 
                 if (success)
@@ -327,7 +324,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 totalAttempts++;
                 if (cellValue.TryGetDouble(out double result))
                 {
@@ -380,7 +377,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 totalAttempts++;
                 if (cellValue.TryGetInt32(out int result))
                 {
@@ -436,7 +433,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 object? boxedValue = cellValue.BoxedValue;
                 totalCells++;
 
@@ -502,7 +499,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 totalCells++;
 
                 // Test implicit conversion to double
@@ -561,7 +558,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Test implicit conversion to DateTime
                 try
@@ -623,7 +620,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Get both representations
                 object? boxedValue = cellValue.BoxedValue;
@@ -632,10 +629,7 @@ public class CellValueStyleRefTestsXlsb
                 cellCount++;
 
                 // Verify they're both accessible without throwing
-                if (styledString != null)
-                {
-                    styledString.Should().BeOfType<string>();
-                }
+                styledString?.Should().BeOfType<string>();
             }
 
             break; // Test just first row for performance
@@ -685,7 +679,7 @@ public class CellValueStyleRefTestsXlsb
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 string? toString = cellValue.ToString();
                 
                 if (toString != null)

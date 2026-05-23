@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -94,16 +94,13 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 cellValue.Should().NotBeNull();
 
                 // When ToStyledString is called, it should return either the styled format or the plain string
                 string? styledString = cellValue.ToStyledString();
                 // String can be null for null values
-                if (styledString != null)
-                {
-                    styledString.Should().BeOfType<string>();
-                }
+                styledString?.Should().BeOfType<string>();
             }
 
             rowIndex++;
@@ -150,8 +147,8 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
-                
+                CellValue cellValue = cell.CellValue;
+
                 // Try various conversions - should not throw
                 try
                 {
@@ -207,7 +204,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Try datetime conversion - should not throw
                 try
@@ -270,7 +267,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 bool success = cellValue.TryGetDateTime(out DateTime result);
                 
                 if (success)
@@ -326,7 +323,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 if (cellValue.TryGetDouble(out double result))
                 {
                     successCount++;
@@ -375,7 +372,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 if (cellValue.TryGetInt32(out int result))
                 {
                     successCount++;
@@ -428,7 +425,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 object? boxedValue = cellValue.BoxedValue;
                 totalCells++;
 
@@ -492,7 +489,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Test implicit conversion to double
                 try
@@ -548,7 +545,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Test implicit conversion to DateTime
                 try
@@ -610,7 +607,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 
                 // Get both representations
                 object? boxedValue = cellValue.BoxedValue;
@@ -619,10 +616,7 @@ public class CellValueStyleRefTests
                 cellCount++;
 
                 // Verify they're both accessible without throwing
-                if (styledString != null)
-                {
-                    styledString.Should().BeOfType<string>();
-                }
+                styledString?.Should().BeOfType<string>();
             }
 
             break; // Test just first row for performance
@@ -672,7 +666,7 @@ public class CellValueStyleRefTests
                 if (cell == null)
                     break;
 
-                CellValue cellValue = cell.CellValue!.Value;
+                CellValue cellValue = cell.CellValue;
                 string? toString = cellValue.ToString();
                 
                 if (toString != null)
@@ -755,6 +749,46 @@ public class CellValueStyleRefTests
             // Same cell should equal itself
             (val1 == val2).Should().Be(true);
         }
+    }
+
+    #endregion
+
+    #region DBNull Caching Tests
+
+    /// <summary>
+    /// Verifies that GetDBNull returns cached instances for the same style.
+    /// </summary>
+    [Test]
+    public void GetDBNull_WithSameStyle_ShouldReturnCachedInstance()
+    {
+        var val1 = CellValue.GetDBNull(0);
+        var val2 = CellValue.GetDBNull(0);
+        
+        ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(0) should return cached instances to reduce allocation");
+    }
+
+    /// <summary>
+    /// Verifies that GetDBNull returns cached instances for style -1.
+    /// </summary>
+    [Test]
+    public void GetDBNull_WithStyleNeg1_ShouldReturnCachedInstance()
+    {
+        var val1 = CellValue.GetDBNull(-1);
+        var val2 = CellValue.GetDBNull(-1);
+        
+        ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(-1) should return cached instances");
+    }
+
+    /// <summary>
+    /// Verifies that DBNull instances with different styles have same hash code to match equality.
+    /// </summary>
+    [Test]
+    public void GetHashCode_ForDBNull_ShouldBeIndependentOfStyle()
+    {
+        var val1 = CellValue.GetDBNull(0);
+        var val2 = CellValue.GetDBNull(1);
+        
+        val1.GetHashCode().Should().Be(val2.GetHashCode(), "Hash code for DBNull should be independent of style to match Equals");
     }
 
     #endregion

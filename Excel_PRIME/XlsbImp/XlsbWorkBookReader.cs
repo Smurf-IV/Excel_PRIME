@@ -22,7 +22,11 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
     private protected XlsbStreamReader _readerWb;
     private bool _isDisposed;
 
-    protected XlsbWorkBookReader(IZipReader zipReader) => _zipReader = zipReader;
+    protected XlsbWorkBookReader(IZipReader zipReader)
+    {
+        ArgumentNullException.ThrowIfNull(zipReader);
+        _zipReader = zipReader;
+    }
 
     public XlsbWorkBookReader(IZipReader zipReader, CancellationToken _)
         : this(zipReader)
@@ -234,7 +238,8 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
                     int row = nextRecord.GetInt32(offset) + 1;
                     offset += 4;
                     int col = nextRecord.GetInt16(offset) + 1;
-                    return (col.GetExcelColumnName(), col.GetExcelColumnName(), row, row, false, sheetRef);
+                    string colName = new(col.GetExcelColumnName());
+                    return (colName, colName, row, row, false, sheetRef);
                 }
 
             case 0x3B:  //PtgArea3d
@@ -261,7 +266,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
         //    sheetRef = nextRecord.GetInt16(offset + 5);
         //}
 
-        return (colFirst.GetExcelColumnName(), colLast.GetExcelColumnName(), rowFirst, rowLast, false, sheetRef);
+        return (new string(colFirst.GetExcelColumnName()), new string(colLast.GetExcelColumnName()), rowFirst, rowLast, false, sheetRef);
     }
 
     private void Dispose(bool isDisposing)
@@ -507,7 +512,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
                     int row = nextRecord.GetInt32(offset) + 1;
                     offset += 4;
                     int col = nextRecord.GetInt16(offset) + 1;
-                    string excelColumnName = col.GetExcelColumnName();
+                    string excelColumnName = new(col.GetExcelColumnName());
                     return (excelColumnName, excelColumnName, row, row, false, sheetRef);
                 }
 
@@ -535,7 +540,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
         //    sheetRef = nextRecord.GetInt16(offset + 5);
         //}
 
-        string columnName = colLast.GetExcelColumnName();
-        return (colFirst.GetExcelColumnName(), columnName, rowFirst, rowLast, false, sheetRef);
+        string columnName = new(colLast.GetExcelColumnName());
+        return (new string(colFirst.GetExcelColumnName()), columnName, rowFirst, rowLast, false, sheetRef);
     }
 }

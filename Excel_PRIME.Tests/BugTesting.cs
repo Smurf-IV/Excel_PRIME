@@ -60,6 +60,98 @@ internal class BugTesting
 
     }
 
+    [Test]
+    public void Bug_020_AsDecimal_FromDecimal()
+    {
+        // Arrange
+        decimal val = 41273.28m;
+        CellValue cellValue = CellValue.Create(val, -1);
+
+        // Act & Assert
+        cellValue.AsDecimal.Should().Be(val);
+    }
+
+
+    [Test]
+    public void Bug_020_AsDecimal_FromDouble()
+    {
+        // Arrange
+        decimal val = 41273.28m;
+        CellValue cellValue = CellValue.Create(((decimal)(double)val), -1);
+
+        // Act & Assert
+        cellValue.AsDecimal.Should().Be(val);
+    }
+
+    [Test]
+    public void Bug_020_AsDecimal_FromString()
+    {
+        // Arrange
+        decimal val = 41273.28m;
+        CellValue cellValue = CellValue.Create("41273.28", -1);
+
+        // Act & Assert
+        cellValue.AsDecimal.Should().Be(val);
+    }
+
+
+    [Test]
+    public async Task Bug_022_EndElement()
+    {
+        const string fileName = "Data/MissingCells.xlsx";
+        int cells = 0;
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
+        await workbook.OpenAsync(fileName, new Options{ CellConversionType = CellConversion.ExcelCellType }).ConfigureAwait(true);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            using ISheet? worksheet = workbook.GetSheet(sheetName);
+            foreach (IRow? row in worksheet!.GetRowData(2))
+            {
+                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                row.Dispose();
+                if (rowCells == null)
+                {
+                    continue;
+                }
+                foreach (ICell? cell in rowCells)
+                {
+                    // Because this returns upto the dimension of the sheet width
+                    cells++;
+                }
+            }
+        }
+        cells.Should().Be(10);
+
+    }
+    [Test]
+    public async Task Bug_022_EndElement_Async()
+    {
+        const string fileName = "Data/MissingCells.xlsx";
+        int cells = 0;
+        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
+        await workbook.OpenAsync(fileName, new Options { CellConversionType = CellConversion.ExcelCellType }).ConfigureAwait(true);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
+            await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(2).ConfigureAwait(false))
+            {
+                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                row.Dispose();
+                if (rowCells == null)
+                {
+                    continue;
+                }
+                foreach (ICell? cell in rowCells)
+                {
+                    // Because this returns upto the dimension of the sheet width
+                    cells++;
+                }
+            }
+        }
+        cells.Should().Be(10);
+
+    }
+
     public static Options[] Option =
     [
         new Options(),

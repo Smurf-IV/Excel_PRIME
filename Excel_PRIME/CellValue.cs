@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -6,106 +7,129 @@ using System.Text;
 
 using ExcelPRIME.Implementation;
 
-#if NET8_0_OR_GREATER
-#endif
+[assembly: InternalsVisibleTo("Excel_PRIME.Tests")]
 
 namespace ExcelPRIME;
 
 #pragma warning disable CA2225 // Implement To### as partner to operator overloads. -> Already exists due to As### properties.
 
 /// <summary>
+/// Represents the type of value stored in a cell.
+/// </summary>
+internal enum CellValueType : byte
+{
+    Unknown,
+    Numeric,
+    String,
+    Bool,
+    Error,
+    DateTime,
+    IsDBNull
+}
+
+/// <summary>
 /// Represents a strongly-typed cell value with custom ToString conversion.
 /// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
+public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
-    [FieldOffset(0)] private readonly string? _strValue;
-    [FieldOffset(8)] private readonly bool _boolValue;
-    [FieldOffset(8)] private readonly double _doubleValue;
-    [FieldOffset(8)] private readonly DateTime _dateTimeValue;
-    [FieldOffset(16)] private readonly CellValueType _type;
-    [FieldOffset(20)] private readonly int _iStyleRef; // specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+#region reduce from 48 bytes to 20 bytes by using explicit layout and overlapping fields
+    [FieldOffset(0)] private readonly string? _s; // Stores string values
+    /// <summary>
+    /// The style reference index.
+    /// Specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+    /// </summary>
+    [FieldOffset(8)] private readonly short _iStyleRef;
+    /// <summary>
+    /// The type of the cell value. "byte storage"
+    /// </summary>
+    [FieldOffset(10)] private readonly CellValueType _type;
+    // Offset to nearest 4 byte boundary for better performance of value types
+    [FieldOffset(12)] private readonly decimal _d; // Stores value types in a decimal to avoid boxing and precision loss
+#endregion
 
-    private enum CellValueType
-    {
-        Unknown,
-        Numeric,
-        String,
-        Bool,
-        Error,
-        DateTime,
-        IsDBNull
-    }
 
     // Micro-optimization: Cache frequently allocated strings
-    private static readonly CultureInfo InvariantCultureCache = CultureInfo.InvariantCulture;
+    private static readonly CultureInfo s_invariantCultureCache = CultureInfo.InvariantCulture;
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(string? strValue, int iStyleRef)
+    private static readonly ConcurrentDictionary<short, CellValue> s_DBNullCache = new();
+
+    /// <summary>
+    /// Returns a cached <see cref="CellValue"/> instance representing a DBNull value with the specified style.
+    /// </summary>
+    /// <param name="iStyleRef">The style reference index.</param>
+    /// <returns>A <see cref="CellValue"/> instance.</returns>
+    public static CellValue GetDBNull(short iStyleRef) 
+        => s_DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(CellValueType.IsDBNull, style));
+
+    internal static CellValue Create(string? strValue, short iStyleRef)
+        => new CellValue(strValue ?? string.Empty, CellValueType.String, iStyleRef);
+
+    internal static CellValue Create(bool boolValue)
+        => new CellValue(boolValue, CellValueType.Bool, 0);
+
+    internal static CellValue Create(DateTime dateTimeValue, short iStyleRef)
+        => new CellValue(dateTimeValue, CellValueType.DateTime, iStyleRef);
+
+    internal static CellValue Create(decimal decimalValue, short iStyleRef)
+        => new CellValue(decimalValue, CellValueType.Numeric, iStyleRef);
+
+    internal static CellValue Create(ExcelErrorCode errorCodeValue)
+        => new CellValue((decimal)errorCodeValue, CellValueType.Error, -1);
+
+    private static CellValue Create(DBNull _, short iStyleRef)
+        => new CellValue(CellValueType.IsDBNull, iStyleRef);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CellValue"/> class.
+    /// </summary>
+    /// <param name="type">The type of the cell value.</param>
+    /// <param name="iStyleRef">The style reference index.</param>
+    private CellValue(CellValueType type, short iStyleRef)
     {
-        // TODO: iStyleRef might make the string conversion different in future
-        _boolValue = default;
-        _doubleValue = default;
-        _dateTimeValue = default;
-        _strValue = strValue ?? string.Empty;
-        _type = CellValueType.String;
+        _type = type;
         _iStyleRef = iStyleRef;
     }
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(bool boolValue)
+    private CellValue(double value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _strValue = default;
-        _doubleValue = default;
-        _dateTimeValue = default;
-        _boolValue = boolValue;
-        _type = CellValueType.Bool;
-        _iStyleRef = 0;
+        _d = (decimal)value;
     }
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(double doubleValue, int iStyleRef)
+    private CellValue(bool value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _strValue = default;
-        _boolValue = default;
-        _dateTimeValue = default;
-        _doubleValue = doubleValue;
-        _type = CellValueType.Numeric;
-        _iStyleRef = iStyleRef;
+        _d = value ? 1m : 0m;
     }
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(DateTime dateTimeValue, int iStyleRef)
+    private CellValue(DateTime value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _strValue = default;
-        _boolValue = default;
-        _doubleValue = default;
-        _dateTimeValue = dateTimeValue;
-        _type = CellValueType.DateTime;
-        _iStyleRef = iStyleRef;
+        _d = (decimal)value.Ticks;
     }
 
-    // Remove AggressiveOptimization from Constructors
-    internal CellValue(ExcelErrorCode errorCodeValue)
+    private CellValue(string value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _strValue = default;
-        _boolValue = default;
-        _dateTimeValue = default;
-        _doubleValue = (int)errorCodeValue;
-        _type = CellValueType.Error;
-        _iStyleRef = 0;
+        _s = value;
     }
 
-    internal CellValue(DBNull _/*isDBNull*/, int iStyleRef)
+    private CellValue(decimal value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _strValue = default;
-        _boolValue = default;
-        _doubleValue = default;
-        _dateTimeValue = default;
-        _iStyleRef = iStyleRef;
-        _type = CellValueType.IsDBNull;
+        _d = value;
     }
+
+    /// <summary>
+    /// Gets the raw "Boxed" value of the cell.
+    /// </summary>
+    public object? BoxedValue => _type switch
+    {
+        CellValueType.Numeric => _d,
+        CellValueType.String => ToString(),
+        CellValueType.Bool => AsBoolean,
+        CellValueType.DateTime => AsDateTime,
+        CellValueType.Error => (ExcelErrorCode)AsInt32,
+        CellValueType.IsDBNull => DBNull.Value,
+        _ => null
+    };
 
     /// <summary>
     /// Converts the cell value to its string representation.
@@ -119,9 +143,9 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     // Remove AggressiveOptimization from Constructors
     public override string? ToString()
     {
-        if (_strValue != null || _type == CellValueType.String)
+        if (_type == CellValueType.String)
         {
-            return _strValue;
+            return _s;
         }
 
         return ToString_Slow();
@@ -131,12 +155,12 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     private string? ToString_Slow() =>
         _type switch
         {
-            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
+            CellValueType.Bool => (_d != 0) ? bool.TrueString : bool.FalseString,
             // Micro-optimization: Use cached CultureInfo instead of property access
-            CellValueType.Numeric => _doubleValue.ToString(InvariantCultureCache),
-            CellValueType.DateTime => _dateTimeValue.ToString(InvariantCultureCache),
-            CellValueType.Error => ((ExcelErrorCode)_doubleValue).ToString(),
-            CellValueType.IsDBNull => DBNull.Value.ToString(InvariantCultureCache),
+            CellValueType.Numeric => _d.ToString(s_invariantCultureCache),
+            CellValueType.DateTime => new DateTime((long)_d).ToString(s_invariantCultureCache),
+            CellValueType.Error => ((ExcelErrorCode)AsInt32).ToString(),
+            CellValueType.IsDBNull => DBNull.Value.ToString(s_invariantCultureCache),
             _ => null
         };
 
@@ -149,7 +173,6 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     internal void AppendTo(StringBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-#if NET8_0_OR_GREATER
         // Try zero-allocation formatting using stackalloc buffer
         Span<char> buffer = stackalloc char[64]; // Adjust size as needed
         if (TryFormat(buffer, out int charsWritten, default, null))
@@ -159,61 +182,8 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         }
         // Fallback to string-based formatting if buffer is too small
         builder.Append(ToString());
-#else
-        // Fast path: string value, no conversion
-        if (_strValue != null || _type == CellValueType.String)
-        {
-            if (_strValue != null)
-                builder.Append(_strValue);
-            return;
-        }
-        // Dispatch to type-specific formatting
-        AppendTo_Slow(builder);
-#endif
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void AppendTo_Slow(StringBuilder builder)
-    {
-        switch (_type)
-        {
-            case CellValueType.Bool:
-                builder.Append(_boolValue ? bool.TrueString : bool.FalseString);
-                break;
-
-            case CellValueType.Numeric:
-                builder.Append(_doubleValue);
-                break;
-
-            case CellValueType.DateTime:
-                builder.Append(_dateTimeValue);
-                break;
-
-            case CellValueType.Error:
-                builder.Append((ExcelErrorCode)_doubleValue);
-                break;
-
-            case CellValueType.IsDBNull:
-                builder.Append(DBNull.Value);
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Gets the raw "Boxed" value of the cell.
-    /// </summary>
-    public object? BoxedValue =>
-        _type switch
-        {
-            CellValueType.Unknown => null,
-            CellValueType.Bool => _boolValue,
-            CellValueType.Numeric => _doubleValue,
-            CellValueType.DateTime => _dateTimeValue,
-            CellValueType.Error => (ExcelErrorCode)_doubleValue,
-            CellValueType.String => _strValue,
-            CellValueType.IsDBNull => DBNull.Value,
-            _ => null
-        };
 
     /// <summary>
     /// Gets the value of the cell as a <see cref="DateTime"/> object, if possible.
@@ -223,17 +193,11 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// </exception>
     // Remove AggressiveOptimization from properties
     public DateTime AsDateTime =>
-        // Simplified without branches for common case
-        _type == CellValueType.DateTime
-            ? _dateTimeValue
-            : AsDateTime_Slow();
-
-    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
-    private DateTime AsDateTime_Slow() =>
         _type switch
         {
-            CellValueType.Numeric => DateTime.FromOADate(_doubleValue),
-            _ => double.TryParse(_strValue, out double val)
+            CellValueType.Numeric => DateTime.FromOADate((double)_d),
+            CellValueType.DateTime => DateTime.FromOADate((double)_d),
+            _ => double.TryParse(_s, out double val)
                 ? // Excel stores the DateTime as a double OADate
                 DateTime.FromOADate(val)
                 : DateTime.Parse(ToString()!, CultureInfo.InvariantCulture)
@@ -261,18 +225,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     public bool AsBoolean =>
         // Simplified without branches for common case
         _type == CellValueType.Bool
-            ? _boolValue
+            ? _d != 0
             : AsBoolean_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private bool AsBoolean_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.Ticks != 0,
-            CellValueType.Error => (ExcelErrorCode)_doubleValue != ExcelErrorCode.Null,
-            CellValueType.Numeric => _doubleValue != 0,
+            CellValueType.DateTime => _d != 0,
+            CellValueType.Error => (ExcelErrorCode)AsInt32 != ExcelErrorCode.Null,
+            CellValueType.Numeric => _d != 0,
             CellValueType.IsDBNull => false,
-            _ => int.TryParse(_strValue, out int val) ? val != 0 : Convert.ToBoolean(_strValue!)
+            _ => int.TryParse(_s, out int val) ? val != 0 : Convert.ToBoolean(_s!)
         };
 
     /// <summary>
@@ -285,18 +249,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     public int AsInt32 =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (int)_doubleValue
+            ? (int)_d
             : AsInt32_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private int AsInt32_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (int)_dateTimeValue.Ticks,
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (int)_doubleValue,
+            CellValueType.DateTime => (int)_d,
+            CellValueType.Bool => _d != 0 ? 1 : 0,
+            CellValueType.Error => (int)_d,
             CellValueType.IsDBNull => 0,
-            _ => int.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            _ => int.Parse(_s!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -308,18 +272,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     // Remove AggressiveOptimization from properties
     public long AsInt64 =>
         _type == CellValueType.Numeric
-            ? (long)_doubleValue
+            ? (long)_d
             : AsInt64_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private long AsInt64_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.Ticks,
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (long)_doubleValue,
+            CellValueType.DateTime => (long)_d,
+            CellValueType.Bool => _d != 0 ? 1 : 0,
+            CellValueType.Error => (long)AsInt32,
             CellValueType.IsDBNull => 0L,
-            _ => long.Parse(_strValue!, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            _ => long.Parse(_s!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -332,18 +296,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     public double AsDouble =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? _doubleValue
+            ? (double)_d
             : AsDouble_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private double AsDouble_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _dateTimeValue.ToOADate(),
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => _doubleValue,
+            CellValueType.DateTime => (double)_d,
+            CellValueType.Bool => _d != 0 ? 1 : 0,
+            CellValueType.Error => (double)AsInt32,
             CellValueType.IsDBNull => 0.0,
-            _ => double.Parse(_strValue!, NumberStyles.Float, CultureInfo.InvariantCulture)
+            _ => double.Parse(_s!, NumberStyles.Float, CultureInfo.InvariantCulture)
         };
 
     /// <summary>
@@ -356,18 +320,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     public decimal AsDecimal =>
         // Simplified without branches for common case
         _type == CellValueType.Numeric
-            ? (decimal)_doubleValue
+            ? _d
             : AsDecimal_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private decimal AsDecimal_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (decimal)_dateTimeValue.ToOADate(),
-            CellValueType.Bool => _boolValue ? 1 : 0,
-            CellValueType.Error => (decimal)_doubleValue,
+            CellValueType.DateTime => _d,
+            CellValueType.Bool => _d != 0 ? 1m : 0m,
+            CellValueType.Error => (decimal)AsInt32,
             CellValueType.IsDBNull => 0m,
-            _ => decimal.Parse(_strValue!, NumberStyles.Currency, CultureInfo.InvariantCulture)
+            _ => decimal.Parse(_s!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
 
     #region Styled Formatters
@@ -398,11 +362,65 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     private string? FormatValueWithStyle(string formatCode, FormattingType type) =>
         _type switch
         {
-            CellValueType.Numeric => FormatNumericWithNumberFormat(_doubleValue, formatCode, type),
-            CellValueType.DateTime => FormatDateTimeWithNumberFormat(_dateTimeValue, formatCode, type),
-            CellValueType.Bool => _boolValue ? bool.TrueString : bool.FalseString,
+            CellValueType.Numeric => FormatNumericWithNumberFormat(_d, formatCode, type),
+            CellValueType.DateTime => FormatDateTimeWithNumberFormat(AsDateTime, formatCode, type),
+            CellValueType.Bool => _d != 0 ? bool.TrueString : bool.FalseString, // What if the style is to upper case ?
             _ => ToString() // TODO: What happens if the formatCode is applied to a string type ?
         };
+
+    /// <summary>
+    /// Formats a numeric value according to an Excel number format code.
+    /// Handles all FormattingType.Number styles including:
+    /// - Regular numbers (0, 0.00, #,##0, #,##0.00)
+    /// - Scientific notation (0.00E+00, ##0.0E0, etc.)
+    /// - Percentages (0%, 0.0%, 0.00%)
+    /// - Fractions (# ?/?, # ??/??)
+    /// - International formats and variants
+    /// </summary>
+    private static string FormatNumericWithNumberFormat(decimal value, string formatCode, FormattingType type)
+    {
+        // Ensure we're handling FormattingType.Number
+        if (type != FormattingType.Number)
+        {
+            return value.ToString(s_invariantCultureCache);
+        }
+
+        return formatCode switch
+        {
+            // General and text formats
+            "General" => value.ToString(s_invariantCultureCache),
+            "@" => value.ToString(s_invariantCultureCache),
+
+            // Basic integer formats
+            "0" => Math.Round(value).ToString(s_invariantCultureCache),
+
+            // Decimal formats
+            "0.00" => value.ToString("F2", s_invariantCultureCache),
+            "0.0" => value.ToString("F1", s_invariantCultureCache),
+
+            // Thousand separator formats
+            "#,##0" => Math.Round(value).ToString("N0", s_invariantCultureCache),
+            "#,##0.0" => value.ToString("N1", s_invariantCultureCache),
+            "#,##0.00" => value.ToString("N2", s_invariantCultureCache),
+
+            // With brackets (negative in parentheses)
+            "#,##0;(#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
+            "#,##0.0;(#,##0.0)" => FormatNumberWithNegativeParentheses(value, "N1"),
+            "#,##0.00;(#,##0.00)" => FormatNumberWithNegativeParentheses(value, "N2"),
+
+            // With red color indicator for negatives
+            "#,##0;[Red](#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
+            "#,##0.00;[Red](#,##0.00)" => FormatNumberWithNegativeParentheses(value, "N2"),
+
+            // Percentage formats
+            "0%" => (value * 100).ToString("F0", s_invariantCultureCache) + "%",
+            "0.0%" => (value * 100).ToString("F1", s_invariantCultureCache) + "%",
+            "0.00%" => (value * 100).ToString("F2", s_invariantCultureCache) + "%",
+
+            // Fallback for complex formats
+            _ => FormatNumericWithNumberFormat((double)value, formatCode, type)
+        };
+    }
 
     /// <summary>
     /// Formats a numeric value according to an Excel number format code.
@@ -418,26 +436,26 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         // Ensure we're handling FormattingType.Number
         if (type != FormattingType.Number)
         {
-            return value.ToString(InvariantCultureCache);
+            return value.ToString(s_invariantCultureCache);
         }
 
         return formatCode switch
         {
             // General and text formats
-            "General" => value.ToString(InvariantCultureCache),
-            "@" => value.ToString(InvariantCultureCache),
+            "General" => value.ToString(s_invariantCultureCache),
+            "@" => value.ToString(s_invariantCultureCache),
 
             // Basic integer formats
-            "0" => Math.Round(value).ToString(InvariantCultureCache),
+            "0" => Math.Round(value).ToString(s_invariantCultureCache),
 
             // Decimal formats
-            "0.00" => value.ToString("F2", InvariantCultureCache),
-            "0.0" => value.ToString("F1", InvariantCultureCache),
+            "0.00" => value.ToString("F2", s_invariantCultureCache),
+            "0.0" => value.ToString("F1", s_invariantCultureCache),
 
             // Thousand separator formats
-            "#,##0" => Math.Round(value).ToString("N0", InvariantCultureCache),
-            "#,##0.0" => value.ToString("N1", InvariantCultureCache),
-            "#,##0.00" => value.ToString("N2", InvariantCultureCache),
+            "#,##0" => Math.Round(value).ToString("N0", s_invariantCultureCache),
+            "#,##0.0" => value.ToString("N1", s_invariantCultureCache),
+            "#,##0.00" => value.ToString("N2", s_invariantCultureCache),
 
             // With brackets (negative in parentheses)
             "#,##0;(#,##0)" => FormatNumberWithNegativeParentheses(value, "N0"),
@@ -453,30 +471,48 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
             "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)" => FormatAccountingNumber(value, 2),
 
             // Percentage formats
-            "0%" => (value * 100).ToString("F0", InvariantCultureCache) + "%",
-            "0.0%" => (value * 100).ToString("F1", InvariantCultureCache) + "%",
-            "0.00%" => (value * 100).ToString("F2", InvariantCultureCache) + "%",
+            "0%" => (value * 100).ToString("F0", s_invariantCultureCache) + "%",
+            "0.0%" => (value * 100).ToString("F1", s_invariantCultureCache) + "%",
+            "0.00%" => (value * 100).ToString("F2", s_invariantCultureCache) + "%",
 
             // Scientific notation
-            "0.00E+00" => value.ToString("E2", InvariantCultureCache),
-            "0.00E+0" => value.ToString("E2", InvariantCultureCache),
-            "0.00E0" => value.ToString("E2", InvariantCultureCache),
-            "##0.0E0" => value.ToString("E1", InvariantCultureCache),
-            "##0.0E+0" => value.ToString("E1", InvariantCultureCache),
-            "##0.0E+00" => value.ToString("E1", InvariantCultureCache),
+            "0.00E+00" => value.ToString("E2", s_invariantCultureCache),
+            "0.00E+0" => value.ToString("E2", s_invariantCultureCache),
+            "0.00E0" => value.ToString("E2", s_invariantCultureCache),
+            "##0.0E0" => value.ToString("E1", s_invariantCultureCache),
+            "##0.0E+0" => value.ToString("E1", s_invariantCultureCache),
+            "##0.0E+00" => value.ToString("E1", s_invariantCultureCache),
 
             // Fraction formats
             "# ?/?" => FormatFraction(value, 1),
             "# ??/??" => FormatFraction(value, 2),
 
             // CJK formats (treated as numbers)
-            "[DBNum1][$-804]0" => value.ToString("F0", InvariantCultureCache),
-            "[DBNum1][$-804]0.00" => value.ToString("F2", InvariantCultureCache),
-            "[DBNum4][$-804]0" => value.ToString("F0", InvariantCultureCache),
+            "[DBNum1][$-804]0" => value.ToString("F0", s_invariantCultureCache),
+            "[DBNum1][$-804]0.00" => value.ToString("F2", s_invariantCultureCache),
+            "[DBNum4][$-804]0" => value.ToString("F0", s_invariantCultureCache),
 
             // Default: return as double with invariant culture
             _ => FormatCustomNumber(value, formatCode)
         };
+    }
+
+    /// <summary>
+    /// Formats a number with negative values in parentheses.
+    /// </summary>
+    private static string FormatNumberWithNegativeParentheses(decimal value, string format)
+    {
+        if (value < 0)
+        {
+            Span<char> buffer = stackalloc char[128];
+            buffer[0] = '(';
+            if (Math.Abs(value).TryFormat(buffer.Slice(1), out int written, format, s_invariantCultureCache))
+            {
+                buffer[written + 1] = ')';
+                return new string(buffer.Slice(0, written + 2));
+            }
+        }
+        return value.ToString(format, s_invariantCultureCache);
     }
 
     /// <summary>
@@ -488,13 +524,13 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         {
             Span<char> buffer = stackalloc char[128];
             buffer[0] = '(';
-            if (Math.Abs(value).TryFormat(buffer.Slice(1), out int written, format, InvariantCultureCache))
+            if (Math.Abs(value).TryFormat(buffer.Slice(1), out int written, format, s_invariantCultureCache))
             {
                 buffer[written + 1] = ')';
                 return new string(buffer.Slice(0, written + 2));
             }
         }
-        return value.ToString(format, InvariantCultureCache);
+        return value.ToString(format, s_invariantCultureCache);
     }
 
     /// <summary>
@@ -504,10 +540,10 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     {
         Span<char> format = stackalloc char[12];
         format[0] = 'N';
-        if (!decimals.TryFormat(format.Slice(1), out int fWritten, default, InvariantCultureCache))
+        if (!decimals.TryFormat(format.Slice(1), out int fWritten, default, s_invariantCultureCache))
         {
             // Fallback
-            return value.ToString("N" + decimals, InvariantCultureCache);
+            return value.ToString("N" + decimals, s_invariantCultureCache);
         }
 
         ReadOnlySpan<char> formatSpan = format.Slice(0, 1 + fWritten);
@@ -517,7 +553,7 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         if (value < 0)
         {
             buffer[pos++] = '(';
-            if (Math.Abs(value).TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, InvariantCultureCache))
+            if (Math.Abs(value).TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, s_invariantCultureCache))
             {
                 pos += vWritten;
                 buffer[pos++] = ')';
@@ -527,7 +563,7 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         else
         {
             buffer[pos++] = ' ';
-            if (value.TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, InvariantCultureCache))
+            if (value.TryFormat(buffer.Slice(pos), out int vWritten, formatSpan, s_invariantCultureCache))
             {
                 pos += vWritten;
                 buffer[pos++] = ' ';
@@ -535,7 +571,7 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
             }
         }
 
-        return value.ToString(formatSpan.ToString(), InvariantCultureCache);
+        return value.ToString(formatSpan.ToString(), s_invariantCultureCache);
     }
 
     /// <summary>
@@ -565,14 +601,14 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
         if (numerator == 0)
         {
-            return Math.Round(value).ToString(InvariantCultureCache);
+            return Math.Round(value).ToString(s_invariantCultureCache);
         }
 
         string result = string.Concat(numerator, "/", denominator);
 
         if (intPart != 0)
         {
-            result = string.Concat(Math.Truncate(intPart).ToString(InvariantCultureCache), " ", result);
+            result = string.Concat(Math.Truncate(intPart).ToString(s_invariantCultureCache), " ", result);
         }
 
         return result;
@@ -618,16 +654,16 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
             Span<char> formatBuffer = stackalloc char[12];
             formatBuffer[0] = 'F';
-            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, s_invariantCultureCache))
             {
                 Span<char> resultBuffer = stackalloc char[128];
-                if ((value * 100).TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                if ((value * 100).TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), s_invariantCultureCache))
                 {
                     resultBuffer[vWritten] = '%';
                     return new string(resultBuffer.Slice(0, vWritten + 1));
                 }
             }
-            return (value * 100).ToString("F" + decimalPlaces, InvariantCultureCache) + "%";
+            return (value * 100).ToString("F" + decimalPlaces, s_invariantCultureCache) + "%";
         }
 
         // Check for scientific notation
@@ -647,15 +683,15 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
             Span<char> formatBuffer = stackalloc char[12];
             formatBuffer[0] = 'E';
-            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            if (decimalPlaces.TryFormat(formatBuffer.Slice(1), out int fWritten, default, s_invariantCultureCache))
             {
                 Span<char> resultBuffer = stackalloc char[128];
-                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), s_invariantCultureCache))
                 {
                     return new string(resultBuffer.Slice(0, vWritten));
                 }
             }
-            return value.ToString("E" + decimalPlaces, InvariantCultureCache);
+            return value.ToString("E" + decimalPlaces, s_invariantCultureCache);
         }
 
         // Count decimal places from format code
@@ -676,15 +712,15 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         {
             Span<char> formatBuffer = stackalloc char[12];
             formatBuffer[0] = 'N';
-            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, s_invariantCultureCache))
             {
                 Span<char> resultBuffer = stackalloc char[128];
-                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), s_invariantCultureCache))
                 {
                     return new string(resultBuffer.Slice(0, vWritten));
                 }
             }
-            return value.ToString("N" + decimals, InvariantCultureCache);
+            return value.ToString("N" + decimals, s_invariantCultureCache);
         }
 
         // Default fixed-point format
@@ -692,18 +728,18 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         {
             Span<char> formatBuffer = stackalloc char[12];
             formatBuffer[0] = 'F';
-            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, InvariantCultureCache))
+            if (decimals.TryFormat(formatBuffer.Slice(1), out int fWritten, default, s_invariantCultureCache))
             {
                 Span<char> resultBuffer = stackalloc char[128];
-                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), InvariantCultureCache))
+                if (value.TryFormat(resultBuffer, out int vWritten, formatBuffer.Slice(0, 1 + fWritten), s_invariantCultureCache))
                 {
                     return new string(resultBuffer.Slice(0, vWritten));
                 }
             }
-            return value.ToString("F" + decimals, InvariantCultureCache);
+            return value.ToString("F" + decimals, s_invariantCultureCache);
         }
 
-        return Math.Round(value).ToString(InvariantCultureCache);
+        return Math.Round(value).ToString(s_invariantCultureCache);
     }
 
     /// <summary>
@@ -833,15 +869,15 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
         Span<char> buffer = stackalloc char[32];
         int pos = 0;
-        if (totalHours.TryFormat(buffer, out int written, default, InvariantCultureCache))
+        if (totalHours.TryFormat(buffer, out int written, default, s_invariantCultureCache))
         {
             pos += written;
             buffer[pos++] = ':';
-            if (minutes.TryFormat(buffer.Slice(pos), out written, "D2", InvariantCultureCache))
+            if (minutes.TryFormat(buffer.Slice(pos), out written, "D2", s_invariantCultureCache))
             {
                 pos += written;
                 buffer[pos++] = ':';
-                if (seconds.TryFormat(buffer.Slice(pos), out written, "D2", InvariantCultureCache))
+                if (seconds.TryFormat(buffer.Slice(pos), out written, "D2", s_invariantCultureCache))
                 {
                     pos += written;
                     return new string(buffer.Slice(0, pos));
@@ -925,32 +961,27 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
                 else
                 {
                     // Check if preceded by digit or date separator, or followed by date pattern
-                    bool isProbablyMonth = false;
-
                     // If preceded by a digit or date separator
-                    if (i > 0 && (char.IsDigit(result[i - 1]) || result[i - 1] == '/' || result[i - 1] == '-' || result[i - 1] == '.'))
-                    {
-                        isProbablyMonth = true;
-                    }
+                    char charBefore = result[i - 1];
+                    bool isProbablyMonth = i > 0 
+                                           && (char.IsDigit(charBefore) 
+                                               || charBefore == '/' 
+                                               || charBefore == '-' 
+                                               || charBefore == '.'
+                                           );
 
                     // If followed by digit, date separator, or date character
                     if (i + 2 < result.Length)
                     {
                         char next = result[i + 2];
-                        if (char.IsDigit(next) || next == '/' || next == '-' || next == '.' || next == 'd' || next == 'y' || next == 'D' || next == 'Y')
+                        if (char.IsDigit(next)
+                            || next == '/' || next == '-' || next == '.' || next == 'd' || next == 'y' || next == 'D' || next == 'Y')
                         {
                             isProbablyMonth = true;
                         }
                     }
 
-                    if (isProbablyMonth)
-                    {
-                        sb.Append("MM");
-                    }
-                    else
-                    {
-                        sb.Append("mm");
-                    }
+                    sb.Append(isProbablyMonth ? "MM" : "mm");
                     i += 2;
                 }
             }
@@ -1000,7 +1031,14 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
-    public override int GetHashCode() => HashCode.Combine(_type, _boolValue, _doubleValue, _dateTimeValue, _strValue, _iStyleRef);
+    public override int GetHashCode()
+    {
+        if (_type == CellValueType.IsDBNull)
+        {
+            return (int)CellValueType.IsDBNull;
+        }
+        return HashCode.Combine(_type, _d, _s, _iStyleRef);
+    }
 
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
@@ -1014,21 +1052,20 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// For example, numeric values are compared numerically, strings are compared using string equality,
     /// and dates are compared using date-time equality.
     /// </remarks>
-    public bool Equals(CellValue other)
+    public bool Equals(CellValue? other)
     {
-        if (_type != other._type)
+        if (other is null || _type != other._type)
         {
             return false;
         }
-
         return _type switch
         {
-            CellValueType.Bool => _boolValue == other._boolValue,
-            CellValueType.Numeric => _doubleValue == other._doubleValue,
-            CellValueType.DateTime => _dateTimeValue == other._dateTimeValue,
-            //CellValueType.String => _strValue == other._strValue,
+            CellValueType.Bool => _d == other._d,
+            CellValueType.Numeric => _d == other._d,
+            CellValueType.DateTime => _d == other._d,
             CellValueType.IsDBNull => true,
-            _ => _strValue == other._strValue
+            CellValueType.String => _s == other._s,
+            _ => false
         };
     }
 
@@ -1040,7 +1077,8 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// <returns>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator ==(CellValue left, CellValue right) => left.Equals(right);
+    public static bool operator ==(CellValue? left, CellValue? right)
+        => left?.Equals(right) ?? right is null;
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.
@@ -1050,7 +1088,8 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     /// <returns>
     /// <c>true</c> if the specified<see cref="CellValue"/> instances are not equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator !=(CellValue left, CellValue right) => !left.Equals(right);
+    public static bool operator !=(CellValue? left, CellValue? right)
+        => !(left?.Equals(right) ?? right is null);
 
     /// <summary>
     /// Attempts to get the value of the cell as a <see cref="DateTime"/> object.
@@ -1323,7 +1362,7 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         // Fast path: string value, no conversion
-        if (_strValue != null || _type == CellValueType.String)
+        if (_type == CellValueType.String)
         {
             return TryFormatString(destination, out charsWritten);
         }
@@ -1335,20 +1374,20 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     [MethodImpl(MethodImplOptions.NoInlining)]
     private bool TryFormatString(Span<char> destination, out int charsWritten)
     {
-        if (_strValue == null)
+        if (_s == null)
         {
             charsWritten = 0;
             return true;
         }
 
-        if (destination.Length < _strValue.Length)
+        if (destination.Length < _s.Length)
         {
             charsWritten = 0;
             return false;
         }
 
-        _strValue.AsSpan().CopyTo(destination);
-        charsWritten = _strValue.Length;
+        _s.AsSpan().CopyTo(destination);
+        charsWritten = _s.Length;
         return true;
     }
 
@@ -1358,11 +1397,11 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         switch (_type)
         {
             case CellValueType.Numeric:
-                return _doubleValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+                return _d.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
 
             case CellValueType.Bool:
                 {
-                    var boolStr = _boolValue ? bool.TrueString : bool.FalseString;
+                    var boolStr = (_d != 0) ? bool.TrueString : bool.FalseString;
                     if (destination.Length < boolStr.Length)
                     {
                         charsWritten = 0;
@@ -1374,10 +1413,20 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
                 }
 
             case CellValueType.DateTime:
-                return _dateTimeValue.TryFormat(destination, out charsWritten, default, InvariantCultureCache);
+                return AsDateTime.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
 
             case CellValueType.Error:
-                return TryFormatError(_doubleValue, destination, out charsWritten);
+                {
+                    var errorStr = ((ExcelErrorCode)AsInt32).ToString();
+                    if (destination.Length < errorStr.Length)
+                    {
+                        charsWritten = 0;
+                        return false;
+                    }
+                    errorStr.AsSpan().CopyTo(destination);
+                    charsWritten = errorStr.Length;
+                    return true;
+                }
 
             case CellValueType.IsDBNull:
                 {
@@ -1435,3 +1484,4 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
         => ToString() ?? string.Empty;
 
 }
+
