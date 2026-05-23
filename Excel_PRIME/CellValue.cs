@@ -413,9 +413,9 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             "#,##0.00;[Red](#,##0.00)" => FormatNumberWithNegativeParentheses(value, "N2"),
 
             // Percentage formats
-            "0%" => (value * 100).ToString("F0", s_invariantCultureCache) + "%",
-            "0.0%" => (value * 100).ToString("F1", s_invariantCultureCache) + "%",
-            "0.00%" => (value * 100).ToString("F2", s_invariantCultureCache) + "%",
+            "0%" => FormatPercentage(value, "F0"),
+            "0.0%" => FormatPercentage(value, "F1"),
+            "0.00%" => FormatPercentage(value, "F2"),
 
             // Fallback for complex formats
             _ => FormatNumericWithNumberFormat((double)value, formatCode, type)
@@ -471,9 +471,9 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)" => FormatAccountingNumber(value, 2),
 
             // Percentage formats
-            "0%" => (value * 100).ToString("F0", s_invariantCultureCache) + "%",
-            "0.0%" => (value * 100).ToString("F1", s_invariantCultureCache) + "%",
-            "0.00%" => (value * 100).ToString("F2", s_invariantCultureCache) + "%",
+            "0%" => FormatPercentage(value, "F0"),
+            "0.0%" => FormatPercentage(value, "F1"),
+            "0.00%" => FormatPercentage(value, "F2"),
 
             // Scientific notation
             "0.00E+00" => value.ToString("E2", s_invariantCultureCache),
@@ -604,14 +604,45 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             return Math.Round(value).ToString(s_invariantCultureCache);
         }
 
-        string result = string.Concat(numerator, "/", denominator);
+        // Stack allocation for fraction formatting
+        Span<char> buffer = stackalloc char[32];
+        DefaultInterpolatedStringHandler handler = new(1, 2, s_invariantCultureCache, buffer);
 
         if (intPart != 0)
         {
-            result = string.Concat(Math.Truncate(intPart).ToString(s_invariantCultureCache), " ", result);
+            handler.AppendFormatted((long)Math.Truncate(intPart));
+            handler.AppendLiteral(" ");
         }
 
-        return result;
+        handler.AppendFormatted(numerator);
+        handler.AppendLiteral("/");
+        handler.AppendFormatted(denominator);
+
+        return handler.ToStringAndClear();
+    }
+
+    /// <summary>
+    /// Formats a numeric value as a percentage with the specified decimal places.
+    /// </summary>
+    private static string FormatPercentage(decimal value, string formatSpec) => FormatPercentage((double)value, formatSpec);
+
+    /// <summary>
+    /// Formats a numeric value as a percentage with the specified decimal places.
+    /// </summary>
+    private static string FormatPercentage(double value, string formatSpec)
+    {
+        Span<char> buffer = stackalloc char[64];
+        double percentValue = value * 100;
+
+        if (percentValue.TryFormat(buffer, out int written, formatSpec, s_invariantCultureCache))
+        {
+            DefaultInterpolatedStringHandler handler = new(1, 1, s_invariantCultureCache, buffer);
+            handler.AppendLiteral(new string(buffer.Slice(0, written)));
+            handler.AppendLiteral("%");
+            return handler.ToStringAndClear();
+        }
+
+        return percentValue.ToString(formatSpec, s_invariantCultureCache) + "%";
     }
 
     /// <summary>
