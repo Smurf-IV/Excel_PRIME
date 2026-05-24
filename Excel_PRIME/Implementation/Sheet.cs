@@ -176,7 +176,7 @@ internal sealed class Sheet : ISheetAsync
         }
     }
 
-    private async Task CheckLocationAsync(int startRow, CancellationToken ct)
+    private async Task CheckLocationAsync(int startRow, [EnumeratorCancellation] CancellationToken ct)
     {
         if (_sheetReader == null
             || _sheetReader.CurrentRow > startRow

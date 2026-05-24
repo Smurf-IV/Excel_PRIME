@@ -95,7 +95,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         }
         finally
         {
-            CurrentRow++;   // No rows to read, or the Dimension is lying
+            // No rows to read, or the Dimension is lying
             nextRecord.Dispose();
         }
 
@@ -123,7 +123,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         }
         finally
         {
-            CurrentRow++;   // No rows to read, or the Dimension is lying
+            // No rows to read, or the Dimension is lying
             nextRecord.Dispose();
         }
 
@@ -164,9 +164,9 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
 
     public async Task<IRowAsync?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
+        CurrentRow++;
         if (_lastRow != null)
         {
-            CurrentRow++;
             if (_lastRow.RowOffset > CurrentRow)
             {
                 _lastNullRow = new NullRow(CurrentRow);
@@ -210,9 +210,9 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
 
     public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
+        CurrentRow++;
         if (_lastRow != null)
         {
-            CurrentRow++;
             if (_lastRow.RowOffset > CurrentRow)
             {
                 _lastNullRow = new NullRow(CurrentRow);

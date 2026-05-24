@@ -132,13 +132,11 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
                 && ReferenceEquals(_reader.LocalName, _rowRefAtom)
                )
             {
-                CurrentRow++;
                 return true;
             }
         }
         if (_reader.EOF)
         {   // No rows to read, or the Dimension is lying
-            CurrentRow++;
         }
         return false;
     }
@@ -176,9 +174,9 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
 
     public async Task<IRowAsync?> GetNextRowAsync(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
+        CurrentRow++;
         if (_lastRow != null)
         {
-            CurrentRow++;
             if (_lastRow.RowOffset > CurrentRow)
             {
                 _lastNullRow = new NullRow(CurrentRow);
@@ -222,9 +220,9 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
 
     public IRow? GetNextRow(RowCellGet cellGetMode = RowCellGet.None, CancellationToken ct = default)
     {
+        CurrentRow++;
         if (_lastRow != null)
         {
-            CurrentRow++;
             if (_lastRow.RowOffset > CurrentRow)
             {
                 _lastNullRow = new NullRow(CurrentRow);
