@@ -52,7 +52,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 0x8000/*64*1024*/, true);
         return OpenAsync(fs, options, ct);
     }
     /// <InheritDoc />
@@ -60,7 +60,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 0x8000/*64*1024*/, true);
         Open(fs, options, ct);
     }
 

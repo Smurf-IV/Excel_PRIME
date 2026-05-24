@@ -71,7 +71,6 @@ internal class BugTesting
         cellValue.AsDecimal.Should().Be(val);
     }
 
-
     [Test]
     public void Bug_020_AsDecimal_FromDouble()
     {
@@ -93,6 +92,7 @@ internal class BugTesting
         // Act & Assert
         cellValue.AsDecimal.Should().Be(val);
     }
+
     [Test]
     public void Bug_020_AsDecimal_FromSpan()
     {
@@ -103,7 +103,6 @@ internal class BugTesting
         // Act & Assert
         cellValue.AsDecimal.Should().Be(val);
     }
-
 
     [Test]
     public async Task Bug_022_EndElement()
@@ -131,8 +130,8 @@ internal class BugTesting
             }
         }
         cells.Should().Be(10);
-
     }
+
     [Test]
     public async Task Bug_022_EndElement_Async()
     {
@@ -187,4 +186,13 @@ internal class BugTesting
         cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>();//.And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
     }
 
+    [Test]
+    public async Task Bug_028_MultiOpen()
+    {
+        const string fileName = "Data/100mb.xlsx";
+        using IExcel_PRIMEAsync workbook1 = new Excel_PRIME();
+        await workbook1.OpenAsync(fileName).ConfigureAwait(true);
+        using IExcel_PRIMEAsync workbook2 = new Excel_PRIME();
+        await workbook2.OpenAsync(fileName).ConfigureAwait(true);
+    }
 }
