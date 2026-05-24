@@ -129,11 +129,7 @@ internal sealed record Cell : ICell
                             goto setter;
                         }
 
-                        ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
-                        value = decimal.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal numericValue)
-                            ? CellValue.Create(numericValue, style)
-                            // If numeric parsing fails, treat as string but avoid intermediate allocation
-                            : CellValue.Create(numericSpan.ToString(), style);
+                        value = CellValue.TryParseOrder(buffer.AsSpan(0, len), style);
                         break;
 
                     case CellType.SharedString:
@@ -208,7 +204,7 @@ internal sealed record Cell : ICell
         else
         {
             ReadOnlySpan<char> dateSpan = buffer.AsSpan(0, len);
-            if (double.TryParse(dateSpan, NumberStyles.Number, CultureInfo.InvariantCulture, out double dateTimeValue))
+            if (dateSpan.TryDoubleParse(out double dateTimeValue))
             {
                 value = CellValue.Create(DateTime.FromOADate(dateTimeValue), style);
             }
@@ -337,12 +333,7 @@ internal sealed record Cell : ICell
                             goto setter;
                         }
 
-                        ReadOnlySpan<char> numericSpan = buffer.AsSpan(0, len);
-                        value = decimal.TryParse(numericSpan, NumberStyles.Float, CultureInfo.InvariantCulture,
-                            out decimal numericValue)
-                            ? CellValue.Create(numericValue, style)
-                            // If numeric parsing fails, treat as string but avoid intermediate allocation
-                            : CellValue.Create(numericSpan.ToString(), style);
+                        value = CellValue.TryParseOrder(buffer.AsSpan(0, len), style);
                         break;
 
                     case CellType.SharedString:
@@ -538,4 +529,5 @@ internal sealed record Cell : ICell
     }
 
     private static short GetStyleOffset(char[] b, int l) => (short)(l == 0 ? -1 : b.AsSpan(0, l).IntParse());
+
 }

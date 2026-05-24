@@ -92,7 +92,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 cellValue.Should().NotBeNull();
@@ -105,7 +107,9 @@ public class CellValueStyleRefTests
 
             rowIndex++;
             if (rowIndex >= 10)
+            {
                 break; // Limit iterations for performance
+            }
         }
     }
 
@@ -145,7 +149,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
 
@@ -202,7 +208,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -265,7 +273,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 bool success = cellValue.TryGetDateTime(out DateTime result);
@@ -321,7 +331,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 if (cellValue.TryGetDouble(out double result))
@@ -370,7 +382,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 if (cellValue.TryGetInt32(out int result))
@@ -423,7 +437,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 object? boxedValue = cellValue.BoxedValue;
@@ -487,7 +503,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -543,7 +561,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -605,7 +625,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -664,7 +686,9 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 string? toString = cellValue.ToString();
@@ -707,7 +731,7 @@ public class CellValueStyleRefTests
         using ISheetAsync? worksheet = await workbook.GetSheetAsync("number & date formatting").ConfigureAwait(false);
         worksheet.Should().NotBeNull();
 
-        var cellValues = new List<CellValue?>();
+        List<CellValue?> cellValues = new List<CellValue?>();
         int rowIndex = 0;
 
         await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
@@ -726,14 +750,18 @@ public class CellValueStyleRefTests
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 cellValues.Add(cell.CellValue);
             }
 
             rowIndex++;
             if (rowIndex >= 2)
+            {
                 break; // Get two rows
+            }
         }
 
         // Verify we have cells to compare
@@ -761,8 +789,8 @@ public class CellValueStyleRefTests
     [Test]
     public void GetDBNull_WithSameStyle_ShouldReturnCachedInstance()
     {
-        var val1 = CellValue.GetDBNull(0);
-        var val2 = CellValue.GetDBNull(0);
+        CellValue val1 = CellValue.GetDBNull(0);
+        CellValue val2 = CellValue.GetDBNull(0);
         
         ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(0) should return cached instances to reduce allocation");
     }
@@ -773,8 +801,8 @@ public class CellValueStyleRefTests
     [Test]
     public void GetDBNull_WithStyleNeg1_ShouldReturnCachedInstance()
     {
-        var val1 = CellValue.GetDBNull(-1);
-        var val2 = CellValue.GetDBNull(-1);
+        CellValue val1 = CellValue.GetDBNull(-1);
+        CellValue val2 = CellValue.GetDBNull(-1);
         
         ReferenceEquals(val1, val2).Should().BeTrue("GetDBNull(-1) should return cached instances");
     }
@@ -785,8 +813,8 @@ public class CellValueStyleRefTests
     [Test]
     public void GetHashCode_ForDBNull_ShouldBeIndependentOfStyle()
     {
-        var val1 = CellValue.GetDBNull(0);
-        var val2 = CellValue.GetDBNull(1);
+        CellValue val1 = CellValue.GetDBNull(0);
+        CellValue val2 = CellValue.GetDBNull(1);
         
         val1.GetHashCode().Should().Be(val2.GetHashCode(), "Hash code for DBNull should be independent of style to match Equals");
     }

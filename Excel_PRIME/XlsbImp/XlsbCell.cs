@@ -26,10 +26,10 @@ internal sealed record XlsbCell : ICell
         switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, CellValue.Create(MagicConvertRK(reader), styleRef));
+                (cellType, cellValue) = (CellType.Numeric, MagicConvertRK(reader, styleRef));
                 break;
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, CellValue.Create((decimal)reader.GetDouble(8), styleRef));
+                (cellType, cellValue) = (CellType.Numeric, CellValue.Create(reader.GetDouble(8), styleRef));
                 break;
             case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
                 (cellType, cellValue) = (CellType.Boolean, CellValue.Create(reader.GetByte(8) != 0));
@@ -63,7 +63,7 @@ internal sealed record XlsbCell : ICell
 
     // CHANGED: Kept AggressiveInlining, removed AggressiveOptimization - hot-path bit manipulation method benefits from inline
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static decimal MagicConvertRK(PooledRecordBuffer record)
+    private static CellValue MagicConvertRK(PooledRecordBuffer record, short styleRef)
     {
         int rk = record.GetInt32(8);
 
@@ -90,7 +90,9 @@ internal sealed record XlsbCell : ICell
             d /= 100.0;  // Explicit double to ensure double division
         }
 
-        return (decimal)d;
+        return isFloat 
+            ? CellValue.Create(d, styleRef)
+            : CellValue.Create((int)d, styleRef);
     }
 
     /// <InheritDoc />

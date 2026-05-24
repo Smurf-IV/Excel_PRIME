@@ -140,7 +140,7 @@ internal sealed class XlsbStreamReader
     {
         if (CarefulFieldRead( out uint value))
         {
-            recordType = (RecordTypeIdentifier)(value);
+            recordType = (RecordTypeIdentifier)value;
             return true;
         }
 

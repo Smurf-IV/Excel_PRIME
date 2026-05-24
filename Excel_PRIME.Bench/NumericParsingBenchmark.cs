@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using BenchmarkDotNet.Attributes;
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Bench;
 
@@ -115,7 +116,7 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in integerSamples)
+        foreach (ReadOnlyMemory<char> sample in integerSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
@@ -139,7 +140,7 @@ public class NumericParsingBenchmark
     public object ParseIntegersOptimized()
     {
         object? result = null;
-        foreach (var sample in integerSamples)
+        foreach (ReadOnlyMemory<char> sample in integerSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             if (span.Length < 12 && span[0] != '-')
@@ -156,7 +157,7 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in integerSamples)
+        foreach (ReadOnlyMemory<char> sample in integerSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             if (int.TryParse(span, NumberStyles.Integer, invariant, out int resultI))
@@ -173,7 +174,7 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in negativeSamples)
+        foreach (ReadOnlyMemory<char> sample in negativeSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
@@ -192,55 +193,7 @@ public class NumericParsingBenchmark
         return result!;
     }
 
-    //[Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public object ParseDecimalsCurrent()
-    {
-        object? result = null;
-        CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in decimalSamples)
-        {
-            ReadOnlySpan<char> span = sample.Span;
-            bool containsDecimal = span.Contains('.');
-            if (containsDecimal)
-            {
-                if (decimal.TryParse(span, NumberStyles.Currency, invariant, out decimal resultM))
-                {
-                    result = resultM;
-                }
-                else if (double.TryParse(span, NumberStyles.Float, invariant, out double resultD))
-                {
-                    result = resultD;
-                }
-            }
-        }
-        return result!;
-    }
 
-    //[Benchmark]
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public object ParseDecimalsDoubleFirst()
-    {
-        object? result = null;
-        CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in decimalSamples)
-        {
-            ReadOnlySpan<char> span = sample.Span;
-            bool containsDecimal = span.Contains('.');
-            if (containsDecimal)
-            {
-                if (double.TryParse(span, NumberStyles.Float, invariant, out double resultD))
-                {
-                    result = resultD;
-                }
-                else if (decimal.TryParse(span, NumberStyles.Currency, invariant, out decimal resultM))
-                {
-                    result = resultM;
-                }
-            }
-        }
-        return result!;
-    }
 
     //[Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -248,7 +201,7 @@ public class NumericParsingBenchmark
     {
         object? result = null;
         CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in largeIntegerSamples)
+        foreach (ReadOnlyMemory<char> sample in largeIntegerSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             bool containsDecimal = span.Contains('.');
@@ -268,7 +221,7 @@ public class NumericParsingBenchmark
     public bool MeasureContainsCheckCost()
     {
         bool result = false;
-        foreach (var sample in integerSamples)
+        foreach (ReadOnlyMemory<char> sample in integerSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
             result = span.Contains('.');
@@ -276,24 +229,56 @@ public class NumericParsingBenchmark
         return result;
     }
 
+
+    /// <summary>
+    /// Benchmark for optimized DecimalParse extension method.
+    /// Measures performance of the custom zero-allocation decimal parsing using DecimalParse from Extensions.
+    /// Uses an optimized algorithm with minimal allocations for parsing decimal values.
+    /// </summary>
+    /*
+    | Method          | Job        | IterationCount | LaunchCount | WarmupCount | Ratio        | Allocated | Alloc Ratio |
+    |---------------- |----------- |--------------- |------------ |------------ |-------------:|----------:|------------:|
+    | DecimalParse    | Job-AMZPBM | 5              | Default     | 2           | 2.71x faster |         - |          NA |
+    | TryDecimalParse | Job-AMZPBM | 5              | Default     | 2           |     baseline |         - |          NA |
+    */
     //[Benchmark]
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public object ParseBigIntegersCurrent()
+    public decimal DecimalParse()
     {
-        object? result = null;
-        CultureInfo invariant = CultureInfo.InvariantCulture;
-        foreach (var sample in bigIntegerSamples)
+        decimal result = 0;
+        foreach (ReadOnlyMemory<char> sample in decimalSamples)
         {
             ReadOnlySpan<char> span = sample.Span;
-            bool containsDecimal = span.Contains('.');
-            if (!containsDecimal && span.Length > 18)
+            try
             {
-                if (BigInteger.TryParse(span, NumberStyles.Integer, invariant, out BigInteger resultBI))
-                {
-                    result = resultBI;
-                }
+                span.TryDecimalParse(out result);
+            }
+            catch
+            {
+                // Skip parsing errors for invalid formats
             }
         }
-        return result!;
+        return result;
     }
+
+    //[Benchmark(Baseline=true)]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public decimal TryDecimalParse()
+    {
+        decimal result = 0;
+        foreach (ReadOnlyMemory<char> sample in decimalSamples)
+        {
+            ReadOnlySpan<char> span = sample.Span;
+            try
+            {
+                decimal.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out result);
+            }
+            catch
+            {
+                // Skip parsing errors for invalid formats
+            }
+        }
+        return result;
+    }
+
 }

@@ -208,7 +208,7 @@ public static class CellStyleExtensions
             return false;
         }
 
-        var span = style.NumberFormatCode.AsSpan();
+        ReadOnlySpan<char> span = style.NumberFormatCode.AsSpan();
         return span.ContainsAny("dmyhs");
     }
 

@@ -5,6 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using ExcelPRIME;
+using ExcelPRIME.FromExternal;
 using ExcelPRIME.Implementation;
 
 [assembly: InternalsVisibleTo("Excel_PRIME.Tests")]
@@ -19,7 +21,10 @@ namespace ExcelPRIME;
 internal enum CellValueType : byte
 {
     Unknown,
-    Numeric,
+    Decimal,
+    Double,
+    Int,
+    Long,
     String,
     Bool,
     Error,
@@ -34,7 +39,7 @@ internal enum CellValueType : byte
 [StructLayout(LayoutKind.Explicit)]
 public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
-#region reduce from 48 bytes to 20 bytes by using explicit layout and overlapping fields
+    #region reduce from 48 bytes to 20 bytes by using explicit layout and overlapping fields
     [FieldOffset(0)] private readonly string? _s; // Stores string values
     /// <summary>
     /// The style reference index.
@@ -47,6 +52,11 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     [FieldOffset(10)] private readonly CellValueType _type;
     // Offset to nearest 4 byte boundary for better performance of value types
     [FieldOffset(12)] private readonly decimal _d; // Stores value types in a decimal to avoid boxing and precision loss
+    [FieldOffset(12)] private readonly DateTime _dt; 
+    [FieldOffset(12)] private readonly bool _b; 
+    [FieldOffset(12)] private readonly long _l; 
+    [FieldOffset(12)] private readonly int _i;
+    [FieldOffset(12)] private readonly double _db;
 #endregion
 
 
@@ -73,13 +83,67 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         => new CellValue(dateTimeValue, CellValueType.DateTime, iStyleRef);
 
     internal static CellValue Create(decimal decimalValue, short iStyleRef)
-        => new CellValue(decimalValue, CellValueType.Numeric, iStyleRef);
+        => new CellValue(decimalValue, CellValueType.Decimal, iStyleRef);
+    internal static CellValue Create(double doubleValue, short iStyleRef)
+        => new CellValue(doubleValue, CellValueType.Double, iStyleRef);
+    internal static CellValue Create(int intValue, short iStyleRef)
+        => new CellValue(intValue, CellValueType.Int, iStyleRef);
+    internal static CellValue Create(long longValue, short iStyleRef)
+        => new CellValue(longValue, CellValueType.Long, iStyleRef);
 
     internal static CellValue Create(ExcelErrorCode errorCodeValue)
-        => new CellValue((decimal)errorCodeValue, CellValueType.Error, -1);
+        => new CellValue((int)errorCodeValue, CellValueType.Error, -1);
 
     private static CellValue Create(DBNull _, short iStyleRef)
         => new CellValue(CellValueType.IsDBNull, iStyleRef);
+
+    internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, short style)
+    {
+        bool containsDecimal = asSpan.ContainsAny('.', 'E');
+        if (containsDecimal)
+        {
+            return PerformDecimalConversion(asSpan, style);
+        }
+        bool containsSign = asSpan[0] == '-';
+        int asSpanLength = asSpan.Length;
+
+        // ReSharper disable once ConvertIfStatementToSwitchStatement
+        if (!containsSign && asSpanLength < 11)
+        {
+            return CellValue.Create(asSpan.IntParse(), style);
+        }
+
+        if (containsSign && asSpanLength == 12
+                              && int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
+           )
+        {
+            // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer
+            return CellValue.Create(resultI, style);
+        }
+
+        if ((asSpanLength < 19 || (containsSign && asSpanLength == 20))
+            && long.TryParse(asSpan, NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out long resultL))
+        {
+            // -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 	Signed 64-bit integer
+            return CellValue.Create(resultL, style);
+        }
+
+        return PerformDecimalConversion(asSpan, style);
+    }
+
+    private static CellValue PerformDecimalConversion(ReadOnlySpan<char> asSpan, short style)
+    {
+        if (asSpan.TryDecimalParse(out decimal resultM))
+        {   // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
+            return CellValue.Create(resultM, style);
+        }
+        if (asSpan.TryDoubleParse(out double resultD))
+        {   //  	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
+            return CellValue.Create(resultD, style);
+        }
+        return CellValue.Create(new string(asSpan), style);
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CellValue"/> class.
@@ -92,19 +156,14 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         _iStyleRef = iStyleRef;
     }
 
-    private CellValue(double value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
-    {
-        _d = (decimal)value;
-    }
-
     private CellValue(bool value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _d = value ? 1m : 0m;
+        _b = value;
     }
 
     private CellValue(DateTime value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
     {
-        _d = (decimal)value.Ticks;
+        _dt = value;
     }
 
     private CellValue(string value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
@@ -117,16 +176,34 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         _d = value;
     }
 
+    private CellValue(double value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
+    {
+        _db = value;
+    }
+
+    private CellValue(int value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
+    {
+        _i = value;
+    }
+
+    private CellValue(long value, CellValueType type, short iStyleRef) : this(type, iStyleRef)
+    {
+        _l = value;
+    }
+
     /// <summary>
     /// Gets the raw "Boxed" value of the cell.
     /// </summary>
     public object? BoxedValue => _type switch
     {
-        CellValueType.Numeric => _d,
-        CellValueType.String => ToString(),
-        CellValueType.Bool => AsBoolean,
-        CellValueType.DateTime => AsDateTime,
-        CellValueType.Error => (ExcelErrorCode)AsInt32,
+        CellValueType.Decimal => _d,
+        CellValueType.Double => _db,
+        CellValueType.Int => _i,
+        CellValueType.Long => _l,
+        CellValueType.String => _s,
+        CellValueType.Bool => _b,
+        CellValueType.DateTime => _dt,
+        CellValueType.Error => (ExcelErrorCode)_i,
         CellValueType.IsDBNull => DBNull.Value,
         _ => null
     };
@@ -155,11 +232,14 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     private string? ToString_Slow() =>
         _type switch
         {
-            CellValueType.Bool => (_d != 0) ? bool.TrueString : bool.FalseString,
+            CellValueType.Bool => _b.ToString(s_invariantCultureCache),
             // Micro-optimization: Use cached CultureInfo instead of property access
-            CellValueType.Numeric => _d.ToString(s_invariantCultureCache),
-            CellValueType.DateTime => new DateTime((long)_d).ToString(s_invariantCultureCache),
-            CellValueType.Error => ((ExcelErrorCode)AsInt32).ToString(),
+            CellValueType.Decimal => _d.ToInvariantString(),
+            CellValueType.Double => _db.ToInvariantString(),
+            CellValueType.Int => _i.ToInvariantString(),
+            CellValueType.Long => _l.ToInvariantString(),
+            CellValueType.DateTime => _dt.ToString(s_invariantCultureCache),
+            CellValueType.Error => ((ExcelErrorCode)_i).ToString(),
             CellValueType.IsDBNull => DBNull.Value.ToString(s_invariantCultureCache),
             _ => null
         };
@@ -193,10 +273,18 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// </exception>
     // Remove AggressiveOptimization from properties
     public DateTime AsDateTime =>
+        _type == CellValueType.DateTime
+        ? _dt
+        :AsDateTime_Slow();
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
+    private DateTime AsDateTime_Slow() =>
         _type switch
         {
-            CellValueType.Numeric => DateTime.FromOADate((double)_d),
-            CellValueType.DateTime => DateTime.FromOADate((double)_d),
+            CellValueType.Decimal => DateTime.FromOADate((double)_d),
+            CellValueType.Double => DateTime.FromOADate(_db),
+            CellValueType.Long => DateTime.FromOADate(_l),
+            CellValueType.Int => DateTime.FromOADate(_i),
             _ => double.TryParse(_s, out double val)
                 ? // Excel stores the DateTime as a double OADate
                 DateTime.FromOADate(val)
@@ -225,18 +313,20 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     public bool AsBoolean =>
         // Simplified without branches for common case
         _type == CellValueType.Bool
-            ? _d != 0
+            ? _b
             : AsBoolean_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private bool AsBoolean_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _d != 0,
+            CellValueType.Decimal => _d != 0,
+            CellValueType.Double => _db != 0,
+            CellValueType.Long => _l != 0,
+            CellValueType.Int => _i != 0,
             CellValueType.Error => (ExcelErrorCode)AsInt32 != ExcelErrorCode.Null,
-            CellValueType.Numeric => _d != 0,
             CellValueType.IsDBNull => false,
-            _ => int.TryParse(_s, out int val) ? val != 0 : Convert.ToBoolean(_s!)
+            _ => int.TryParse(_s, out int val) ? val != 0 : _s!.BoolParse()
         };
 
     /// <summary>
@@ -248,17 +338,20 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     // Remove AggressiveOptimization from properties
     public int AsInt32 =>
         // Simplified without branches for common case
-        _type == CellValueType.Numeric
-            ? (int)_d
+        _type == CellValueType.Int
+            ? _i
             : AsInt32_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private int AsInt32_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (int)_d,
-            CellValueType.Bool => _d != 0 ? 1 : 0,
-            CellValueType.Error => (int)_d,
+            CellValueType.Decimal => (int)_d,
+            CellValueType.Double => (int)_db,
+            CellValueType.Long => (int)_l,
+            CellValueType.DateTime => (int)_dt.Ticks,
+            CellValueType.Bool => _b ? 1 : 0,
+            CellValueType.Error => _i,
             CellValueType.IsDBNull => 0,
             _ => int.Parse(_s!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
@@ -271,17 +364,20 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// </exception>
     // Remove AggressiveOptimization from properties
     public long AsInt64 =>
-        _type == CellValueType.Numeric
-            ? (long)_d
+        _type == CellValueType.Long
+            ? _l
             : AsInt64_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private long AsInt64_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (long)_d,
-            CellValueType.Bool => _d != 0 ? 1 : 0,
-            CellValueType.Error => (long)AsInt32,
+            CellValueType.Decimal => (long)_d,
+            CellValueType.Double => (long)_db,
+            CellValueType.Int => (long)_i,
+            CellValueType.DateTime => (long)_dt.Ticks,
+            CellValueType.Bool => _b ? 1 : 0,
+            CellValueType.Error => (long)_i,
             CellValueType.IsDBNull => 0L,
             _ => long.Parse(_s!, NumberStyles.Integer, CultureInfo.InvariantCulture)
         };
@@ -295,17 +391,20 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     // Remove AggressiveOptimization from properties
     public double AsDouble =>
         // Simplified without branches for common case
-        _type == CellValueType.Numeric
-            ? (double)_d
+        _type == CellValueType.Double
+            ? _db
             : AsDouble_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private double AsDouble_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => (double)_d,
-            CellValueType.Bool => _d != 0 ? 1 : 0,
-            CellValueType.Error => (double)AsInt32,
+            CellValueType.Decimal => (double)_d,
+            CellValueType.Long => (double)_l,
+            CellValueType.Int => (double)_i,
+            CellValueType.DateTime => (double)_dt.Ticks,
+            CellValueType.Bool => _b ? 1 : 0,
+            CellValueType.Error => (double)_i,
             CellValueType.IsDBNull => 0.0,
             _ => double.Parse(_s!, NumberStyles.Float, CultureInfo.InvariantCulture)
         };
@@ -319,7 +418,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     // Remove AggressiveOptimization from properties
     public decimal AsDecimal =>
         // Simplified without branches for common case
-        _type == CellValueType.Numeric
+        _type == CellValueType.Decimal
             ? _d
             : AsDecimal_Slow();
 
@@ -327,9 +426,12 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     private decimal AsDecimal_Slow() =>
         _type switch
         {
-            CellValueType.DateTime => _d,
-            CellValueType.Bool => _d != 0 ? 1m : 0m,
-            CellValueType.Error => (decimal)AsInt32,
+            CellValueType.Double => (decimal)_db,
+            CellValueType.Long => (decimal)_l,
+            CellValueType.Int => (decimal)_i,
+            CellValueType.DateTime => (decimal)_dt.Ticks,
+            CellValueType.Bool => _b ? 1m : 0m,
+            CellValueType.Error => (decimal)_i,
             CellValueType.IsDBNull => 0m,
             _ => decimal.Parse(_s!, NumberStyles.Currency, CultureInfo.InvariantCulture)
         };
@@ -362,7 +464,10 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     private string? FormatValueWithStyle(string formatCode, FormattingType type) =>
         _type switch
         {
-            CellValueType.Numeric => FormatNumericWithNumberFormat(_d, formatCode, type),
+            CellValueType.Decimal => FormatNumericWithNumberFormat(_d, formatCode, type),
+            CellValueType.Double => FormatNumericWithNumberFormat(_db, formatCode, type),
+            CellValueType.Long => FormatNumericWithNumberFormat((decimal)_l, formatCode, type),
+            CellValueType.Int => FormatNumericWithNumberFormat((decimal)_i, formatCode, type),
             CellValueType.DateTime => FormatDateTimeWithNumberFormat(AsDateTime, formatCode, type),
             CellValueType.Bool => _d != 0 ? bool.TrueString : bool.FalseString, // What if the style is to upper case ?
             _ => ToString() // TODO: What happens if the formatCode is applied to a string type ?
@@ -664,7 +769,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// </summary>
     private static string FormatCustomNumber(double value, string formatCode)
     {
-        var span = formatCode.AsSpan();
+        ReadOnlySpan<char> span = formatCode.AsSpan();
         // Check for percentage format in the code
         if (span.Contains('%'))
         {
@@ -673,13 +778,17 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             int dotIndex = span.IndexOf('.');
             if (dotIndex >= 0)
             {
-                var afterDot = span.Slice(dotIndex + 1);
+                ReadOnlySpan<char> afterDot = span.Slice(dotIndex + 1);
                 foreach (char c in afterDot)
                 {
                     if (c == '0')
+                    {
                         decimalPlaces++;
+                    }
                     else
+                    {
                         break;
+                    }
                 }
             }
 
@@ -704,7 +813,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             int decimalPlaces = 2; // default
             if (eIndex > 0)
             {
-                var beforeE = span.Slice(0, eIndex);
+                ReadOnlySpan<char> beforeE = span.Slice(0, eIndex);
                 int dotIndex = beforeE.LastIndexOf('.');
                 if (dotIndex >= 0)
                 {
@@ -730,11 +839,13 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         int decimals = 0;
         if (dotPos >= 0)
         {
-            var afterDot = span.Slice(dotPos + 1);
+            ReadOnlySpan<char> afterDot = span.Slice(dotPos + 1);
             foreach (char c in afterDot)
             {
                 if (c == '0' || c == '#')
+                {
                     decimals++;
+                }
             }
         }
 
@@ -1062,14 +1173,13 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// The hash code is computed based on the type of the cell value and its associated data,
     /// ensuring that equal<see cref = "CellValue" /> instances produce the same hash code.
     /// </remarks>
-    public override int GetHashCode()
-    {
-        if (_type == CellValueType.IsDBNull)
+    public override int GetHashCode() =>
+        _type switch
         {
-            return (int)CellValueType.IsDBNull;
-        }
-        return HashCode.Combine(_type, _d, _s, _iStyleRef);
-    }
+            CellValueType.IsDBNull => (int)CellValueType.IsDBNull,
+            CellValueType.String => HashCode.Combine(_type, _s, _iStyleRef),
+            _ => HashCode.Combine(_type, AsDecimal, _iStyleRef)
+        };
 
     /// <summary>
     /// Determines whether the current<see cref="CellValue"/> instance is equal to another<see cref = "CellValue" /> instance.
@@ -1091,9 +1201,12 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         }
         return _type switch
         {
-            CellValueType.Bool => _d == other._d,
-            CellValueType.Numeric => _d == other._d,
-            CellValueType.DateTime => _d == other._d,
+            CellValueType.Bool => _b == other._b,
+            CellValueType.Decimal => _d == other._d,
+            CellValueType.Double => _db == other._db,
+            CellValueType.Long => _l == other._l,
+            CellValueType.Int => _i == other._i,
+            CellValueType.DateTime => _dt == other._dt,
             CellValueType.IsDBNull => true,
             CellValueType.String => _s == other._s,
             _ => false
@@ -1427,12 +1540,21 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     {
         switch (_type)
         {
-            case CellValueType.Numeric:
+            case CellValueType.Decimal:
                 return _d.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
+
+            case CellValueType.Double:
+                return _db.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
+
+            case CellValueType.Long:
+                return _l.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
+
+            case CellValueType.Int:
+                return _i.TryFormat(destination, out charsWritten, default, s_invariantCultureCache);
 
             case CellValueType.Bool:
                 {
-                    var boolStr = (_d != 0) ? bool.TrueString : bool.FalseString;
+                    string boolStr = _b ? bool.TrueString : bool.FalseString;
                     if (destination.Length < boolStr.Length)
                     {
                         charsWritten = 0;
@@ -1448,7 +1570,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 
             case CellValueType.Error:
                 {
-                    var errorStr = ((ExcelErrorCode)AsInt32).ToString();
+                    string errorStr = ((ExcelErrorCode)AsInt32).ToString();
                     if (destination.Length < errorStr.Length)
                     {
                         charsWritten = 0;
@@ -1513,6 +1635,113 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// </summary>
     string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         => ToString() ?? string.Empty;
+
+    #region SIMD-Accelerated Filtering Operations
+
+    /// <summary>
+    /// Filters a batch of cell values by type using zero-allocation operations.
+    /// </summary>
+    /// <param name="cells">Input array of cell values to filter.</param>
+    /// <param name="output">Pre-allocated output array for matching cells.</param>
+    /// <param name="targetType">The cell value type to filter by.</param>
+    /// <returns>Count of cells written to output array.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int FilterByCellType(ReadOnlySpan<CellValue> cells, Span<CellValue> output, CellValueType targetType)
+    {
+        int outputIndex = 0;
+        foreach (CellValue cell in cells)
+        {
+            if (outputIndex >= output.Length)
+            {
+                break;
+            }
+
+            if (cell._type == targetType)
+            {
+                output[outputIndex++] = cell;
+            }
+        }
+        return outputIndex;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is numeric (optimized for filtering operations).
+    /// </summary>
+    public bool IsDecimal
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Decimal;
+    }
+    /// <summary>
+    /// Checks if this cell value is numeric (optimized for filtering operations).
+    /// </summary>
+    public bool IsDouble
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Double;
+    }
+    /// <summary>
+    /// Checks if this cell value is numeric (optimized for filtering operations).
+    /// </summary>
+    public bool IsLong
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Long;
+    }
+    /// <summary>
+    /// Checks if this cell value is numeric (optimized for filtering operations).
+    /// </summary>
+    public bool IsInt
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Int;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is a string (optimized for filtering operations).
+    /// </summary>
+    public bool IsString
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.String;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is a boolean (optimized for filtering operations).
+    /// </summary>
+    public bool IsBoolean
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Bool;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is a datetime (optimized for filtering operations).
+    /// </summary>
+    public bool IsDateTime
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.DateTime;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is an error (optimized for filtering operations).
+    /// </summary>
+    public bool IsError
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.Error;
+    }
+
+    /// <summary>
+    /// Checks if this cell value is DBNull (optimized for filtering operations).
+    /// </summary>
+    public bool IsDBNull
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _type == CellValueType.IsDBNull;
+    }
+    #endregion
 
 }
 

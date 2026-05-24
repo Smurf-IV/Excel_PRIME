@@ -90,7 +90,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 cellValue.Should().NotBeNull();
@@ -103,7 +105,9 @@ public class CellValueStyleRefTestsXlsb
 
             rowIndex++;
             if (rowIndex >= 10)
+            {
                 break; // Limit iterations for performance
+            }
         }
     }
 
@@ -143,7 +147,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -200,7 +206,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -264,7 +272,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 bool success = cellValue.TryGetDateTime(out DateTime result);
@@ -322,7 +332,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 totalAttempts++;
@@ -375,7 +387,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 totalAttempts++;
@@ -431,7 +445,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 object? boxedValue = cellValue.BoxedValue;
@@ -497,7 +513,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 totalCells++;
@@ -556,7 +574,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -618,7 +638,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 
@@ -677,7 +699,9 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 CellValue cellValue = cell.CellValue;
                 string? toString = cellValue.ToString();
@@ -720,7 +744,7 @@ public class CellValueStyleRefTestsXlsb
         using ISheetAsync? worksheet = await workbook.GetSheetAsync(workbook.SheetNames().First()).ConfigureAwait(false);
         worksheet.Should().NotBeNull();
 
-        var cellValues = new List<CellValue?>();
+        List<CellValue?> cellValues = new List<CellValue?>();
         int rowIndex = 0;
 
         await foreach (IRowAsync? row in worksheet.GetRowDataAsync().ConfigureAwait(false))
@@ -740,14 +764,18 @@ public class CellValueStyleRefTestsXlsb
             foreach (ICell? cell in rowCells)
             {
                 if (cell == null)
+                {
                     break;
+                }
 
                 cellValues.Add(cell.CellValue);
             }
 
             rowIndex++;
             if (rowIndex >= 2)
+            {
                 break; // Get two rows
+            }
         }
 
         // Verify we have cells to compare

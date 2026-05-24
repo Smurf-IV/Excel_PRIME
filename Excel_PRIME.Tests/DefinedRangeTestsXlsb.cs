@@ -32,10 +32,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
-        prices[0][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(5m);
-        prices[1][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(4m);
-        prices[2][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(15m);
-        prices[3][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(9m);
+        prices[0][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
     }
 
     [Test]
@@ -50,10 +50,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
         prices.Should().HaveCount(4);
-        prices[0][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(5m);
-        prices[1][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(4m);
-        prices[2][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(15m);
-        prices[3][0]?.BoxedValue.Should().BeOfType<decimal>().Which.Should().Be(9m);
+        prices[0][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
+        prices[1][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
+        prices[2][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
+        prices[3][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
     }
 
     [Test]
@@ -154,7 +154,7 @@ internal class DefinedRangeTestsXlsb
         await sutMethod.Should().ThrowAsync<KeyNotFoundException>()
             .WithMessage("* does not exist").ConfigureAwait(false);
 
-        CellValue?[] orderSizeS = (await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync());
+        CellValue?[] orderSizeS = await workbook.GetUserRangeAsync("C12:E12", "Solution").FirstAsync();
         orderSizeS.Should().HaveCount(3);
         orderSizeS[0]?.BoxedValue.Should().Be(94);
         orderSizeS[1]?.BoxedValue.Should().Be(54);

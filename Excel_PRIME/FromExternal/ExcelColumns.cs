@@ -59,7 +59,10 @@ internal static class ExcelColumns
     {
         int colExcel = -1;
         int i = buffer.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1) i = buffer.Length;
+        if (i == -1)
+        {
+            i = buffer.Length;
+        }
 
         for (int j = 0; j < i; j++)
         {
@@ -81,7 +84,10 @@ internal static class ExcelColumns
         ReadOnlySpan<char> span = columnRowRef.AsSpan();
         int colExcel = -1;
         int i = span.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1) i = span.Length;
+        if (i == -1)
+        {
+            i = span.Length;
+        }
 
         for (int j = 0; j < i; j++)
         {
@@ -99,7 +105,10 @@ internal static class ExcelColumns
     {
         int colExcel = -1;
         int i = columnRowRefSpan.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1) i = columnRowRefSpan.Length;
+        if (i == -1)
+        {
+            i = columnRowRefSpan.Length;
+        }
 
         for (int j = 0; j < i; j++)
         {
@@ -117,7 +126,10 @@ internal static class ExcelColumns
     {
         int colExcel = -1;
         int i = columnRefSpan.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1) i = columnRefSpan.Length;
+        if (i == -1)
+        {
+            i = columnRefSpan.Length;
+        }
 
         for (int j = 0; j < i; j++)
         {
@@ -125,6 +137,38 @@ internal static class ExcelColumns
         }
 
         return ++colExcel; // Make it into the Excel 1 offset #
+    }
+
+    /// <summary>
+    /// Extract the row number from a cell reference like "A1" by finding the first digit.
+    /// Uses span to avoid allocations.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static int GetRowNumberFromRef(this ReadOnlySpan<char> cellRefSpan)
+    {
+        int i = cellRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1 || i >= cellRefSpan.Length)
+        {
+            return 0;
+        }
+
+        return cellRefSpan.Slice(i).IntParse();
+    }
+
+    /// <summary>
+    /// Extract just the column letters from a cell reference like "A1".
+    /// Uses span to avoid allocations when possible.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<char> GetColumnLettersFromRef(this ReadOnlySpan<char> cellRefSpan)
+    {
+        int i = cellRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
+        {
+            return cellRefSpan;
+        }
+
+        return cellRefSpan.Slice(0, i);
     }
 
 }

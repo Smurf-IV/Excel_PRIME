@@ -129,7 +129,9 @@ public class AccessEveryCellBenchmarksXlsb
                     }
                 }
                 if (!rowHasData)
+                {
                     continue;
+                }
 
                 // Process row r
                 for (int c = 0; c <= maxCol; c++)

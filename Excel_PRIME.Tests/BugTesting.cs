@@ -77,7 +77,7 @@ internal class BugTesting
     {
         // Arrange
         decimal val = 41273.28m;
-        CellValue cellValue = CellValue.Create(((decimal)(double)val), -1);
+        CellValue cellValue = CellValue.Create((decimal)(double)val, -1);
 
         // Act & Assert
         cellValue.AsDecimal.Should().Be(val);
@@ -89,6 +89,16 @@ internal class BugTesting
         // Arrange
         decimal val = 41273.28m;
         CellValue cellValue = CellValue.Create("41273.28", -1);
+
+        // Act & Assert
+        cellValue.AsDecimal.Should().Be(val);
+    }
+    [Test]
+    public void Bug_020_AsDecimal_FromSpan()
+    {
+        // Arrange
+        decimal val = 41273.28m;
+        CellValue cellValue = CellValue.TryParseOrder("41273.28".AsSpan(), -1);
 
         // Act & Assert
         cellValue.AsDecimal.Should().Be(val);
