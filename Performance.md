@@ -35,6 +35,7 @@
 - [2026-04-27 - V4 - RC3](#2026-04-27---v4---rc3)
 - [2026-05-05 - V4](#2026-05-05---v4)
 - [2026-05-12 - V4 - Bug fixes](#2026-05-12---v4---bug-fixes)
+- [2026-05-25 - V5 - Beta](#2026-05-25---v5---beta)
 <!-- TOC -->
 
 # Intro
@@ -1261,54 +1262,84 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.17x slower | 214000.0000 |  1000.0000 |          - |  2566.1 MB | 13.82x more |
 ```
 
+# 2026-05-25 - V5 - Beta
+- ✅ Cell object type 📅
+    - ✅ Store cell _style_ type (see Options enum)
+    - ✅ Unit Tests
+    - ✅ Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+**Code-Level Optimizations**
+   - ✅ Implement `ISpanFormattable` in CellValue
+   - ✅ Optimisationm in the Xlsb workflow
+   - ✅ Return to the usage of the FieldOffsets to store the BCL type to prevent boxings in the hot paths
+   - ✅ Usage of the Fast convertors *i.e. ToDecimal is 3 times faster than Convert.ToDecimal* #20
+**Advanced Scenarios**
+   - ✅ Enable `PublishTrimmed=true` with trim warnings resolved
+   - ✅ Native AOT compilation testing
+**Bug Fixes**
+- Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+- `AsDecimal` method has an issue where it produces incorrect precision, but only with default options #20
+- When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
+- When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
+
 ```
 | Method                   | FileName             | Ratio        | Gen0        | Gen1       | Gen2       | Allocated  | Alloc Ratio |
 |------------------------- |--------------------- |-------------:|------------:|-----------:|-----------:|-----------:|------------:|
 | SylvanRdr                | 100mb.xlsx           |     baseline |  33000.0000 | 32000.0000 |  3000.0000 |  397.64 MB |             |
-| XlsxHelper               | 100mb.xlsx           | 4.11x slower | 282000.0000 |  2000.0000 |  1000.0000 | 3380.58 MB |  8.50x more |
-| AsyncExcel_Prime         | 100mb.xlsx           | 1.46x slower | 189000.0000 | 36000.0000 |  5000.0000 | 2219.79 MB |  5.58x more |
-| Excel_Prime              | 100mb.xlsx           | 1.31x slower | 131000.0000 | 34000.0000 |  5000.0000 | 1527.48 MB |  3.84x more |
-| PrlAsyncExcel_PrimeTwice | 100mb.xlsx           | 2.43x slower | 326000.0000 | 42000.0000 |  5000.0000 | 3846.16 MB |  9.67x more |
+| XlsxHelper               | 100mb.xlsx           | 4.01x slower | 282000.0000 |  2000.0000 |  1000.0000 | 3380.58 MB |  8.50x more |
+| AsyncExcel_Prime         | 100mb.xlsx           | 1.42x slower | 189000.0000 | 36000.0000 |  5000.0000 | 2219.65 MB |  5.58x more |
+| Excel_Prime              | 100mb.xlsx           | 1.29x slower | 131000.0000 | 34000.0000 |  5000.0000 | 1527.48 MB |  3.84x more |
+| PrlAsyncExcel_PrimeTwice | 100mb.xlsx           | 2.34x slower | 326000.0000 | 43000.0000 |  5000.0000 | 3846.15 MB |  9.67x more |
 |                          |                      |              |             |            |            |            |             |
 | SylvanRdr                | Blank(...).xlsx [30] |     baseline |  20000.0000 |  3000.0000 |          - |  245.89 MB |             |
 | XlsxHelper               | Blank(...).xlsx [30] | 1.04x slower | 145000.0000 |  1000.0000 |          - | 1739.24 MB |  7.07x more |
-| AsyncExcel_Prime         | Blank(...).xlsx [30] | 1.19x slower | 278000.0000 | 42000.0000 | 41000.0000 | 2968.82 MB | 12.07x more |
+| AsyncExcel_Prime         | Blank(...).xlsx [30] | 1.16x slower | 278000.0000 | 42000.0000 | 41000.0000 | 2968.79 MB | 12.07x more |
 | Excel_Prime              | Blank(...).xlsx [30] | 1.01x slower | 183000.0000 | 42000.0000 | 41000.0000 | 1833.57 MB |  7.46x more |
-| PrlAsyncExcel_PrimeTwice | Blank(...).xlsx [30] | 2.72x slower | 558000.0000 | 83000.0000 | 83000.0000 |    5962 MB | 24.25x more |
+| PrlAsyncExcel_PrimeTwice | Blank(...).xlsx [30] | 2.64x slower | 558000.0000 | 83000.0000 | 83000.0000 | 5962.08 MB | 24.25x more |
 |                          |                      |              |             |            |            |            |             |
 | SylvanRdr                | sampl(...).xlsx [34] |     baseline |  14000.0000 |  1000.0000 |          - |  178.67 MB |             |
-| XlsxHelper               | sampl(...).xlsx [34] | 1.06x faster |  66000.0000 |          - |          - |  799.73 MB |  4.48x more |
-| AsyncExcel_Prime         | sampl(...).xlsx [34] | 1.00x faster | 113000.0000 |  1000.0000 |          - | 1363.39 MB |  7.63x more |
-| Excel_Prime              | sampl(...).xlsx [34] | 1.14x faster |  70000.0000 |  1000.0000 |          - |     846 MB |  4.73x more |
-| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [34] | 2.46x slower | 228000.0000 |  1000.0000 |          - | 2735.78 MB | 15.31x more |
+| XlsxHelper               | sampl(...).xlsx [34] | 1.09x faster |  66000.0000 |          - |          - |  799.73 MB |  4.48x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [34] | 1.03x slower | 113000.0000 |  1000.0000 |          - | 1363.36 MB |  7.63x more |
+| Excel_Prime              | sampl(...).xlsx [34] | 1.15x faster |  70000.0000 |  1000.0000 |          - |     846 MB |  4.73x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [34] | 2.47x slower | 228000.0000 |  1000.0000 |          - | 2735.79 MB | 15.31x more |
 |                          |                      |              |             |            |            |            |             |
-| SylvanRdr                | sampl(...).xlsx [30] |     baseline |  15000.0000 |  1000.0000 |          - |  185.72 MB |             |
+| SylvanRdr                | sampl(...).xlsx [30] |     baseline |  15000.0000 |  1000.0000 |          - |  185.74 MB |             |
 | XlsxHelper               | sampl(...).xlsx [30] | 1.04x faster |  62000.0000 |          - |          - |  742.13 MB |  4.00x more |
-| AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.16x slower | 117000.0000 |  1000.0000 |          - | 1401.94 MB |  7.55x more |
+| AsyncExcel_Prime         | sampl(...).xlsx [30] | 1.19x slower | 117000.0000 |  1000.0000 |          - | 1401.94 MB |  7.55x more |
 | Excel_Prime              | sampl(...).xlsx [30] | 1.00x faster |  73000.0000 |  1000.0000 |          - |  884.91 MB |  4.76x more |
-| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.37x slower | 234000.0000 |  1000.0000 |          - | 2810.31 MB | 15.13x more |
+| PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.27x slower | 234000.0000 |  1000.0000 |          - | 2810.31 MB | 15.13x more |
 ```
 
 ```
 | Method                       | FileName             | Ratio        | Gen0        | Gen1       | Gen2      | Allocated  | Alloc Ratio |
 |----------------------------- |--------------------- |-------------:|------------:|-----------:|----------:|-----------:|------------:|
 | SylvanRdr                    | 100mb.xlsb           |     baseline |  29000.0000 | 28000.0000 | 4000.0000 |  335.55 MB |             |
-| AsyncExcel_PrimeXlsb         | 100mb.xlsb           | 2.38x slower | 366000.0000 | 42000.0000 | 5000.0000 | 4332.38 MB | 12.91x more |
-| Excel_PrimeXlsb              | 100mb.xlsb           | 1.68x slower | 199000.0000 | 43000.0000 | 5000.0000 |  2333.7 MB |  6.95x more |
-| PrlAsyncExcel_PrimeXlsbTwice | 100mb.xlsb           | 3.77x slower | 664000.0000 | 42000.0000 | 5000.0000 |  7888.9 MB | 23.51x more |
+| AsyncExcel_PrimeXlsb         | 100mb.xlsb           | 2.33x slower | 366000.0000 | 42000.0000 | 5000.0000 | 4332.39 MB | 12.91x more |
+| Excel_PrimeXlsb              | 100mb.xlsb           | 1.65x slower | 199000.0000 | 43000.0000 | 5000.0000 |  2333.7 MB |  6.95x more |
+| PrlAsyncExcel_PrimeXlsbTwice | 100mb.xlsb           | 3.79x slower | 666000.0000 | 49000.0000 | 6000.0000 | 7888.96 MB | 23.51x more |
 |                              |                      |              |             |            |           |            |             |
 | SylvanRdr                    | Blank(...).xlsb [30] |     baseline |  25000.0000 |  1000.0000 |         - |  301.88 MB |             |
-| AsyncExcel_PrimeXlsb         | Blank(...).xlsb [30] | 3.06x slower | 413000.0000 |  1000.0000 |         - | 4946.03 MB | 16.38x more |
-| Excel_PrimeXlsb              | Blank(...).xlsb [30] | 1.78x slower | 212000.0000 |  1000.0000 |         - | 2537.61 MB |  8.41x more |
-| PrlAsyncExcel_PrimeXlsbTwice | Blank(...).xlsb [30] | 6.39x slower | 826000.0000 |  1000.0000 |         - | 9894.35 MB | 32.78x more |
+| AsyncExcel_PrimeXlsb         | Blank(...).xlsb [30] | 3.32x slower | 413000.0000 |  1000.0000 |         - | 4946.03 MB | 16.38x more |
+| Excel_PrimeXlsb              | Blank(...).xlsb [30] | 2.00x slower | 212000.0000 |  1000.0000 |         - | 2537.61 MB |  8.41x more |
+| PrlAsyncExcel_PrimeXlsbTwice | Blank(...).xlsb [30] | 7.04x slower | 826000.0000 |  1000.0000 |         - | 9894.36 MB | 32.78x more |
 |                              |                      |              |             |            |           |            |             |
 | SylvanRdr                    | sampl(...).xlsb [34] |     baseline |  21000.0000 |          - |         - |  262.23 MB |             |
-| AsyncExcel_PrimeXlsb         | sampl(...).xlsb [34] | 2.33x slower | 216000.0000 |  1000.0000 |         - | 2593.56 MB |  9.89x more |
-| Excel_PrimeXlsb              | sampl(...).xlsb [34] | 1.40x slower | 107000.0000 |  1000.0000 |         - | 1288.56 MB |  4.91x more |
-| PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [34] | 4.68x slower | 433000.0000 |  1000.0000 |         - |  5187.7 MB | 19.78x more |
+| AsyncExcel_PrimeXlsb         | sampl(...).xlsb [34] | 2.47x slower | 216000.0000 |  1000.0000 |         - | 2590.55 MB |  9.88x more |
+| Excel_PrimeXlsb              | sampl(...).xlsb [34] | 1.58x slower | 107000.0000 |  1000.0000 |         - | 1285.55 MB |  4.90x more |
+| PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [34] | 4.92x slower | 433000.0000 |  1000.0000 |         - | 5181.67 MB | 19.76x more |
 |                              |                      |              |             |            |           |            |             |
 | SylvanRdr                    | sampl(...).xlsb [30] |     baseline |  21000.0000 |          - |         - |  262.23 MB |             |
-| AsyncExcel_PrimeXlsb         | sampl(...).xlsb [30] | 2.35x slower | 216000.0000 |  1000.0000 |         - | 2593.56 MB |  9.89x more |
-| Excel_PrimeXlsb              | sampl(...).xlsb [30] | 1.44x slower | 107000.0000 |  1000.0000 |         - | 1288.56 MB |  4.91x more |
-| PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [30] | 4.72x slower | 433000.0000 |  1000.0000 |         - | 5187.69 MB | 19.78x more |
+| AsyncExcel_PrimeXlsb         | sampl(...).xlsb [30] | 2.51x slower | 216000.0000 |  1000.0000 |         - | 2590.57 MB |  9.88x more |
+| Excel_PrimeXlsb              | sampl(...).xlsb [30] | 1.63x slower | 107000.0000 |  1000.0000 |         - | 1285.55 MB |  4.90x more |
+| PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [30] | 5.14x slower | 433000.0000 |  1000.0000 |         - | 5181.66 MB | 19.76x more |
+```
+```
+| Method           | Mean     | Error    | Ratio | Allocated    | Alloc Ratio |
+|----------------- |---------:|---------:|------:|-------------:|------------:|
+| Baseline         | 109.7 ms | 12.51 ms |  1.00 |    246.66 KB |        1.00 |
+| SylvanXlsx       | 153.2 ms | 13.59 ms |  1.40 |    665.48 KB |        2.70 |
+| SylvanXlsxObj    | 167.6 ms | 27.50 ms |  1.53 |  14474.14 KB |       58.68 |
+| SylvanXlsx_BindT | 176.5 ms | 48.98 ms |  1.61 |  11930.56 KB |       48.37 |
+| PrimeXlsxObj     | 179.7 ms |  2.44 ms |  1.64 |    106499 KB |      431.77 |
+| PrimeXlsxType    | 179.8 ms |  6.04 ms |  1.64 |  90174.36 KB |      365.59 |
+| PrimeXlsx        | 194.2 ms |  2.56 ms |  1.77 | 112633.75 KB |      456.64 |
 ```

@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -151,11 +149,9 @@ internal static class SIMDHelper
     /// Used to quickly count comparison results from SIMD operations.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int PopCount(int value)
-    {
+    private static int PopCount(int value) =>
         // Use BitOperations.PopCount on .NET 6+, or manual implementation
-        return System.Numerics.BitOperations.PopCount((uint)value);
-    }
+        System.Numerics.BitOperations.PopCount((uint)value);
 
     /// <summary>
     /// SIMD-accelerated sum of all values in the input array.

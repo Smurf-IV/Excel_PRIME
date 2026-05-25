@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -29,10 +27,9 @@ internal sealed record Cell : ICell
         int len;
         short style = -1;
         bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
-        bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
         bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
-        int expectedAttributes = noCellStyle ? 2 : 3;
+        int expectedAttributes = noCellConversion ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
             // Retrieve the atomized name directly.
@@ -49,7 +46,7 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (!noCellStyle
+            else if (!noCellConversion
                 && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
                 )
             {
@@ -123,13 +120,20 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        len = ReadValue(reader, buffer, bufferSize);
-                        if (len == 0)
                         {
-                            goto setter;
-                        }
+                            len = ReadValue(reader, buffer, bufferSize);
+                            if (len == 0)
+                            {
+                                goto setter;
+                            }
+                            CellStyle? cellStyle = null;
+                            if (!instanceContext?.CellStyles?.TryGetValue(style, out cellStyle) ?? true)
+                            {
+                                cellStyle = null;
+                            }
 
-                        value = CellValue.TryParseOrder(buffer.AsSpan(0, len), style);
+                            value = CellValue.TryParseOrder(buffer.AsSpan(0, len), cellStyle);
+                        }
                         break;
 
                     case CellType.SharedString:
@@ -233,10 +237,9 @@ internal sealed record Cell : ICell
         int len;
         short style = -1;
         bool noCellConversion = instanceContext.Options.CellConversionType <= CellConversion.None;
-        bool noCellStyle = instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle;
         bool returnDBNull = instanceContext.Options.ReturnDBNull;
 
-        int expectedAttributes = noCellStyle ? 2 : 3;
+        int expectedAttributes = noCellConversion ? 2 : 3;
         while (reader.MoveToNextAttribute() && expectedAttributes > 0)
         {
             // Retrieve the atomized name directly.
@@ -253,7 +256,7 @@ internal sealed record Cell : ICell
                 type = GetCellType(buffer, len);
                 expectedAttributes--;
             }
-            else if (!noCellStyle
+            else if (!noCellConversion
                      && ReferenceEquals(currentAttributeName, readerAtoms.sRefAtom)
                     )
             {
@@ -327,13 +330,21 @@ internal sealed record Cell : ICell
                         break;
 
                     case CellType.Numeric:
-                        len = ReadValue(reader, buffer, bufferSize);
-                        if (len == 0)
                         {
-                            goto setter;
-                        }
+                            len = ReadValue(reader, buffer, bufferSize);
+                            if (len == 0)
+                            {
+                                goto setter;
+                            }
 
-                        value = CellValue.TryParseOrder(buffer.AsSpan(0, len), style);
+                            CellStyle? cellStyle = null;
+                            if ( !instanceContext?.CellStyles?.TryGetValue(style, out cellStyle) ?? true)
+                            {
+                                cellStyle = null;
+                            }
+
+                            value = CellValue.TryParseOrder(buffer.AsSpan(0, len), cellStyle);
+                        }
                         break;
 
                     case CellType.SharedString:

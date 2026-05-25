@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +79,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         await GetSharedStringsAsync(ct).ConfigureAwait(false);
 
         // Extract styles from the workbook
-        if (options.CellConversionType >= CellConversion.ExcelCellStyle)
+        if (options.CellConversionType >= CellConversion.ExcelCellType)
         {
             await GetStylesAsync(ct).ConfigureAwait(false);
         }
@@ -109,7 +106,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         GetSharedStrings(ct);
 
         // Extract styles from the workbook
-        if (options.CellConversionType >= CellConversion.ExcelCellStyle)
+        if (options.CellConversionType >= CellConversion.ExcelCellType)
         {
             GetStyles(ct);
         }
@@ -125,8 +122,9 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private void GetSharedStrings(CancellationToken ct)
         => _instanceContext.SharedStrings = _xmlReaderHelper.GetSharedStrings(_zipReader, _instanceContext.Options.AccessExcelFileInForwardOnlyMode, ct);
 
-    private async Task GetStylesAsync(CancellationToken ct)
-        => _instanceContext.CellStyles = await _xmlReaderHelper.GetExtractStylesAsync(_zipReader,ct).ConfigureAwait(false);
+    private async Task GetStylesAsync(CancellationToken ct) =>
+        _instanceContext.CellStyles =
+            await _xmlReaderHelper.GetExtractStylesAsync(_zipReader, ct).ConfigureAwait(false);
 
     private void GetStyles(CancellationToken ct)
         => _instanceContext.CellStyles = _xmlReaderHelper.GetExtractStyles(_zipReader, ct);

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -95,10 +94,12 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         return Task.FromResult(reader);
     }
 
-    public async Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IReadOnlyDictionary<short, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader,
+        CancellationToken ct)
     {
         using StylesExtractor extractor = new(zipReader);
-        return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+        IReadOnlyDictionary<short, CellStyle> extractStylesAsync = await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+        return extractStylesAsync;
     }
 
     /// <InheritDoc />
@@ -106,7 +107,7 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         XmlNameTable sharedNameTable, CancellationToken ct)
         => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
 
-    public IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
+    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
     {
         using StylesExtractor extractor = new(zipReader);
         return extractor.ExtractStyles(ct);

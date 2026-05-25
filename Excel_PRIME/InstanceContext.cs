@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using ExcelPRIME.Implementation;
+﻿using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME;
 
@@ -27,6 +25,6 @@ public class InstanceContext
     /// <summary>
     /// Cell styles extracted from the workbook's styles.xml file.
     /// </summary>
-    public IReadOnlyDictionary<int, CellStyle>? CellStyles { get; set; }
+    public IReadOnlyDictionary<short, CellStyle>? CellStyles { get; set; }
 
 }

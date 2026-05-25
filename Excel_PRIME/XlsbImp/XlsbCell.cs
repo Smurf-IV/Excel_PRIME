@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -19,17 +17,29 @@ internal sealed record XlsbCell : ICell
     public static XlsbCell? ConstructCell(PooledRecordBuffer reader, InstanceContext instanceContext)
     {
         int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
-        short styleRef = (short)(instanceContext.Options.CellConversionType < CellConversion.ExcelCellStyle ? -1 : reader.GetInt32(4));
+        short styleRef = (short)(instanceContext.Options.CellConversionType <= CellConversion.None ? -1 : reader.GetInt32(4));
 
         CellType cellType;
         CellValue? cellValue;
         switch (reader.RecordType)
         {
             case RecordTypeIdentifier.CELLRK:
-                (cellType, cellValue) = (CellType.Numeric, MagicConvertRK(reader, styleRef));
+                (cellType, cellValue) = MagicConvertRK(reader, styleRef, instanceContext);
                 break;
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
-                (cellType, cellValue) = (CellType.Numeric, CellValue.Create(reader.GetDouble(8), styleRef));
+                {
+                    double d = reader.GetDouble(8);
+                    if ((instanceContext?.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) ?? false)
+                        && cellStyle.IsDateStyle
+                       )
+                    {
+                        (cellType, cellValue) = (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
+                    }
+                    else
+                    {
+                        (cellType, cellValue) = (CellType.Numeric, CellValue.Create(d, styleRef));
+                    }
+                }
                 break;
             case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
                 (cellType, cellValue) = (CellType.Boolean, CellValue.Create(reader.GetByte(8) != 0));
@@ -63,7 +73,7 @@ internal sealed record XlsbCell : ICell
 
     // CHANGED: Kept AggressiveInlining, removed AggressiveOptimization - hot-path bit manipulation method benefits from inline
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static CellValue MagicConvertRK(PooledRecordBuffer record, short styleRef)
+    private static (CellType, CellValue) MagicConvertRK(PooledRecordBuffer record, short styleRef, InstanceContext instanceContext)
     {
         int rk = record.GetInt32(8);
 
@@ -90,9 +100,15 @@ internal sealed record XlsbCell : ICell
             d /= 100.0;  // Explicit double to ensure double division
         }
 
+        if ((instanceContext?.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) ?? false)
+            && cellStyle.IsDateStyle
+            )
+        {
+            return (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
+        }
         return isFloat 
-            ? CellValue.Create(d, styleRef)
-            : CellValue.Create((int)d, styleRef);
+            ? (CellType.Numeric, CellValue.Create(d, styleRef))
+            : (CellType.Numeric, CellValue.Create((int)d, styleRef));
     }
 
     /// <InheritDoc />

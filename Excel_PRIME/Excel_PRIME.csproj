@@ -73,8 +73,8 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
-		<AssemblyVersion>26.5.27.24</AssemblyVersion>
-		<FileVersion>26.5.27.24</FileVersion>
+		<AssemblyVersion>26.5.28.25</AssemblyVersion>
+		<FileVersion>26.5.28.25</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

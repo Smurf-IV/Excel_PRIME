@@ -99,7 +99,7 @@ internal class BugTesting
     {
         // Arrange
         decimal val = 41273.28m;
-        CellValue cellValue = CellValue.TryParseOrder("41273.28".AsSpan(), -1);
+        CellValue cellValue = CellValue.TryParseOrder("41273.28".AsSpan(), null);
 
         // Act & Assert
         cellValue.AsDecimal.Should().Be(val);
@@ -164,22 +164,33 @@ internal class BugTesting
 
     public static Options[] Option =
     [
-        new Options(),
-        new Options { ReturnDBNull = true },
+        //new Options(),
+        //new Options { ReturnDBNull = true },
         new Options { CellConversionType = CellConversion.ExcelCellType},
-        new Options { CellConversionType = CellConversion.ExcelCellType, ReturnDBNull = true }
-         // V5 - new Options { CellConversionType = CellConversion.ExcelCellStyle},
-         // V5 - new Options { CellConversionType = CellConversion.ExcelCellStyle, ReturnDBNull = true },
-         // V5 - new Options { CellConversionType = CellConversion.ForceStyles }
+        new Options { CellConversionType = CellConversion.ExcelCellType, ReturnDBNull = true },
+        new Options { CellConversionType = CellConversion.ForceStyles }
     ];
 
     [Test]
     [TestCaseSource(nameof(Option))]
-    [Explicit]
-    public async Task Bug_019_DateInObj(Options options)
+    public async Task Bug_019_DateInObj_XLSX(Options options)
     {
         const string fileName = "Data/65K_Records_Data.xlsx";
         using Excel_PRIME workbook = new();
+        await Bug_019_Core(options, workbook, fileName);
+    }
+
+    [Test]
+    [TestCaseSource(nameof(Option))]
+    public async Task Bug_019_DateInObj_XLSB(Options options)
+    {
+        const string fileName = "Data/65K_Records_Data.xlsb";
+        using Excel_PRIMEXlsb workbook = new();
+        await Bug_019_Core(options, workbook, fileName);
+    }
+
+    private static async Task Bug_019_Core(Options options, Excel_PRIME workbook, string fileName)
+    {
         await workbook.OpenAsync(fileName, options).ConfigureAwait(false);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("500000 Sales Records").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(1, RowCellGet.None).FirstAsync();

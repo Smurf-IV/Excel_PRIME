@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,13 +61,11 @@ internal sealed class XlsbRow : IRowAsync
         _reader = rowElement;
         _instanceContext = instanceContext;
         _maxExcelColumnDimension = maxColumnDimension;
-        using (PooledRecordBuffer nextRecord = _reader.ReadNextRecord())
-        {
-            RowOffset = nextRecord.GetInt32(0) + 1; // Add 1, to resolve back to VBA 1-based index
-            //var ifx = nextRecord.GetInt32(4);
-            //var flags = nextRecord.GetByte(11);
-            //_isRowHidden = (flags & 0x10) != 0;
-        }
+        using PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        RowOffset = nextRecord.GetInt32(0) + 1; // Add 1, to resolve back to VBA 1-based index
+        //var ifx = nextRecord.GetInt32(4);
+        //var flags = nextRecord.GetByte(11);
+        //_isRowHidden = (flags & 0x10) != 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

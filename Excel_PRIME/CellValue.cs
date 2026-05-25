@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using ExcelPRIME;
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.Implementation;
 
@@ -52,12 +50,12 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     [FieldOffset(10)] private readonly CellValueType _type;
     // Offset to nearest 4 byte boundary for better performance of value types
     [FieldOffset(12)] private readonly decimal _d; // Stores value types in a decimal to avoid boxing and precision loss
-    [FieldOffset(12)] private readonly DateTime _dt; 
-    [FieldOffset(12)] private readonly bool _b; 
-    [FieldOffset(12)] private readonly long _l; 
+    [FieldOffset(12)] private readonly DateTime _dt;
+    [FieldOffset(12)] private readonly bool _b;
+    [FieldOffset(12)] private readonly long _l;
     [FieldOffset(12)] private readonly int _i;
     [FieldOffset(12)] private readonly double _db;
-#endregion
+    #endregion
 
 
     // Micro-optimization: Cache frequently allocated strings
@@ -70,7 +68,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// </summary>
     /// <param name="iStyleRef">The style reference index.</param>
     /// <returns>A <see cref="CellValue"/> instance.</returns>
-    public static CellValue GetDBNull(short iStyleRef) 
+    public static CellValue GetDBNull(short iStyleRef)
         => s_DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(CellValueType.IsDBNull, style));
 
     internal static CellValue Create(string? strValue, short iStyleRef)
@@ -97,12 +95,15 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     private static CellValue Create(DBNull _, short iStyleRef)
         => new CellValue(CellValueType.IsDBNull, iStyleRef);
 
-    internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, short style)
+    internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, CellStyle? style)
     {
+        // Determine if the provided style corresponds to a date/time related formatting type.
+        bool isDateStyle = style?.IsDateStyle ?? false;
         bool containsDecimal = asSpan.ContainsAny('.', 'E');
+        short styleStyleXmlRef = style?.ExcelFormatId ?? -1;
         if (containsDecimal)
         {
-            return PerformDecimalConversion(asSpan, style);
+            return PerformDecimalConversion(asSpan, styleStyleXmlRef, isDateStyle);
         }
         bool containsSign = asSpan[0] == '-';
         int asSpanLength = asSpan.Length;
@@ -110,15 +111,20 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         // ReSharper disable once ConvertIfStatementToSwitchStatement
         if (!containsSign && asSpanLength < 11)
         {
-            return CellValue.Create(asSpan.IntParse(), style);
+            int intVal = asSpan.IntParse();
+            return isDateStyle
+                ? CellValue.Create(DateTime.FromOADate(intVal), styleStyleXmlRef)
+                : CellValue.Create(intVal, styleStyleXmlRef);
         }
 
         if (containsSign && asSpanLength == 12
-                              && int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
+            && int.TryParse(asSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int resultI)
            )
         {
             // -2,147,483,648 to 2,147,483,647 	Signed 32-bit integer
-            return CellValue.Create(resultI, style);
+            return isDateStyle
+                ? CellValue.Create(DateTime.FromOADate(resultI), styleStyleXmlRef)
+                : CellValue.Create(resultI, styleStyleXmlRef);
         }
 
         if ((asSpanLength < 19 || (containsSign && asSpanLength == 20))
@@ -126,21 +132,34 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
                 CultureInfo.InvariantCulture, out long resultL))
         {
             // -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 	Signed 64-bit integer
-            return CellValue.Create(resultL, style);
+            return isDateStyle
+                ? CellValue.Create(DateTime.FromOADate(resultL), styleStyleXmlRef)
+                : CellValue.Create(resultL, styleStyleXmlRef);
         }
 
-        return PerformDecimalConversion(asSpan, style);
+        return PerformDecimalConversion(asSpan, styleStyleXmlRef, isDateStyle);
     }
 
-    private static CellValue PerformDecimalConversion(ReadOnlySpan<char> asSpan, short style)
+    private static CellValue PerformDecimalConversion(ReadOnlySpan<char> asSpan, short style, bool isDateStyle)
     {
         if (asSpan.TryDecimalParse(out decimal resultM))
-        {   // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
-            return CellValue.Create(resultM, style);
+        {
+            // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
+            return isDateStyle
+                ? CellValue.Create(DateTime.FromOADate((double)resultM), style)
+                : CellValue.Create(resultM, style);
         }
         if (asSpan.TryDoubleParse(out double resultD))
-        {   //  	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
-            return CellValue.Create(resultD, style);
+        {
+            //   	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
+            return isDateStyle
+                ? CellValue.Create(DateTime.FromOADate(resultD), style)
+                : CellValue.Create(resultD, style);
+        }
+        // If the format is a date style, and parsing as decimal/double failed, attempt a direct double parse to OA date
+        if (isDateStyle && double.TryParse(asSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedD))
+        {
+            return CellValue.Create(DateTime.FromOADate(parsedD), style);
         }
         return CellValue.Create(new string(asSpan), style);
     }
@@ -275,7 +294,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     public DateTime AsDateTime =>
         _type == CellValueType.DateTime
         ? _dt
-        :AsDateTime_Slow();
+        : AsDateTime_Slow();
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Keep hot path small
     private DateTime AsDateTime_Slow() =>
@@ -842,7 +861,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             ReadOnlySpan<char> afterDot = span.Slice(dotPos + 1);
             foreach (char c in afterDot)
             {
-                if (c == '0' || c == '#')
+                if (c is '0' or '#')
                 {
                     decimals++;
                 }
@@ -1026,7 +1045,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
                 }
             }
         }
-        
+
         // Fallback
         return $"{totalHours}:{minutes:D2}:{seconds:D2}";
     }
@@ -1105,10 +1124,10 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
                     // Check if preceded by digit or date separator, or followed by date pattern
                     // If preceded by a digit or date separator
                     char charBefore = result[i - 1];
-                    bool isProbablyMonth = i > 0 
-                                           && (char.IsDigit(charBefore) 
-                                               || charBefore == '/' 
-                                               || charBefore == '-' 
+                    bool isProbablyMonth = i > 0
+                                           && (char.IsDigit(charBefore)
+                                               || charBefore == '/'
+                                               || charBefore == '-'
                                                || charBefore == '.'
                                            );
 
