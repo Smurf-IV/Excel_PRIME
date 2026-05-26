@@ -35,7 +35,7 @@
 - [2026-04-27 - V4 - RC3](#2026-04-27---v4---rc3)
 - [2026-05-05 - V4](#2026-05-05---v4)
 - [2026-05-12 - V4 - Bug fixes](#2026-05-12---v4---bug-fixes)
-- [2026-05-25 - V5 - Alpha](#2026-05-25---v5---alpha)
+- [2026-05-26 - V5 - Beta](#2026-05-26---v5---beta)
 <!-- TOC -->
 
 # Intro
@@ -1262,7 +1262,7 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.17x slower | 214000.0000 |  1000.0000 |          - |  2566.1 MB | 13.82x more |
 ```
 
-# 2026-05-25 - V5 - Alpha
+# 2026-05-26 - V5 - Beta
 - ✅ Cell object type 📅
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests
