@@ -285,7 +285,7 @@ Lets take each of the above elements and explain:
 -----
 
 # 2026-05-12 - V4 - Bug fixes
-- Return null when `EndValue` is potted in the xml #22
+- Return null when `EndValue` is spotted in the xml #22
 - Return null for not found SheetId #23
 - Changed CellValue to an abstract base class and removed all [FieldOffset(0)] fields.
 - Introduced internal sealed class CellValue<T> : CellValue to store values of type T without boxing for value types.
@@ -300,20 +300,20 @@ Lets take each of the above elements and explain:
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests
     - ✅ Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
-**Code-Level Optimizations**
+- **Code-Level Optimizations**
    - ✅ Implement `ISpanFormattable` in CellValue
    - ✅ Optimisationm in the Xlsb workflow
    - ✅ Return to the usage of the FieldOffsets to store the BCL type to prevent boxings in the hot paths
    - ✅ Usage of the Fast convertors *i.e. ToDecimal is 3 times faster than Convert.ToDecimal* #20
-**Advanced Scenarios**
+- **Advanced Scenarios**
    - ✅ Enable `PublishTrimmed=true` with trim warnings resolved
    - ✅ Native AOT compilation testing
    - [ ] IAsyncEnumerable stream processing
-**Bug Fixes**
-- Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
-- `AsDecimal` method has an issue where it produces incorrect precision, but only with default options #20
-- When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
-- When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
+- **Bug Fixes**
+    - Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+    - `AsDecimal` method has an issue where it produces incorrect precision, but only with default options #20
+    - When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
+    - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
 
 
 -----
