@@ -492,7 +492,6 @@ public class RowCellTests
 
     [Test]
     [TestCase("Data/ValueTest.xlsx")]
-    [Explicit("V5")]
     public async Task A040_ValuesTypesOfCells(string fileName)
     {
         using Excel_PRIME workbook = new();
@@ -503,7 +502,7 @@ public class RowCellTests
         cell.CellValue?.BoxedValue.Should().BeOfType<int>().And.Be(1);
         cell.CellValue?.AsInt32.Should().Be(1);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(2.3);
+        cell.CellValue?.BoxedValue.Should().BeOfType<decimal>().And.Be(2.2999999999999998m);
         cell.CellValue?.AsDouble.Should().BeApproximately(2.3, 1E-8);
         cell = await row.GetCellAsync(3).ConfigureAwait(false);
         cell.CellValue?.BoxedValue.Should().BeOfType<string>().And.Be("abc");
@@ -527,7 +526,7 @@ public class RowCellTests
         cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
         cell.CellValue?.AsDateTime.Should().Be(new DateTime(2011, 5, 23, 19, 12, 30));
         cell = await row.GetCellAsync(10).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
+        cell.CellValue?.BoxedValue.Should().BeOfType<decimal>().And.Be(2.2999999999999998m);//.Within(0.000001));
         cell = await row.GetCellAsync(11).ConfigureAwait(false);
         cell.CellValue?.AsDouble.Should().Be(3.3);//.Within(0.000001));
         cell = await row.GetCellAsync(12).ConfigureAwait(false);

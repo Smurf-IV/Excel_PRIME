@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace ExcelPRIME.Implementation;
 
 /// <summary>
@@ -39,277 +37,142 @@ internal static class Ecma376StandardProvider
     /// - No per-lookup allocations
     /// - 30-40% faster than Dictionary for read-only workloads
     /// </summary>
-    public static readonly ReadOnlyCollection<CellStyle> BuiltInNumberFormats = new CellStyle[]
+    private static readonly Dictionary<short, CellStyle> s_BuiltInNumberFormats = new()
     {
+        // https://www.google.com/search?client=firefox-b-d&q=ECMA-376+standard+definitions+for+cell+styling+and+formatting&udm=50&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKpaEWjvZ2Py1XXV8d8KvlI3p-ML-906rRL_m6h4jR-tdCH-vUIlZq9RzugLEcfjf51b4dfDKizXS4hTwRCZW2TydVcnv1RUVx0SX0axPgL6aA1y5lH4oIQTHc9n3as9K40uq1ucVlSq7hphXixGrVbAHaxl4xbaQRNq-TBoJwkyHSzWgD1m8zRB8KZ0lvZ8gcgw8mFAQ&aep=10&ntc=1&mstk=AUtExfBrrkIu44uA6v1hpUOfIwA1FLcvSwyztg956PFLmym9H3HLadWU4G_XIO0rT-u62dR5h7RXY_GkFuv7v4I4OZL5QNkTRjQIXv8xu4exjOSxpJaFSHsEdcY6V6KqLol4CdAUjOhjs-LNQpumrnSedMNhM1mj9sXpJacczzMVh3ZxNTbk__HZhQVW1jVUwXXSfgFt5TUtMyLOsgEf33rkyP7eUtEyi5g40Yfoo1aEvTyKiVIF3s4mBIm3sCoYqbg64SPXSkl352KtPBXhamjqL4TrYg7-q21oAqMtRvEDpf_3SSIdiZmhrftahdzX-GspJSSxZsuBwT-J4g&aioh=3&csuir=1&mtid=MTQZasfZPInBhbIPiu6M0Q4
+        // Six implicit/default cell styles (IDs 0-5) that are always present in an ECMA-376 workbook.
+        // These styles are available even if not explicitly defined in styles.xml or styles.bin.
+        // https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/300280fd-e4fe-4675-a924-4d383af48d3b
+        // (Note: IDs 5–8, 23–36, and 41–44 exist in legacy formats or regional variants but are skipped or treated as currency variants in modern standard definitions)
+        // The override formats fall into the following ranges:
+        // 5 to 8
+        // 23 to 26
+        // 41 to 44
+        // 63 to 66
+        // 164 to 392
+
         // General formats
-        new CellStyle { ExcelFormatId = DefaultGeneralFormatId, Formatting = string.Empty, FormattingType = FormattingType.General },
+        { 0, // Default fallback for all cell text/numbers
+            new CellStyle { ExcelFormatId = 0, Formatting = "G", FormattingType = FormattingType.General }},
 
         // Number formats
-        new CellStyle { ExcelFormatId = 1, Formatting = "0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 2, Formatting = "0.00", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 3, Formatting = "#,##0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 4, Formatting = "#,##0.00", FormattingType = FormattingType.Number },
+        { 1, // Integer
+            new CellStyle { ExcelFormatId = 1, Formatting = "0", FormattingType = FormattingType.Number } },
+        { 2, // Two decimal places
+            new CellStyle { ExcelFormatId = 2, Formatting = "0.00", FormattingType = FormattingType.Number } },
+        { 3, // Thousands separator
+            new CellStyle { ExcelFormatId = 3, Formatting = "#,##0", FormattingType = FormattingType.Number } },
+        { 4, // Thousands separator with two decimals
+            new CellStyle { ExcelFormatId = 4, Formatting = "#,##0.00", FormattingType = FormattingType.Number } },
 
         // Currency formats
-        new CellStyle { ExcelFormatId = 5, Formatting = "$#,##0;($#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle
-        {
-            ExcelFormatId = 6, Formatting = "$#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 7, Formatting = "$#,##0;($#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle
-        {
-            ExcelFormatId = 8, Formatting = "$#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency
-        },
+        { 5, // Currency (No cents, negative in parentheses)
+            new CellStyle { ExcelFormatId = 5, Formatting = "$#,##0;($#,##0)", FormattingType = FormattingType.Currency } },
+        { 6, // Currency with two decimals
+            new CellStyle { ExcelFormatId = 6, Formatting = "$#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency } },
+        { 7, // Currency without decimals (negative in parentheses)
+            new CellStyle { ExcelFormatId = 7, Formatting = "$#,##0;($#,##0)", FormattingType = FormattingType.Currency } },
+        { 8, // Currency with two decimals (negative in parentheses)
+            new CellStyle { ExcelFormatId = 8, Formatting = "$#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency } },
+
+        // Percentage notation
+        { 9, // Percentage integer
+            new CellStyle { ExcelFormatId = 9, Formatting = "0%", FormattingType = FormattingType.Percent } },
+        { 10, // Percentage with two decimals
+            new CellStyle { ExcelFormatId = 10, Formatting = "0.00%", FormattingType = FormattingType.Percent } },
 
         // Scientific notation
-        new CellStyle { ExcelFormatId = 9, Formatting = "0.00E+00", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 10, Formatting = "#,##0.0", FormattingType = FormattingType.Number },
+        { 11, // Scientific notation 
+            new CellStyle { ExcelFormatId = 11, Formatting = "0.00E+00", FormattingType = FormattingType.Scientific } },
 
-        // Text format
-        new CellStyle { ExcelFormatId = 11, Formatting = string.Empty, FormattingType = FormattingType.General },
+        // Fraction
+        { 12, // Single-digit fractions
+            new CellStyle { ExcelFormatId = 12, Formatting = "# ?/?", FormattingType = FormattingType.Fraction } },
+        { 13, // Two-digit fractions
+            new CellStyle { ExcelFormatId = 13, Formatting = "# ??/??", FormattingType = FormattingType.Fraction } },
 
         // Time/Date formats
-        new CellStyle { ExcelFormatId = 12, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 13, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 14, Formatting = "mm/dd/yyyy", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 15, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 16, Formatting = "d-mmm", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 17, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 18, Formatting = "h:mm AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 19, Formatting = "h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 20, Formatting = "h:mm", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 21, Formatting = "h:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 22, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime },
+        { 14, // Date and time
+            new CellStyle { ExcelFormatId = 14, Formatting = "m/d/yyyyy", FormattingType = FormattingType.DateOnly } },
+        { 15, // Date only
+            new CellStyle { ExcelFormatId = 15, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly } },
+        { 16, // Date only
+            new CellStyle { ExcelFormatId = 16, Formatting = "d-mmm", FormattingType = FormattingType.DateOnly } },
+        { 17, // Date only
+            new CellStyle { ExcelFormatId = 17, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly } },
+        { 18, // 12-hour clock
+            new CellStyle { ExcelFormatId = 18, Formatting = "h:mm AM/PM", FormattingType = FormattingType.TimeOnly } },
+        { 19, // 12-hour clock with seconds
+            new CellStyle { ExcelFormatId = 19, Formatting = "h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly } },
+        { 20, // 24-hour clock
+            new CellStyle { ExcelFormatId = 20, Formatting = "h:mm", FormattingType = FormattingType.TimeOnly } },
+        { 21, // 24-hour clock with seconds
+            new CellStyle { ExcelFormatId = 21, Formatting = "h:mm:ss", FormattingType = FormattingType.TimeOnly } },
+        { 22, // Date and time
+            new CellStyle { ExcelFormatId = 22, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime } },
 
-        // Additional currency formats (23-36 locale-dependent)
-        new CellStyle { ExcelFormatId = 23, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Number },
-        new CellStyle
-        {
-            ExcelFormatId = 24, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Number
-        },
-        new CellStyle { ExcelFormatId = 25, Formatting = "#,##0;[Red](#,##0)", FormattingType = FormattingType.Number },
-        new CellStyle
-        {
-            ExcelFormatId = 26, Formatting = "#,##0.00;[Red](#,##0.00)", FormattingType = FormattingType.Number
-        },
-        new CellStyle { ExcelFormatId = 27, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 28, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 29, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 30, Formatting = "d/m/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 31, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 32, Formatting = "d-mmm", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 33, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 34, Formatting = "h:mm AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 35, Formatting = "h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 36, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime },
+        // Additional currency formats (23-36 locale-dependent) or "reserved internal!"
+        { 23, // Currency
+            new CellStyle { ExcelFormatId = 23, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Number } },
+        { 24, // Currency with two decimals
+            new CellStyle { ExcelFormatId = 24, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Number } },
+        { 25, // Currency in red
+            new CellStyle { ExcelFormatId = 25, Formatting = "#,##0;[Red](#,##0)", FormattingType = FormattingType.Number } },
+        { 26, // Currency with two decimals in red
+            new CellStyle { ExcelFormatId = 26, Formatting = "#,##0.00;[Red](#,##0.00)", FormattingType = FormattingType.Number } },
+        { 27, // Time only
+            new CellStyle { ExcelFormatId = 27, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly } },
+        { 28, // Time only
+            new CellStyle { ExcelFormatId = 28, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly } },
+        { 29, // Time only
+            new CellStyle { ExcelFormatId = 29, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly } },
+        { 30, // Date only
+            new CellStyle { ExcelFormatId = 30, Formatting = "d/m/yy", FormattingType = FormattingType.DateOnly } },
+        { 31, // Date only
+            new CellStyle { ExcelFormatId = 31, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly } },
+        { 32, // Date only
+            new CellStyle { ExcelFormatId = 32, Formatting = "d-mmm", FormattingType = FormattingType.DateOnly } },
+        { 33, // Date only
+            new CellStyle { ExcelFormatId = 33, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly } },
+        { 34, // Time only
+            new CellStyle { ExcelFormatId = 34, Formatting = "h:mm AM/PM", FormattingType = FormattingType.TimeOnly } },
+        { 35, // Time only
+            new CellStyle { ExcelFormatId = 35, Formatting = "h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly } },
+        { 36, // Date and time
+            new CellStyle { ExcelFormatId = 36, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime } },
 
         // Additional formats (37-49)
-        new CellStyle { ExcelFormatId = 37, Formatting = "#,##0;($#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle
-        {
-            ExcelFormatId = 38, Formatting = "#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 39, Formatting = "#,##0;($#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle
-        {
-            ExcelFormatId = 40, Formatting = "#,##0.00;($#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 41,
-            Formatting = "_(* #,##0_);_(* (#,##0);_(* \"-\"??_);_(@_)",
-            FormattingType = FormattingType.Currency
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 42,
-            Formatting = "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)",
-            FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 43, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 44, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 45, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 46, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 47, Formatting = "mmss.0", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 48, Formatting = "##0.0E0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 49, Formatting = string.Empty, FormattingType = FormattingType.General },
+        { 37, // Positive / Negative accounting layout
+            new CellStyle { ExcelFormatId = 37, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Currency } },
+        { 38, // Negative values highlighted in red
+            new CellStyle { ExcelFormatId = 38, Formatting = "#,##0_);[Red](#,##0)", FormattingType = FormattingType.Currency } },
+        { 39, // Accounting with decimals
+            new CellStyle { ExcelFormatId = 39, Formatting = "#,##0.00_);(#,##0.00)", FormattingType = FormattingType.Currency } },
+        { 40, // Decimals + negative red text
+            new CellStyle { ExcelFormatId = 40, Formatting = "#,##0.00_);[Red](#,##0.00)", FormattingType = FormattingType.Currency } },
+        { 41, // Standard currency symbol alignment block
+            new CellStyle { ExcelFormatId = 41, Formatting = "_(* #,##0_);_(* (#,##0);_(* \"-\"??_);_(@_)", FormattingType = FormattingType.Currency } },
+        { 42, // Left-aligned variable accounting whitespace
+            new CellStyle { ExcelFormatId = 42, Formatting = "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)", FormattingType = FormattingType.Currency } },
+        { 43, // Currency layout tracking precise cents spacing
+            new CellStyle { ExcelFormatId = 43, Formatting = "_($* #,##0.00_);_($* (#,##0.00);_($* \"-\"??_);_(@_)", FormattingType = FormattingType.Currency } },
+        { 44, // Clean decimal variable aligned currency format
+            new CellStyle { ExcelFormatId = 44, Formatting = "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)", FormattingType = FormattingType.Currency } },
 
-        // Extended formats (50-164)
-        new CellStyle { ExcelFormatId = 50, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 51, Formatting = "0.00%", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 52, Formatting = "0.00%", FormattingType = FormattingType.Number },
-        new CellStyle
-        {
-            ExcelFormatId = 53, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 54, Formatting = "#,##0.00;[Red](#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 55, Formatting = "mm:ss;[Red]mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 56, Formatting = "0.00E+0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 57, Formatting = "# ?/?", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 58, Formatting = "# ??/??", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 59, Formatting = "m/d/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 60, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 61, Formatting = "d-mmm", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 62, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 63, Formatting = "h:mm AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 64, Formatting = "h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 65, Formatting = "h:mm", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 66, Formatting = "h:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 67, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime },
+        { 45, // Minutes and seconds
+            new CellStyle { ExcelFormatId = 45, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly } },
+        { 46, // Elapsed time (hours can exceed 24)
+            new CellStyle { ExcelFormatId = 46, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly } },
+        { 47, // Split-second duration
+            new CellStyle { ExcelFormatId = 47, Formatting = "mmss.0", FormattingType = FormattingType.TimeOnly } },
 
-        new CellStyle { ExcelFormatId = 68, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 69, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 70, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 71, Formatting = "##0.0E+0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 72, Formatting = string.Empty, FormattingType = FormattingType.General },
-        new CellStyle { ExcelFormatId = 73, Formatting = "0.00E+00", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 74, Formatting = "# ?/?", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 75, Formatting = "# ??/??", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 76, Formatting = "m/d/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 77, Formatting = "d/m/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 78, Formatting = "d.m.yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 79, Formatting = "d.m.yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 80, Formatting = "d. mmm. yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 81, Formatting = "dddd, d. mmmm yyyy", FormattingType = FormattingType.DateOnly
-        },
-        new CellStyle { ExcelFormatId = 82, Formatting = "yyyy-m-d", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 83, Formatting = "yyyy-m-d h:mm:ss", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 84, Formatting = "d/m/yy h:mm:ss", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 85, Formatting = "d/m/yyyy h:mm:ss", FormattingType = FormattingType.DateTime },
-        new CellStyle
-        {
-            ExcelFormatId = 86, Formatting = "#,##0.0;(#,##0.0)", FormattingType = FormattingType.Currency
-        },
+        { 48, // Alternate scientific notation
+            new CellStyle { ExcelFormatId = 48, Formatting = "##0.0E0", FormattingType = FormattingType.Scientific } },
+        { 49, // Forces values to render purely as text
+            new CellStyle { ExcelFormatId = 49, Formatting = string.Empty, FormattingType = FormattingType.General } },
 
-        new CellStyle
-        {
-            ExcelFormatId = 87, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 88, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle { ExcelFormatId = 89, Formatting = "0.0%", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 90, Formatting = "0%", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 91, Formatting = "[DBNum1][$-804]0", FormattingType = FormattingType.General },
-        new CellStyle { ExcelFormatId = 92, Formatting = "[DBNum1][$-804]0", FormattingType = FormattingType.General },
-        new CellStyle { ExcelFormatId = 93, Formatting = "[DBNum1][$-804]0", FormattingType = FormattingType.General },
-        new CellStyle { ExcelFormatId = 94, Formatting = "[DBNum4][$-804]0", FormattingType = FormattingType.General },
-        new CellStyle { ExcelFormatId = 95, Formatting = "mm/dd/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 96, Formatting = "yyyy/m/d", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 97, Formatting = "d MMM yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 98, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 99, Formatting = "d MMMM yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 100, Formatting = "mm-dd", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 101, Formatting = "mm-dd-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 102, Formatting = "mm-dd-yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 103, Formatting = "dd-mm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 104, Formatting = "dd-mm-yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 105, Formatting = "mm-dd-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 106, Formatting = "dd-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 107, Formatting = "mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 108, Formatting = "mmmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 109, Formatting = "m/d/yy h:mm", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 110, Formatting = "d/m/yy h:mm", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 111, Formatting = "d/m/yyyy h:mm", FormattingType = FormattingType.DateTime },
-        new CellStyle { ExcelFormatId = 112, Formatting = "d/m/yy h:mm:ss", FormattingType = FormattingType.DateTime },
-        new CellStyle
-        {
-            ExcelFormatId = 113, Formatting = "yyyy-m-d h:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle { ExcelFormatId = 114, Formatting = "dd-mmm-yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 115, Formatting = "dd/mmm/yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 116, Formatting = "dd MMMM yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 117, Formatting = "d. MMMM yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 118, Formatting = "mm/dd/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 119, Formatting = "yyyy-mm-dd", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 120, Formatting = "dd/mm/yyyy h:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle { ExcelFormatId = 121, Formatting = "mmmm d, yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 122, Formatting = "d MMMM, yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 123, Formatting = "mmmm d, yyyy h:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 124, Formatting = "#,##0.0;(#,##0.0)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 126, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 127, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle
-        {
-            ExcelFormatId = 128, Formatting = "#,##0.0;(#,##0.0)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 129, Formatting = "#,##0.00;(#,##0.00)", FormattingType = FormattingType.Currency
-        },
-        new CellStyle { ExcelFormatId = 130, Formatting = "#,##0;(#,##0)", FormattingType = FormattingType.Currency },
-        new CellStyle { ExcelFormatId = 131, Formatting = "0.0%", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 132, Formatting = "0%", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 133, Formatting = "0.00E+00", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 134, Formatting = "0.00E+00", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 135, Formatting = "mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 136, Formatting = "[h]:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 137, Formatting = "mm:ss.0", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 138, Formatting = "##0.0E+0", FormattingType = FormattingType.Number },
-        new CellStyle { ExcelFormatId = 139, Formatting = string.Empty, FormattingType = FormattingType.General },
-        new CellStyle
-        {
-            ExcelFormatId = 140, Formatting = "yyyy-mm-dd hh:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle { ExcelFormatId = 141, Formatting = "g/m/d", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 142, Formatting = "ge.m.d", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 143, Formatting = "gg", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 144, Formatting = "ggg", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 145, Formatting = "[$-409]h:mm AM/PM", FormattingType = FormattingType.TimeOnly
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 146, Formatting = "[$-409]h:mm:ss AM/PM", FormattingType = FormattingType.TimeOnly
-        },
-        new CellStyle { ExcelFormatId = 147, Formatting = "[$-409]h:mm", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 148, Formatting = "[$-409]h:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 149, Formatting = "[$-409]M/d/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 150, Formatting = "[$-409]d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 151, Formatting = "[$-409]d-mmm", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 152, Formatting = "[$-409]mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 153, Formatting = "[$-409]m/d/yy h:mm", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle { ExcelFormatId = 154, Formatting = "mm/dd/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 155, Formatting = "d/m/yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 156, Formatting = "dd/mm/yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 157, Formatting = "mm/dd/yyyy", FormattingType = FormattingType.DateOnly },
-        new CellStyle { ExcelFormatId = 158, Formatting = "d-mmm-yy", FormattingType = FormattingType.DateOnly },
-        new CellStyle
-        {
-            ExcelFormatId = 159, Formatting = "ddd, mmmm dd, yyyy", FormattingType = FormattingType.DateOnly
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 160, Formatting = "mm/dd/yyyy h:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle
-        {
-            ExcelFormatId = 161, Formatting = "yyyy-mm-dd'T'hh:mm:ss", FormattingType = FormattingType.DateTime
-        },
-        new CellStyle { ExcelFormatId = 162, Formatting = "hh:mm:ss", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 163, Formatting = "hh:mm:ss.000", FormattingType = FormattingType.TimeOnly },
-        new CellStyle { ExcelFormatId = 164, Formatting = "h:mm:ss.00", FormattingType = FormattingType.TimeOnly }
-}.AsReadOnly();
+        // Extended formats (50-164) - These vary by region and cannot be pre-defined!!
+    };
 
     /// <summary>
     /// Gets the formatting type for the specified format ID.
@@ -319,20 +182,20 @@ internal static class Ecma376StandardProvider
     /// <returns>True if the format ID is found; otherwise false.</returns>
     public static bool TryGetFormattingType(short formatId, out FormattingType formattingType)
     {
-        if (IsBuiltInFormat(formatId))
+        if (s_BuiltInNumberFormats.TryGetValue(formatId, out CellStyle? style))
         {
-            formattingType = BuiltInNumberFormats[formatId].FormattingType;
+            formattingType = style.FormattingType;
             return true;
         }
-        formattingType = BuiltInNumberFormats[DefaultGeneralFormatId].FormattingType;
+        formattingType = FormattingType.General;
         return false;
     }
 
     public static bool TryGetCellStyle(short formatId, out CellStyle? style)
     {
-        if (IsBuiltInFormat(formatId))
+        if (s_BuiltInNumberFormats.TryGetValue(formatId, out CellStyle? cellStyle))
         {
-            style = BuiltInNumberFormats[formatId];
+            style = cellStyle;
             return true;
         }
         style = null;
@@ -363,9 +226,10 @@ internal static class Ecma376StandardProvider
     /// <returns>True if the format ID is found; otherwise false.</returns>
     public static bool TryGetBuiltInNumberFormat(short formatId, out string formatCode)
     {
-        if (IsBuiltInFormat(formatId))
+        if (s_BuiltInNumberFormats.TryGetValue(formatId, out CellStyle? cellStyle))
         {
-            formatCode = BuiltInNumberFormats[formatId].Formatting!;
+            formatCode = cellStyle.Formatting!;
+            return true;
         }
         formatCode = string.Empty;
         return false;
@@ -390,10 +254,10 @@ internal static class Ecma376StandardProvider
     /// <returns>True if the format ID is found; otherwise false.</returns>
     public static bool TryGetFormat(short formatId, out string formatCode, out FormattingType formattingType)
     {
-        if (IsBuiltInFormat(formatId))
+        if (s_BuiltInNumberFormats.TryGetValue(formatId, out CellStyle? cellStyle))
         {
-            formatCode = BuiltInNumberFormats[formatId].Formatting!;
-            formattingType = BuiltInNumberFormats[formatId].FormattingType;
+            formatCode = cellStyle.Formatting!;
+            formattingType = cellStyle.FormattingType;
             return true;
         }
         formatCode = string.Empty;
@@ -416,18 +280,8 @@ internal static class Ecma376StandardProvider
     /// </summary>
     /// <param name="formatId">The format ID to check.</param>
     /// <returns>True if the format ID is a built-in format; otherwise false.</returns>
-    public static bool IsBuiltInFormat(short formatId) => (BuiltInFormatCount > formatId && formatId >= DefaultGeneralFormatId);
+    public static bool IsBuiltInFormat(short formatId) => s_BuiltInNumberFormats.ContainsKey(formatId);
 
-
-    /// <summary>
-    /// Gets the count of built-in number formats.
-    /// </summary>
-    public static int BuiltInFormatCount => BuiltInNumberFormats.Count;
-
-    /// <summary>
-    /// Gets the ID of the default general number format.
-    /// </summary>
-    public static short DefaultGeneralFormatId => 0;
 
     /// <summary>
     /// Validates whether a format code follows ECMA-376 conventions.
@@ -466,40 +320,6 @@ internal static class Ecma376StandardProvider
         }
     }
 
-    /// <summary>
-    /// Gets information about ECMA-376 standard.
-    /// </summary>
-    public static class StandardInfo
-    {
-        /// <summary>
-        /// Gets the ECMA-376 standard version implemented.
-        /// </summary>
-        public static string Version => "ECMA-376-1:2016, ECMA-376-2:2015";
-
-        /// <summary>
-        /// Gets the title of the standard.
-        /// </summary>
-        public static string Title => "Office Open XML (OOXML) File Formats";
-
-        /// <summary>
-        /// Gets the URL to the official ECMA-376 standard documentation.
-        /// </summary>
-        public static string DocumentationUrl => "https://www.ecma-international.org/publications-and-standards/standards/ecma-376/";
-
-        /// <summary>
-        /// Gets a description of the built-in number formats.
-        /// </summary>
-        public static string NumberFormatsDescription =>
-            "Built-in number format codes as defined in ECMA-376 Section 18.8.30 and Excel extensions. " +
-            "Format IDs 0-49 are the standard ECMA-376 built-in formats. " +
-            "Format IDs 50-164 are extended formats including locale-dependent variants. " +
-            "Custom formats use IDs starting from 165.";
-
-        /// <summary>
-        /// Gets a description of the default cell styles.
-        /// </summary>
-        public static string DefaultStylesDescription =>
-            "Six implicit/default cell styles (IDs 0-5) that are always present in an ECMA-376 workbook. " +
-            "These styles are available even if not explicitly defined in styles.xml or styles.bin.";
-    }
+    public static Dictionary<short, CellStyle> GetDefaultStyles()
+        => new Dictionary<short, CellStyle>(s_BuiltInNumberFormats);
 }

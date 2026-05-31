@@ -140,26 +140,67 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         return PerformDecimalConversion(asSpan, styleStyleXmlRef, isDateStyle);
     }
 
+    /// <summary>
+    /// Memory Overlay Method: The fastest possible scalar implementation.
+    /// It compiles down to highly optimised sequential register instructions with zero branching or division bottlenecks.
+    /// </summary>
+    private static (bool, double) IsExactlyDouble(ref decimal d)
+    {
+        // 1. Hardware-accelerated cast to double (takes ~1-2 CPU cycles)
+        double db = (double)d;
+
+        // 2. Perform the reverse cast. .NET 8/9 heavily optimizes this 
+        // down to highly efficient internal runtime vector/register loops.
+        decimal roundTripped = (decimal)db;
+
+        // 3. CRITICAL OPTIMIZATION: Do NOT use `d == roundTripped`.
+        // The decimal '==' operator calls a heavy internal runtime function 
+        // that normalises scales and signs. Instead, do a raw 128-bit memory comparison.
+        ref int left = ref Unsafe.As<decimal, int>(ref d);
+        ref int right = ref Unsafe.As<decimal, int>(ref roundTripped);
+
+        // Compare the 4 underlying 32-bit integers directly.
+        // The JIT transforms this into ultra-fast SIMD/vector or 64-bit register comparisons.
+        return (Unsafe.Add(ref left, 0) == Unsafe.Add(ref right, 0) 
+                && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) 
+                && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) 
+                && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3),
+            db);
+    }
+
     private static CellValue PerformDecimalConversion(ReadOnlySpan<char> asSpan, short style, bool isDateStyle)
     {
         if (asSpan.TryDecimalParse(out decimal resultM))
         {
             // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
-            return isDateStyle
-                ? CellValue.Create(DateTime.FromOADate((double)resultM), style)
+            if (isDateStyle)
+            {
+                return CellValue.Create(DateTime.FromOADate((double)resultM), style);
+            }
+            if(decimal.IsInteger(resultM))
+            {
+                return CellValue.Create((int)resultM, style);
+            }
+            // If the decimal can be exactly represented as a double, store it as a double for better performance on numeric operations
+            var (isExactDouble, doubleValue) = IsExactlyDouble(ref resultM);
+            return isExactDouble
+                ? CellValue.Create(doubleValue, style)
                 : CellValue.Create(resultM, style);
         }
         if (asSpan.TryDoubleParse(out double resultD))
         {
             //   	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
+            if (isDateStyle)
+            {
+                return CellValue.Create(DateTime.FromOADate(resultD), style);
+            }
+            if (double.IsInteger(resultD))
+            {
+                return CellValue.Create((int)resultD, style);
+            }
             return isDateStyle
                 ? CellValue.Create(DateTime.FromOADate(resultD), style)
                 : CellValue.Create(resultD, style);
-        }
-        // If the format is a date style, and parsing as decimal/double failed, attempt a direct double parse to OA date
-        if (isDateStyle && double.TryParse(asSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedD))
-        {
-            return CellValue.Create(DateTime.FromOADate(parsedD), style);
         }
         return CellValue.Create(new string(asSpan), style);
     }

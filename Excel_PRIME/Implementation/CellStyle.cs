@@ -5,6 +5,9 @@ public enum FormattingType
 {
     General,
     Number,
+    Percent,
+    Scientific,
+    Fraction,
     Currency,
     DateTime,
     DateOnly,

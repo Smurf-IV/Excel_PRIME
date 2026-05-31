@@ -1,18 +1,27 @@
-﻿# 2026-05-26 - V5 - Beta
+﻿# 2026-05-31 - V5 - Alpha
+- ⛓️‍💥 **Breaking Change(s)**
+    - Cell base type will resolve to decimal first before attempting double. #20
 - ✅ Cell object type 📅
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests
     - ✅ Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+    - Fixup `Ecma376StandardProvider`
+    - Fix the `StylesExtractor`'s
+    - Add more `cellStyles`
+    - Make the CellVaule default to the lowest type rather than sticking with `decimal`
 - **Code-Level Optimizations**
    - ✅ Implement `ISpanFormattable` in CellValue
    - ✅ Optimisationm in the Xlsb workflow
    - ✅ Return to the usage of the FieldOffsets to store the BCL type to prevent boxings in the hot paths
-   - ✅ Usage of the Fast convertors *i.e. ToDecimal is 3 times faster than Convert.ToDecimal* #20
+   - ✅ Usage of the Fast convertors *i.e.Our ToDecimal is 3 times faster than Convert.ToDecimal* #20
+    - Some compile warnings
 - **Advanced Scenarios**
    - ✅ Enable `PublishTrimmed=true` with trim warnings resolved
    - ✅ Native AOT compilation testing
 - **Bug Fixes**
     - Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
-    - `AsDecimal` method has an issue where it produces incorrect precision, but only with default options #20
+    - `AsDecimal` method had an issue where it produces incorrect precision, but only with default options #20
     - When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
     - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
+    - Update BugTesting
+- Switch to publish on `nugetTest`

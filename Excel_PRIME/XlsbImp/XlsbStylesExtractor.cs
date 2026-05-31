@@ -13,7 +13,7 @@ namespace ExcelPRIME.XlsbImp;
 internal sealed class XlsbStylesExtractor : IDisposable
 {
     private readonly IZipReader _zipReader;
-    private readonly Dictionary<short, string> _numberFormats = [];
+    private readonly Dictionary<short, CellStyle> _numberFormats = Ecma376StandardProvider.GetDefaultStyles();
     private readonly Dictionary<short, CellStyle> _cellStyles = [];
     private bool _isDisposed;
 
@@ -149,13 +149,14 @@ internal sealed class XlsbStylesExtractor : IDisposable
         try
         {
             short numFmtId = record.GetInt16(0);
-            // The format code string starts at offset 4
-            string? formatCode = ParseStringFromRecord(record, 4);
+            string? formatCode = ParseStringFromRecord(record, 2);
 
-            if (formatCode != null)
+            _numberFormats[numFmtId] = new CellStyle
             {
-                _numberFormats[numFmtId] = formatCode;
-            }
+                ExcelFormatId = numFmtId,
+                Formatting = formatCode,
+                //FormattingType = // TODO: check if it contains magic for dates (i,e, locale stuff as well!)
+            };
         }
         catch (Exception)
         {
@@ -186,19 +187,10 @@ internal sealed class XlsbStylesExtractor : IDisposable
                 Ecma376StandardProvider.TryGetCellStyle(numFmtId, out style);
             }
 
-            if(style == null)
+            if (style == null)
             {
-                //style.ApplyNumberFormat = true;
-
-                // Look up the format code
-                if (_numberFormats.TryGetValue(numFmtId, out string? formatCode))
-                {
-                    style = new CellStyle
-                    {
-                        ExcelFormatId = numFmtId,
-                        Formatting = formatCode
-                    };
-                }
+                _numberFormats.TryGetValue(numFmtId, out style);
+                style ??= Ecma376StandardProvider.GetCellStyle(0);
             }
 
             _cellStyles[styleIndex] = style!;
@@ -217,23 +209,6 @@ internal sealed class XlsbStylesExtractor : IDisposable
         try
         {
             value = record.GetInt16(offset);
-            return true;
-        }
-        catch
-        {
-            value = 0;
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Tries to get a single byte from the record at the specified offset.
-    /// </summary>
-    private static bool TryGetByte(PooledRecordBuffer record, int offset, out byte value)
-    {
-        try
-        {
-            value = record.GetByte(offset);
             return true;
         }
         catch

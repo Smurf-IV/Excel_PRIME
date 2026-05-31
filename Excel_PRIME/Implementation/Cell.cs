@@ -127,7 +127,7 @@ internal sealed record Cell : ICell
                                 goto setter;
                             }
                             CellStyle? cellStyle = null;
-                            if (!instanceContext?.CellStyles?.TryGetValue(style, out cellStyle) ?? true)
+                            if (instanceContext.CellStyles?.TryGetValue(style, out cellStyle) == false)
                             {
                                 cellStyle = null;
                             }

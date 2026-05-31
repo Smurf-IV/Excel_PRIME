@@ -29,8 +29,8 @@ internal sealed record XlsbCell : ICell
             case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
                 {
                     double d = reader.GetDouble(8);
-                    if ((instanceContext?.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) ?? false)
-                        && cellStyle.IsDateStyle
+                    if ((instanceContext.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) == true)
+                        && cellStyle?.IsDateStyle == true
                        )
                     {
                         (cellType, cellValue) = (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
@@ -75,13 +75,12 @@ internal sealed record XlsbCell : ICell
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static (CellType, CellValue) MagicConvertRK(PooledRecordBuffer record, short styleRef, InstanceContext instanceContext)
     {
+        // Extract and process the RK value in a single optimized path
         int rk = record.GetInt32(8);
 
-        // Extract and process the RK value in a single optimized path
-        bool isFloat = (rk & 0x02) == 0;
         double d;
 
-        if (isFloat)
+        if ((rk & 0x02) == 0) // isFloat
         {
             // Float encoding: mask off the type bits and shift to 64-bit representation
             long v = rk & 0xfffffffc;
@@ -100,15 +99,16 @@ internal sealed record XlsbCell : ICell
             d /= 100.0;  // Explicit double to ensure double division
         }
 
-        if ((instanceContext?.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) ?? false)
-            && cellStyle.IsDateStyle
+        if ((instanceContext.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) == true)
+            && cellStyle?.IsDateStyle == true
             )
         {
             return (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
         }
-        return isFloat 
-            ? (CellType.Numeric, CellValue.Create(d, styleRef))
-            : (CellType.Numeric, CellValue.Create((int)d, styleRef));
+
+        return double.IsInteger(d)
+            ? (CellType.Numeric, CellValue.Create((int)d, styleRef))
+            : (CellType.Numeric, CellValue.Create(d, styleRef));
     }
 
     /// <InheritDoc />

@@ -32,10 +32,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices= await workbook.GetDefinedRangeAsync("Prices").ToArrayAsync();
         prices.Should().HaveCount(4);
-        prices[0][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
-        prices[1][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
-        prices[2][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
-        prices[3][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
+        prices[0][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(5);
+        prices[1][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(4);
+        prices[2][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(15);
+        prices[3][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(9);
     }
 
     [Test]
@@ -50,10 +50,10 @@ internal class DefinedRangeTestsXlsb
         // Now do <definedName name="Prices">Sheet1!$A$1:$A$4</definedName>
         CellValue?[][] prices = workbook.GetDefinedRange("Prices").ToArray();
         prices.Should().HaveCount(4);
-        prices[0][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(5);
-        prices[1][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(4);
-        prices[2][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(15);
-        prices[3][0]?.BoxedValue.Should().BeOfType<double>().Which.Should().Be(9);
+        prices[0][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(5);
+        prices[1][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(4);
+        prices[2][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(15);
+        prices[3][0]?.BoxedValue.Should().BeOfType<int>().Which.Should().Be(9);
     }
 
     [Test]
