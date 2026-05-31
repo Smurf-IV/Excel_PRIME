@@ -62,5 +62,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: PushNuget
-      run: dotnet nuget push **/*.nupkg --source https://api.nugettest.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
+      run: dotnet nuget push **/*.nupkg --source https://int.nugettest.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
 
