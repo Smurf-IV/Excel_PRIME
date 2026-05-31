@@ -40,16 +40,16 @@ internal sealed class StylesExtractor : IDisposable
             {
                 return _cellStyles;
             }
-            var doc = new XmlDocument();
+            XmlDocument doc = new();
             doc.Load(styleStream);
             if (doc.DocumentElement == null)
             {
                 throw new InvalidDataException();
             }
-            var nsm = new XmlNamespaceManager(doc.NameTable);
-            var ns = doc.DocumentElement.NamespaceURI;
+            XmlNamespaceManager nsm = new(doc.NameTable);
+            string ns = doc.DocumentElement.NamespaceURI;
             nsm.AddNamespace("x", ns);
-            var nodes = doc.SelectNodes("/x:styleSheet/x:numFmts/x:numFmt", nsm);
+            XmlNodeList? nodes = doc.SelectNodes("/x:styleSheet/x:numFmts/x:numFmt", nsm);
 
             if (nodes != null)
             {
@@ -61,7 +61,7 @@ internal sealed class StylesExtractor : IDisposable
             XmlElement? xfsElem = (XmlElement?)doc.SelectSingleNode("/x:styleSheet/x:cellXfs", nsm);
             if (xfsElem != null)
             {
-                var cellNodes = xfsElem.ChildNodes.OfType<XmlElement>();
+                IEnumerable<XmlElement> cellNodes = xfsElem.ChildNodes.OfType<XmlElement>();
                 short styleIndex = 0;
 
                 foreach ( XmlElement cellNode in cellNodes)

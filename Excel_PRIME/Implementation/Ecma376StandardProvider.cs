@@ -321,5 +321,5 @@ internal static class Ecma376StandardProvider
     }
 
     public static Dictionary<short, CellStyle> GetDefaultStyles()
-        => new Dictionary<short, CellStyle>(s_BuiltInNumberFormats);
+        => new(s_BuiltInNumberFormats);
 }

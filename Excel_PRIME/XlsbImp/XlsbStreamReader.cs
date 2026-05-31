@@ -101,7 +101,7 @@ internal sealed class XlsbStreamReader
             )
         {
             return new PooledRecordBuffer(recordType, succeeded: recordType != RecordTypeIdentifier.EOF);
-    }
+        }
 
         try
         {
@@ -137,7 +137,7 @@ internal sealed class XlsbStreamReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool ReadRecordType(out RecordTypeIdentifier recordType)
     {
-        if (CarefulFieldRead( out uint value))
+        if (CarefulFieldRead(out uint value))
         {
             recordType = (RecordTypeIdentifier)value;
             return true;

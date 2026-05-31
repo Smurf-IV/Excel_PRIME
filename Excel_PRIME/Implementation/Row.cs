@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -117,7 +118,12 @@ internal sealed class Row : IRowAsync
     /// <InheritDoc />
     public int RowOffset { get; private set; }
 
-    private const int BufferSize = 512;
+    // Reduced per-row ReadValueChunk buffer size (down to 128) to lower rented char[] pressure.
+    private const int BufferSize = 128;
+
+    // Cache a single DBNull Cell per column offset to avoid per-row allocations when filling
+    // default DBNull cells. Column offset is 1-based so cache key uses that directly.
+    private static readonly ConcurrentDictionary<int, Cell> s_dbNullCellPerColumn = new();
 
     /// <summary>
     /// Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
@@ -191,11 +197,15 @@ internal sealed class Row : IRowAsync
             {
                 for (int index = 0; index < localCells.Length; index++)
                 {
-                    localCells[index] ??= new Cell
+                    if (localCells[index] == null)
                     {
-                        CellValue = CellValue.GetDBNull(0),
-                        ExcelColumnOffset = index + 1
-                    };
+                        int col = index + 1;
+                        localCells[index] = s_dbNullCellPerColumn.GetOrAdd(col, key => new Cell
+                        {
+                            CellValue = CellValue.GetDBNull(0),
+                            ExcelColumnOffset = key
+                        });
+                    }
                 }
             }
             // publish parsed cells once fully read to avoid partial-visible state
@@ -271,11 +281,15 @@ internal sealed class Row : IRowAsync
             {
                 for (int index = 0; index < localCells.Length; index++)
                 {
-                    localCells[index] ??= new Cell
+                    if (localCells[index] == null)
                     {
-                        CellValue = CellValue.GetDBNull(0),
-                        ExcelColumnOffset = index + 1
-                    };
+                        int col = index + 1;
+                        localCells[index] = s_dbNullCellPerColumn.GetOrAdd(col, key => new Cell
+                        {
+                            CellValue = CellValue.GetDBNull(0),
+                            ExcelColumnOffset = key
+                        });
+                    }
                 }
             }
             _cells = localCells;

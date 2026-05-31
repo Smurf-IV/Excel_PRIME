@@ -28,10 +28,14 @@ internal static class SIMDHelper
     public static bool AnyGreaterThan(ReadOnlySpan<double> values, double threshold)
     {
         if (values.IsEmpty)
+        {
             return false;
+        }
 
         if (!s_supportsAvx2)
+        {
             return AnyGreaterThan_Scalar(values, threshold);
+        }
 
         int i = 0;
         int vectorCount = Vector256<double>.Count;
@@ -53,14 +57,18 @@ internal static class SIMDHelper
 
             // If any comparison result is true (all 1 bits), we found a match
             if (Avx.MoveMask(gtThreshold) != 0)
+            {
                 return true;
+            }
         }
 
         // Scalar fallback for remaining elements
         for (; i < values.Length; i++)
         {
             if (values[i] > threshold)
+            {
                 return true;
+            }
         }
 
         return false;
@@ -75,7 +83,9 @@ internal static class SIMDHelper
         foreach (double value in values)
         {
             if (value > threshold)
+            {
                 return true;
+            }
         }
         return false;
     }
@@ -91,10 +101,14 @@ internal static class SIMDHelper
     public static int CountGreaterThan(ReadOnlySpan<double> values, double threshold)
     {
         if (values.IsEmpty)
+        {
             return 0;
+        }
 
         if (!s_supportsAvx2)
+        {
             return CountGreaterThan_Scalar(values, threshold);
+        }
 
         int count = 0;
         int i = 0;
@@ -123,7 +137,9 @@ internal static class SIMDHelper
         for (; i < values.Length; i++)
         {
             if (values[i] > threshold)
+            {
                 count++;
+            }
         }
 
         return count;
@@ -139,7 +155,9 @@ internal static class SIMDHelper
         foreach (double value in values)
         {
             if (value > threshold)
+            {
                 count++;
+            }
         }
         return count;
     }
@@ -163,10 +181,14 @@ internal static class SIMDHelper
     public static double Sum(ReadOnlySpan<double> values)
     {
         if (values.IsEmpty)
+        {
             return 0.0;
+        }
 
         if (!s_supportsAvx2)
+        {
             return Sum_Scalar(values);
+        }
 
         // Initialize accumulator vector with zeros
         Vector256<double> accumulator = Vector256<double>.Zero;
@@ -222,10 +244,14 @@ internal static class SIMDHelper
     public static double Min(ReadOnlySpan<double> values)
     {
         if (values.IsEmpty)
+        {
             return double.MaxValue;
+        }
 
         if (!s_supportsAvx2)
+        {
             return Min_Scalar(values);
+        }
 
         Vector256<double> minVec = Vector256.Create(double.MaxValue);
         int i = 0;
@@ -281,10 +307,14 @@ internal static class SIMDHelper
     public static double Max(ReadOnlySpan<double> values)
     {
         if (values.IsEmpty)
+        {
             return double.MinValue;
+        }
 
         if (!s_supportsAvx2)
+        {
             return Max_Scalar(values);
+        }
 
         Vector256<double> maxVec = Vector256.Create(double.MinValue);
         int i = 0;

@@ -3,24 +3,27 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Diagnostics.CodeAnalysis;
 
 using ExcelPRIME.FromExternal;
 
-namespace ExcelPRIME.Implementation;
+
+namespace ExcelPRIME.Implementation; 
 
 internal sealed class Sheet : ISheetAsync
 {
     private bool _isDisposed;
-    private readonly IOpenXmlReaderHelpersAsync _xmlReaderHelper;
+    [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", Justification = "IOpenXmlReaderHelpersAsync is owned by Excel_PRIME and shared across sheets; disposing it here would break shared resources.")]
+    private readonly IOpenXmlReaderHelpersAsync _xmlSharedReaderHelper;
     private readonly InstanceContext _instanceContext;
     private readonly XmlNameTable _sharedNameTable;
     private readonly NonClosingStream _stream;
     private IOpenXmlSheetReaderAsync? _sheetReader;
 
-    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlReaderHelper, string name, InstanceContext instanceContext)
+    internal Sheet(Stream stream, IOpenXmlReaderHelpersAsync xmlSharedReaderHelper, string name, InstanceContext instanceContext)
     {
         _stream = new NonClosingStream(stream);
-        _xmlReaderHelper = xmlReaderHelper;
+        _xmlSharedReaderHelper = xmlSharedReaderHelper;
         _instanceContext = instanceContext;
         _sharedNameTable = new SheetRestrictedNameTable();
         Name = name;
@@ -34,7 +37,7 @@ internal sealed class Sheet : ISheetAsync
     {
         get
         {
-            _sheetReader ??= (IOpenXmlSheetReaderAsync)_xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
+            _sheetReader ??= (IOpenXmlSheetReaderAsync)_xmlSharedReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
 
             return _sheetReader.SheetDimensions;
         }
@@ -195,7 +198,7 @@ internal sealed class Sheet : ISheetAsync
                 }
             }
 
-            _sheetReader = await _xmlReaderHelper.CreateSheetReaderAsync(_stream, _instanceContext, _sharedNameTable, ct).ConfigureAwait(false);
+            _sheetReader = await _xmlSharedReaderHelper.CreateSheetReaderAsync(_stream, _instanceContext, _sharedNameTable, ct).ConfigureAwait(false);
         }
         while (_sheetReader.CurrentRow < startRow)
         {
@@ -225,7 +228,7 @@ internal sealed class Sheet : ISheetAsync
                 }
             }
 
-            _sheetReader = (IOpenXmlSheetReaderAsync)_xmlReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, ct);
+            _sheetReader = (IOpenXmlSheetReaderAsync)_xmlSharedReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, ct);
         }
         while (_sheetReader.CurrentRow < startRow
                && !ct.IsCancellationRequested)
@@ -242,8 +245,12 @@ internal sealed class Sheet : ISheetAsync
             if (isDisposing)
             {
                 _sheetReader?.Dispose();
+                _stream.CloseInnerStream();
                 _stream.Dispose();
-                _xmlReaderHelper.Dispose();
+                // Note: _xmlReaderHelper is managed by Excel_PRIME, not by Sheet.
+                // Sheet is a consumer of xmlReaderHelper, not its owner.
+                // Disposing it here causes issues with shared resources like TempFile
+                // that are still referenced by other components (e.g., SharedStrings).
             }
 
             _isDisposed = true;

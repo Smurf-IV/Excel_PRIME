@@ -13,8 +13,10 @@ internal static class ThreadStringBuilderPool
     [ThreadStatic]
     private static StringBuilder? t_builder;
 
-    private const int InitialCapacity = 512;
-    private const int MaxPooledCapacity = 2048;
+    // Use a smaller initial capacity to avoid allocating large char[] for typical small cell text.
+    private const int InitialCapacity = 128;
+    // Keep a modest max pooled capacity to avoid retaining large buffers across requests.
+    private const int MaxPooledCapacity = 1024;
 
     public static StringBuilder Rent()
     {

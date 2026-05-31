@@ -251,7 +251,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
-        DefinedRange definedRange = new DefinedRange(range, sheetName);
+        DefinedRange definedRange = new(range, sheetName);
 
         await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
@@ -267,7 +267,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
-        DefinedRange definedRange = new DefinedRange(range, sheetName);
+        DefinedRange definedRange = new(range, sheetName);
 
         foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
@@ -359,11 +359,12 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             {
                 _instanceContext.SharedStrings?.Dispose();
                 _instanceContext.SharedStrings = null;
+                _zipReader.Dispose();
+                _xmlReaderHelper.Dispose();
                 foreach ((string _, TempFile tf) in _sheetFiles)
                 {
                     tf.Dispose();
                 }
-                _zipReader.Dispose();
                 _fs?.Dispose();
                 _fs = null;
                 _locker.Dispose();

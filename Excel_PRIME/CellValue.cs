@@ -9,6 +9,7 @@ using ExcelPRIME.Implementation;
 
 [assembly: InternalsVisibleTo("Excel_PRIME.Tests")]
 
+
 namespace ExcelPRIME;
 
 #pragma warning disable CA2225 // Implement To### as partner to operator overloads. -> Already exists due to As### properties.
@@ -72,28 +73,27 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
         => s_DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(CellValueType.IsDBNull, style));
 
     internal static CellValue Create(string? strValue, short iStyleRef)
-        => new CellValue(strValue ?? string.Empty, CellValueType.String, iStyleRef);
+        => new(strValue ?? string.Empty, CellValueType.String, iStyleRef);
 
-    internal static CellValue Create(bool boolValue)
-        => new CellValue(boolValue, CellValueType.Bool, 0);
+    internal static CellValue Create(bool boolValue) => new(boolValue, CellValueType.Bool, 0);
 
     internal static CellValue Create(DateTime dateTimeValue, short iStyleRef)
-        => new CellValue(dateTimeValue, CellValueType.DateTime, iStyleRef);
+        => new(dateTimeValue, CellValueType.DateTime, iStyleRef);
 
     internal static CellValue Create(decimal decimalValue, short iStyleRef)
-        => new CellValue(decimalValue, CellValueType.Decimal, iStyleRef);
+        => new(decimalValue, CellValueType.Decimal, iStyleRef);
     internal static CellValue Create(double doubleValue, short iStyleRef)
-        => new CellValue(doubleValue, CellValueType.Double, iStyleRef);
+        => new(doubleValue, CellValueType.Double, iStyleRef);
     internal static CellValue Create(int intValue, short iStyleRef)
-        => new CellValue(intValue, CellValueType.Int, iStyleRef);
+        => new(intValue, CellValueType.Int, iStyleRef);
     internal static CellValue Create(long longValue, short iStyleRef)
-        => new CellValue(longValue, CellValueType.Long, iStyleRef);
+        => new(longValue, CellValueType.Long, iStyleRef);
 
     internal static CellValue Create(ExcelErrorCode errorCodeValue)
-        => new CellValue((int)errorCodeValue, CellValueType.Error, -1);
+        => new((int)errorCodeValue, CellValueType.Error, -1);
 
     private static CellValue Create(DBNull _, short iStyleRef)
-        => new CellValue(CellValueType.IsDBNull, iStyleRef);
+        => new(CellValueType.IsDBNull, iStyleRef);
 
     internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, CellStyle? style)
     {
@@ -182,7 +182,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
                 return CellValue.Create((int)resultM, style);
             }
             // If the decimal can be exactly represented as a double, store it as a double for better performance on numeric operations
-            var (isExactDouble, doubleValue) = IsExactlyDouble(ref resultM);
+            (bool isExactDouble, double doubleValue) = IsExactlyDouble(ref resultM);
             return isExactDouble
                 ? CellValue.Create(doubleValue, style)
                 : CellValue.Create(resultM, style);
@@ -202,7 +202,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
                 ? CellValue.Create(DateTime.FromOADate(resultD), style)
                 : CellValue.Create(resultD, style);
         }
-        return CellValue.Create(new string(asSpan), style);
+        return CellValue.Create( new string(asSpan), style );
     }
 
     /// <summary>
@@ -1146,7 +1146,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 
         // Safer approach: replace "mm" only when NOT followed by colon
         // Build the result character by character to avoid replacing "mm" in time contexts
-        StringBuilder sb = new StringBuilder(result.Length);
+        StringBuilder sb = new(result.Length);
         int i = 0;
         while (i < result.Length)
         {

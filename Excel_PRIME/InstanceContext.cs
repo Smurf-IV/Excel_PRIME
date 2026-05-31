@@ -1,5 +1,6 @@
 ﻿using ExcelPRIME.Implementation;
 
+
 namespace ExcelPRIME;
 
 /// <summary>
@@ -15,7 +16,7 @@ public class InstanceContext
     /// <summary>
     /// How to open sheets / convert cells etc.
     /// </summary>
-    public Options Options { get; set; } = new Options();
+    public Options Options { get; set; } = new();
 
     /// <summary>
     /// What ranges have been defined

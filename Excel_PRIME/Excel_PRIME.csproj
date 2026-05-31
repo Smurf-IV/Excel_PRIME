@@ -51,7 +51,7 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<Title>Excel_PRIME</Title>
+		<Title>Excel-PRIME</Title>
 		<PackageId>Excel-PRIME</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<Copyright>© Smurf-IV</Copyright>
@@ -73,8 +73,6 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
-		<AssemblyVersion>26.5.28.25</AssemblyVersion>
-		<FileVersion>26.5.28.25</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
