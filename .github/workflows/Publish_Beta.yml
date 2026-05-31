@@ -21,8 +21,8 @@ jobs:
         fetch-depth: 0
         #ref: 'main'
 
-    # - name: Checkout LFS objects
-    #   run: git lfs checkout
+    - name: Checkout LFS objects
+      run: git lfs checkout
 
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v4
@@ -48,13 +48,12 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
-    # - name: Test
-    #   run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release --version-suffix Alpha
-                                                                            #Beta
+      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release --version-suffix Beta
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
@@ -62,5 +61,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: PushNuget
-      run: dotnet nuget push **/*.nupkg --source https://int.nugettest.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
 
