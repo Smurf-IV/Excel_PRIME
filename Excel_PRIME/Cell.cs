@@ -14,9 +14,13 @@ using ExcelPRIME.XlsbImp;
 
 namespace ExcelPRIME;
 
+/// <summary>
+/// Represents a single cell in a worksheet, including its parsed value, the original Excel cell type,
+/// and the one-based column offset. Immutable value-type used by the XLSX/XLSB readers.
+/// </summary>
 [DebuggerDisplay("{ToString(),raw}")]
 [StructLayout(LayoutKind.Explicit, Size = 32)]
-public readonly struct Cell : ICell
+public readonly struct Cell : ICell, IEquatable<Cell>
 {
     [FieldOffset(0)]
     private readonly CellValue _cellValue;
@@ -603,6 +607,30 @@ public readonly struct Cell : ICell
             return offset.GetExcelColumnName();
         }
     }
+
+    /// <inheritdoc />
+    public bool Equals(Cell other)
+        => _cellValue.Equals(other._cellValue) && _packedInfo == other._packedInfo;
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+        => obj is Cell other && Equals(other);
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => HashCode.Combine(_cellValue, _packedInfo);
+
+    /// <summary>
+    /// Compares two <see cref="Cell"/> instances for equality.
+    /// </summary>
+    public static bool operator ==(Cell left, Cell right)
+        => left.Equals(right);
+
+    /// <summary>
+    /// Compares two <see cref="Cell"/> instances for inequality.
+    /// </summary>
+    public static bool operator !=(Cell left, Cell right)
+        => !left.Equals(right);
 
     /// <InheritDoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
