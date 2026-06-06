@@ -9,7 +9,7 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class XmlLazyLoadSharedStrings : ISharedString
 {
-    private readonly SemaphoreLocker _locker = new();
+    private static readonly SemaphoreLocker _locker = new();
     private readonly Stream? _stream;
     private readonly XmlReader _reader;
     private readonly List<string> _currentlyLoaded;
@@ -208,7 +208,6 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
             {
                 _reader.Dispose();
                 _stream?.Dispose();
-                _locker.Dispose();
             }
 
             _isDisposed = true;
