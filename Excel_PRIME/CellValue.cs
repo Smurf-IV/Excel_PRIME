@@ -17,7 +17,7 @@ namespace ExcelPRIME;
 /// <summary>
 /// Represents the type of value stored in a cell.
 /// </summary>
-internal enum CellValueType : byte
+internal enum CellValueType : short
 {
     Unknown,
     Decimal,
@@ -38,24 +38,24 @@ internal enum CellValueType : byte
 [StructLayout(LayoutKind.Explicit)]
 public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
-    #region reduce from 48 bytes to 20 bytes by using explicit layout and overlapping fields
+    #region reduce from 48 bytes to 28 bytes by using explicit layout and overlapping fields
     [FieldOffset(0)] private readonly string? _s; // Stores string values
+    // Offset to nearest 8 byte boundary for better performance of value types on x64
+    [FieldOffset(8)] private readonly decimal _d; // Stores value types in a decimal to avoid boxing and precision loss
+    [FieldOffset(8)] private readonly DateTime _dt;
+    [FieldOffset(8)] private readonly bool _b;
+    [FieldOffset(8)] private readonly long _l;
+    [FieldOffset(8)] private readonly int _i;
+    [FieldOffset(8)] private readonly double _db;
+    /// <summary>
+    /// The type of the cell value.
+    /// </summary>
+    [FieldOffset(24)] private readonly CellValueType _type;
     /// <summary>
     /// The style reference index.
     /// Specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
     /// </summary>
-    [FieldOffset(8)] private readonly short _iStyleRef;
-    /// <summary>
-    /// The type of the cell value. "byte storage"
-    /// </summary>
-    [FieldOffset(10)] private readonly CellValueType _type;
-    // Offset to nearest 4 byte boundary for better performance of value types
-    [FieldOffset(12)] private readonly decimal _d; // Stores value types in a decimal to avoid boxing and precision loss
-    [FieldOffset(12)] private readonly DateTime _dt;
-    [FieldOffset(12)] private readonly bool _b;
-    [FieldOffset(12)] private readonly long _l;
-    [FieldOffset(12)] private readonly int _i;
-    [FieldOffset(12)] private readonly double _db;
+    [FieldOffset(26)] private readonly short _iStyleRef;
     #endregion
 
     /// <summary>

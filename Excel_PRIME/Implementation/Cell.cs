@@ -19,10 +19,10 @@ namespace ExcelPRIME;
 public readonly struct Cell : ICell
 {
     [FieldOffset(0)]
-    private readonly int _packedInfo;
-
-    [FieldOffset(4)]
     private readonly CellValue _cellValue;
+
+    [FieldOffset(28)]
+    private readonly int _packedInfo;
 
     /// <InheritDoc />
     public CellValue CellValue => _cellValue;
