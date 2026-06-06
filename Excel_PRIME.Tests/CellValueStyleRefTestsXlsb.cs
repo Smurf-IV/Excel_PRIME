@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -47,10 +47,10 @@ public class CellValueStyleRefTestsXlsb
             {
                 continue;
             }
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
             {
-                cellCount += rowCells.Count(c => c != null);
+                cellCount += rowCells.Count(c => !c.CellValue.IsUnknown);
             }
         }
 
@@ -79,7 +79,7 @@ public class CellValueStyleRefTestsXlsb
             {
                 continue;
             }
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
@@ -87,15 +87,15 @@ public class CellValueStyleRefTestsXlsb
             }
 
             // Verify that cells have CellValue instances
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
 
                 CellValue cellValue = cell.CellValue;
-                cellValue.Should().NotBeNull();
+                ;
 
                 // When ToStyledString is called, it should return either the styled format or the plain string
                 string? styledString = cellValue.ToStyledString();
@@ -137,16 +137,16 @@ public class CellValueStyleRefTestsXlsb
             {
                 continue;
             }
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -196,16 +196,16 @@ public class CellValueStyleRefTestsXlsb
             {
                 continue;
             }
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -262,16 +262,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -322,16 +322,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -377,16 +377,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -435,16 +435,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -503,16 +503,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -564,16 +564,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -628,16 +628,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -689,16 +689,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -754,16 +754,16 @@ public class CellValueStyleRefTestsXlsb
                 continue;
             }
 
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             row.Dispose();
             if (rowCells == null)
             {
                 continue;
             }
 
-            foreach (ICell? cell in rowCells)
+            foreach (Cell cell in rowCells)
             {
-                if (cell == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     break;
                 }
@@ -795,3 +795,4 @@ public class CellValueStyleRefTestsXlsb
 
     #endregion
 }
+

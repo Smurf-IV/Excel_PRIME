@@ -39,7 +39,7 @@ public interface ISheet : IDisposable
     /// <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="endExcelColumn">last col ref (start+width)</param>
     /// <param name="ct"></param>
-    IEnumerable<ICell?[]?> GetRowData(int startRow, int startExcelColumn, int endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
+    IEnumerable<Cell[]?> GetRowData(int startRow, int startExcelColumn, int endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Returns the row data at the current iterated row
@@ -48,12 +48,12 @@ public interface ISheet : IDisposable
     /// <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="endExcelColumn">last col ref</param>
     /// <param name="ct"></param>
-    IEnumerable<ICell?[]?> GetRowData(int startRow, ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
+    IEnumerable<Cell[]?> GetRowData(int startRow, ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
     /// </summary>
-    IEnumerable<ICell?[]> GetDefinedRange(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
+    IEnumerable<Cell[]> GetDefinedRange(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
 }
 
 /// <summary>
@@ -76,7 +76,7 @@ public interface ISheetAsync : ISheet
     /// <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="endExcelColumn">last col ref (start+width)</param>
     /// <param name="ct"></param>
-    IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int startExcelColumn, int endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
+    IAsyncEnumerable<Cell[]?> GetRowDataAsync(int startRow, int startExcelColumn, int endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Returns the row data at the current iterated row
@@ -85,10 +85,10 @@ public interface ISheetAsync : ISheet
     /// <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
     /// <param name="endExcelColumn">last col ref</param>
     /// <param name="ct"></param>
-    IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
+    IAsyncEnumerable<Cell[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn, [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
     /// </summary>
-    IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
+    IAsyncEnumerable<Cell[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
 }

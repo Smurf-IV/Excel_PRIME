@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +12,6 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private readonly XlsbStreamReader _reader;
     private bool _isDisposed;
     private readonly int _startRow;
-
-    // Pool of Row instances shared by this reader (concurrent for safety).
-    private readonly ConcurrentBag<XlsbRow> _rowPool = [];
 
     public XlsbSheetReader(BufferedStream stream, InstanceContext instanceContext, CancellationToken ct)
     {
@@ -64,15 +60,8 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         CurrentRow = 0;
     }
 
-    private XlsbRow CreateRowFromPool() =>
-        _rowPool.TryTake(out XlsbRow? r)
-            ? r
-            : XlsbRow.Rent();
-
-    private void ReturnRowToPool(XlsbRow r) =>
-        // Row.Dispose handles returning to global pool; but we keep an internal pool for speed.
-        // Reset any reader-specific state is handled by Row.Reset inside Return.
-        _rowPool.Add(r);
+    private static XlsbRow CreateRowFromPool()
+        => XlsbRow.Rent();
 
     private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
     {
@@ -138,10 +127,6 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
             {
                 _lastNullRow = null;    // Do not call dispose, because they have been returned to the caller
                 _lastRow = null;    // Do not call dispose, because they have been returned to the caller
-                // optionally clear local pool references so they can be GC'd
-                while (_rowPool.TryTake(out _)) 
-                {
-                }
             }
 
             _isDisposed = true;

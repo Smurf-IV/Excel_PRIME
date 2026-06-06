@@ -146,7 +146,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     public IEnumerable<string> SheetNames() => _sheetNamesToPathOffset.Keys;
 
     /// <InheritDoc />
-    public virtual async IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual async IAsyncEnumerable<CellValue[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -183,14 +183,14 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
-        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
+        await foreach (Cell[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -236,15 +236,15 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
-        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<CellValue?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<CellValue[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
         if (targetSheet == null)
@@ -253,14 +253,14 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         DefinedRange definedRange = new(range, sheetName);
 
-        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
+        await foreach (Cell[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<CellValue?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
         if (targetSheet == null)
@@ -269,9 +269,9 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         DefinedRange definedRange = new(range, sheetName);
 
-        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 

@@ -36,7 +36,7 @@ internal enum CellValueType : byte
 /// Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
+public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
 {
     #region reduce from 48 bytes to 20 bytes by using explicit layout and overlapping fields
     [FieldOffset(0)] private readonly string? _s; // Stores string values
@@ -58,9 +58,18 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     [FieldOffset(12)] private readonly double _db;
     #endregion
 
+    /// <summary>
+    /// Returns true if the cell value type is Unknown (the default for a new CellValue struct).
+    /// </summary>
+    public bool IsUnknown => _type == CellValueType.Unknown;
+
 
     // Micro-optimization: Cache frequently allocated strings
     private static readonly CultureInfo s_invariantCultureCache = CultureInfo.InvariantCulture;
+
+    // Small concurrent cache for strings created from ReadOnlySpan<char> during numeric fallback.
+    // This avoids repeated identical allocations for common numeric text representations.
+    private static readonly ConcurrentDictionary<string, string> s_spanStringCache = new();
 
     private static readonly ConcurrentDictionary<short, CellValue> s_DBNullCache = new();
 
@@ -72,6 +81,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     public static CellValue GetDBNull(short iStyleRef)
         => s_DBNullCache.GetOrAdd(iStyleRef, static style => new CellValue(CellValueType.IsDBNull, style));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     internal static CellValue Create(string? strValue, short iStyleRef)
         => new(strValue ?? string.Empty, CellValueType.String, iStyleRef);
 
@@ -95,6 +105,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     private static CellValue Create(DBNull _, short iStyleRef)
         => new(CellValueType.IsDBNull, iStyleRef);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, CellStyle? style)
     {
         // Determine if the provided style corresponds to a date/time related formatting type.
@@ -144,6 +155,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// Memory Overlay Method: The fastest possible scalar implementation.
     /// It compiles down to highly optimised sequential register instructions with zero branching or division bottlenecks.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static (bool, double) IsExactlyDouble(ref decimal d)
     {
         // 1. Hardware-accelerated cast to double (takes ~1-2 CPU cycles)
@@ -168,8 +180,10 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             db);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static CellValue PerformDecimalConversion(ReadOnlySpan<char> asSpan, short style, bool isDateStyle)
     {
+        // Try the optimized custom decimal parser first as it covers most common cases and is faster than double.TryParse.
         if (asSpan.TryDecimalParse(out decimal resultM))
         {
             // ±1.0 x 10-28 to ±7.9228 x 1028 	28-29 digits 	16 bytes
@@ -177,16 +191,22 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             {
                 return CellValue.Create(DateTime.FromOADate((double)resultM), style);
             }
-            if(decimal.IsInteger(resultM))
+
+            if (decimal.IsInteger(resultM)
+                && resultM is >= int.MinValue and <= int.MaxValue
+                )
             {
                 return CellValue.Create((int)resultM, style);
             }
-            // If the decimal can be exactly represented as a double, store it as a double for better performance on numeric operations
+
+            // If the decimal can be exactly represented as a double, store it as a double for better performance on numeric operations.
             (bool isExactDouble, double doubleValue) = IsExactlyDouble(ref resultM);
             return isExactDouble
                 ? CellValue.Create(doubleValue, style)
                 : CellValue.Create(resultM, style);
         }
+
+        // Fallback to double parsing for scientific notation or other cases not handled by the custom decimal parser.
         if (asSpan.TryDoubleParse(out double resultD))
         {
             //   	±5.0 × 10−324 to ±1.7 × 10308 	~15-17 digits 	8 bytes
@@ -194,15 +214,25 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
             {
                 return CellValue.Create(DateTime.FromOADate(resultD), style);
             }
-            if (double.IsInteger(resultD))
+
+            if (resultD is >= int.MinValue and <= int.MaxValue
+                && double.IsInteger(resultD)
+                )
             {
                 return CellValue.Create((int)resultD, style);
             }
-            return isDateStyle
-                ? CellValue.Create(DateTime.FromOADate(resultD), style)
-                : CellValue.Create(resultD, style);
+
+            return CellValue.Create(resultD, style);
         }
-        return CellValue.Create( new string(asSpan), style );
+
+        // Create a string from the span and cache small commonly repeated strings to reduce allocations.
+        string s = new string(asSpan);
+        // Cache short strings as a heuristic to limit memory growth.
+        if (s.Length <= 64)
+        {
+            s = s_spanStringCache.GetOrAdd(s, s);
+        }
+        return CellValue.Create(s, style);
     }
 
     /// <summary>
@@ -278,6 +308,7 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// implementation is used.
     /// </returns>
     // Remove AggressiveOptimization from Constructors
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public override string? ToString()
     {
         if (_type == CellValueType.String)
@@ -1253,9 +1284,9 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// For example, numeric values are compared numerically, strings are compared using string equality,
     /// and dates are compared using date-time equality.
     /// </remarks>
-    public bool Equals(CellValue? other)
+    public bool Equals(CellValue other)
     {
-        if (other is null || _type != other._type)
+        if (_type != other._type)
         {
             return false;
         }
@@ -1281,8 +1312,8 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// <returns>
     /// <c>true</c> if the specified <see cref = "CellValue" /> instances are equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator ==(CellValue? left, CellValue? right)
-        => left?.Equals(right) ?? right is null;
+    public static bool operator ==(CellValue left, CellValue right)
+        => left.Equals(right);
 
     /// <summary>
     /// Determines whether two<see cref = "CellValue" /> instances are not equal.
@@ -1292,8 +1323,8 @@ public class CellValue : IEquatable<CellValue>, ISpanFormattable, IFormattable
     /// <returns>
     /// <c>true</c> if the specified<see cref="CellValue"/> instances are not equal; otherwise, <c>false</c>.
     /// </returns>
-    public static bool operator !=(CellValue? left, CellValue? right)
-        => !(left?.Equals(right) ?? right is null);
+    public static bool operator !=(CellValue left, CellValue right)
+        => !left.Equals(right);
 
     /// <summary>
     /// Attempts to get the value of the cell as a <see cref="DateTime"/> object.

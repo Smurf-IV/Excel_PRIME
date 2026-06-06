@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using NUnit.Framework;
 using AwesomeAssertions;
@@ -97,3 +97,4 @@ public class CellValueDecimalTests
         buffer.Slice(0, charsWritten).ToString().Should().Be(val.ToString(CultureInfo.InvariantCulture));
     }
 }
+

@@ -41,13 +41,13 @@ internal class BugTesting
                     continue;
                 }
 
-                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                IReadOnlyList<Cell>? rowCells = row.GetAllCells();
                 row.Dispose();
                 if (rowCells == null)
                 {
                     continue;
                 }
-                foreach (ICell? cell in rowCells)
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
                     cells++;
@@ -118,13 +118,13 @@ internal class BugTesting
             using ISheet? worksheet = workbook.GetSheet(sheetName);
             foreach (IRow? row in worksheet!.GetRowData(2))
             {
-                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                IReadOnlyList<Cell>? rowCells = row.GetAllCells();
                 row.Dispose();
                 if (rowCells == null)
                 {
                     continue;
                 }
-                foreach (ICell? cell in rowCells)
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
                     cells++;
@@ -146,13 +146,13 @@ internal class BugTesting
             using ISheetAsync? worksheet = await workbook.GetSheetAsync(sheetName).ConfigureAwait(false);
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync(2).ConfigureAwait(false))
             {
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 row.Dispose();
                 if (rowCells == null)
                 {
                     continue;
                 }
-                foreach (ICell? cell in rowCells)
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
                     cells++;
@@ -195,8 +195,8 @@ internal class BugTesting
         await workbook.OpenAsync(fileName, options).ConfigureAwait(false);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("500000 Sales Records").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(1, RowCellGet.None).FirstAsync();
-        ICell cell = await row.GetCellAsync(6).ConfigureAwait(false)!;
-        cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 7, 27)); // Date DD/MM/YYYY
+        Cell cell = await row.GetCellAsync(6).ConfigureAwait(false)!;
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2012, 7, 27)); // Date DD/MM/YYYY
     }
 
     [CancelAfter(1000)]
@@ -208,8 +208,8 @@ internal class BugTesting
         await workbook.OpenAsync(fileName, ct: ct).ConfigureAwait(true);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("SkipLines", ct: ct).ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(3, RowCellGet.None, ct: ct).FirstAsync(ct);
-        ICell cell = await row.GetCellAsync(6, ct: ct).ConfigureAwait(false)!;
-        cell.CellValue?.AsInt32.Should().Be(1);
+        Cell cell = await row.GetCellAsync(6, ct: ct).ConfigureAwait(false)!;
+        cell.CellValue.AsInt32.Should().Be(1);
     }
     [CancelAfter(1000)]
     [Test]
@@ -220,8 +220,8 @@ internal class BugTesting
         await workbook.OpenAsync(fileName, ct: ct).ConfigureAwait(true);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("SkipLines", ct: ct).ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(3, RowCellGet.None, ct: ct).FirstAsync(ct);
-        ICell cell = await row.GetCellAsync(6, ct: ct).ConfigureAwait(false)!;
-        cell.CellValue?.AsInt32.Should().Be(1);
+        Cell cell = await row.GetCellAsync(6, ct: ct).ConfigureAwait(false)!;
+        cell.CellValue.AsInt32.Should().Be(1);
     }
 
     [Test]
@@ -251,3 +251,4 @@ internal class BugTesting
     }
 
 }
+

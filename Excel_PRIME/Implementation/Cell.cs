@@ -2,27 +2,51 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
+using ExcelPRIME.Implementation;
+using ExcelPRIME.XlsbImp;
 
 
-namespace ExcelPRIME.Implementation;
+namespace ExcelPRIME;
 
 [DebuggerDisplay("{ToString(),raw}")]
-internal sealed record Cell : ICell
+[StructLayout(LayoutKind.Explicit, Size = 32)]
+public readonly struct Cell : ICell
 {
-    private static readonly char[]?[] s_columnLetterCache = new char[256][];
-    private char[]? _columnLetters;
+    [FieldOffset(0)]
+    private readonly int _packedInfo;
 
-    // CHANGED: Removed AggressiveOptimization - large method with complex branching, let JIT tier appropriately
-    public static async Task<Cell?> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
+    [FieldOffset(4)]
+    private readonly CellValue _cellValue;
+
+    /// <InheritDoc />
+    public CellValue CellValue => _cellValue;
+
+    /// <InheritDoc />
+    public CellType RawExcelType => (CellType)(_packedInfo >> 24);
+
+    /// <InheritDoc />
+    public int ExcelColumnOffset => _packedInfo & 0x00FFFFFF;
+
+    internal Cell(CellValue value, int col, CellType type)
+    {
+        _cellValue = value;
+        _packedInfo = (col & 0x00FFFFFF) | ((int)type << 24);
+    }
+
+    private static readonly char[]?[] s_columnLetterCache = new char[256][];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    internal static async ValueTask<Cell> ConstructCellAsync(XmlReader reader, InstanceContext instanceContext,
         ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
         CellType type = CellType.Numeric;
-        CellValue? value = null;
+        CellValue value = default;
         int col = -1;
         int bufferSize = buffer.Length;
         int len;
@@ -176,22 +200,108 @@ internal sealed record Cell : ICell
         }
         setter:
         if (returnDBNull
-            && value == null)
+            && value.IsUnknown)
         {
             value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value is null
-            ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
-            : new Cell
-            {
-                //RowNumber = row;
-                ExcelColumnOffset = col,
-                RawExcelType = type,
-                CellValue = value
-            };
+        return value.IsUnknown
+            ? default    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+            : new Cell(value, col, type);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    internal static Cell ConstructXlsbCell(PooledRecordBuffer reader, InstanceContext instanceContext)
+    {
+        int columnOffset = reader.GetInt32(0) + 1; // Convert zero-based to Excel one-based
+        short styleRef = (short)(instanceContext.Options.CellConversionType <= CellConversion.None ? -1 : reader.GetInt32(4));
+
+        CellType cellType;
+        CellValue cellValue = default;
+        switch (reader.RecordType)
+        {
+            case RecordTypeIdentifier.CELLRK:
+                (cellType, cellValue) = MagicConvertRK(reader, styleRef, instanceContext);
+                break;
+            case RecordTypeIdentifier.CELLREAL or RecordTypeIdentifier.CELLFMLANUM:
+                {
+                    double d = reader.GetDouble(8);
+                    if ((instanceContext.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) == true)
+                        && cellStyle?.IsDateStyle == true
+                       )
+                    {
+                        (cellType, cellValue) = (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
+                    }
+                    else
+                    {
+                        (cellType, cellValue) = (CellType.Numeric, CellValue.Create(d, styleRef));
+                    }
+                }
+                break;
+            case RecordTypeIdentifier.CELLBOOL or RecordTypeIdentifier.CELLFMLABOOL:
+                (cellType, cellValue) = (CellType.Boolean, CellValue.Create(reader.GetByte(8) != 0));
+                break;
+            case RecordTypeIdentifier.CELLST or RecordTypeIdentifier.CELLFMLASTRING:
+                (cellType, cellValue) = (CellType.InlineString, CellValue.Create(reader.GetString(8), styleRef));
+                break;
+            case RecordTypeIdentifier.CELLISST:
+                (cellType, cellValue) = (CellType.SharedString,
+                    CellValue.Create(GetSharedString(instanceContext, reader), styleRef));
+                break;
+            case RecordTypeIdentifier.CELLERROR or RecordTypeIdentifier.CELLFMLAERROR:
+                (cellType, cellValue) = (CellType.Error, CellValue.Create((ExcelErrorCode)reader.GetByte(8)));
+                break;
+            default:
+                // Break out early
+                return default;
+        }
+
+        // Allocate once and populate properties
+        return new Cell(cellValue, columnOffset, cellType);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string? GetSharedString(InstanceContext instanceContext, PooledRecordBuffer reader) => instanceContext.SharedStrings?[reader.GetInt32(8)];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    private static (CellType, CellValue) MagicConvertRK(PooledRecordBuffer record, short styleRef, InstanceContext instanceContext)
+    {
+        // Extract and process the RK value in a single optimized path
+        int rk = record.GetInt32(8);
+
+        double d;
+
+        if ((rk & 0x02) == 0) // isFloat
+        {
+            // Float encoding: mask off the type bits and shift to 64-bit representation
+            long v = rk & 0xfffffffc;
+            v <<= 32;
+            d = BitConverter.Int64BitsToDouble(v);
+        }
+        else
+        {
+            // Integer encoding: shift right by 2 to remove type bits
+            d = rk >> 2;
+        }
+
+        // Check if scaled by 100
+        if ((rk & 0x01) != 0)
+        {
+            d /= 100.0;  // Explicit double to ensure double division
+        }
+
+        if ((instanceContext.CellStyles?.TryGetValue(styleRef, out CellStyle? cellStyle) == true)
+            && cellStyle?.IsDateStyle == true
+            )
+        {
+            return (CellType.Date, CellValue.Create(DateTime.FromOADate(d), cellStyle.ExcelFormatId));
+        }
+
+        return double.IsInteger(d)
+            ? (CellType.Numeric, CellValue.Create((int)d, styleRef))
+            : (CellType.Numeric, CellValue.Create(d, styleRef));
     }
 
     private static int ReadValue(XmlReader reader, char[] buffer, int bufferSize)
@@ -227,12 +337,12 @@ internal sealed record Cell : ICell
         return value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static Cell? ConstructCell(XmlReader reader, InstanceContext instanceContext,
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    internal static Cell ConstructCell(XmlReader reader, InstanceContext instanceContext,
     ReaderAtoms readerAtoms, char[] buffer, StringBuilder valueBuilder)
     {
         CellType type = CellType.Numeric;
-        CellValue? value = null;
+        CellValue value = default;
         int col = -1;
         int bufferSize = buffer.Length;
         int len;
@@ -384,26 +494,20 @@ internal sealed record Cell : ICell
         }
         setter:
         if (returnDBNull
-            && value == null)
+            && value.IsUnknown)
         {
             value = CellValue.GetDBNull(style);
         }
 
         // If this goes boom, then something is seriously wrong,
         // TODO: The exception needs to state something useful!
-        return value is null
-                ? null    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
-                : new Cell
-                {
-                    //RowNumber = row;
-                    ExcelColumnOffset = col,
-                    RawExcelType = type,
-                    CellValue = value
-                };
+        return value.IsUnknown
+                ? default    // Deal with an empty value "EndElement" cell, e.g. <c r="B1" s="2" />
+                : new Cell(value, col, type);
     }
 
     #region Borrowed and some finessing from XMLReader source
-    // CHANGED: Removed AggressiveOptimization - complex method with loops and branches
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static string? ReadString(XmlReader reader, StringBuilder valueBuilder, char[] buffer)
     {
         if (reader.ReadState != ReadState.Interactive)
@@ -471,27 +575,16 @@ internal sealed record Cell : ICell
     #endregion
 
     /// <InheritDoc />
-    public CellValue? CellValue { get; internal init; }
-
-    /// <InheritDoc />
-    public CellType RawExcelType { get; private init; }
-
-    /// <InheritDoc />
     public IReadOnlyList<char> ColumnLetters
     {
         // CHANGED: Removed AggressiveOptimization - simple property with cache lookup, inline better
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            if (_columnLetters != null)
-            {
-                return _columnLetters;
-            }
-
             int offset = ExcelColumnOffset;
             if (offset <= 0)
             {
-                return _columnLetters = Array.Empty<char>();
+                return Array.Empty<char>();
             }
 
             if (offset < s_columnLetterCache.Length)
@@ -499,23 +592,21 @@ internal sealed record Cell : ICell
                 char[]? cached = s_columnLetterCache[offset];
                 if (cached != null)
                 {
-                    return _columnLetters = cached;
+                    return cached;
                 }
 
                 char[] computed = offset.GetExcelColumnName();
                 s_columnLetterCache[offset] = computed;
-                return _columnLetters = computed;
+                return computed;
             }
 
-            return _columnLetters = offset.GetExcelColumnName();
+            return offset.GetExcelColumnName();
         }
     }
 
     /// <InheritDoc />
-    public int ExcelColumnOffset { get; internal init; }
-
-    /// <InheritDoc />
-    public override string? ToString() => CellValue?.ToString() ?? base.ToString();
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public override string? ToString() => _cellValue.IsUnknown ? string.Empty : _cellValue.ToString();
 
     // CHANGED: Removed AggressiveOptimization - simple switch on first char, inline better
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

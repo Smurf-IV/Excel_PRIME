@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Collections.Concurrent;
 
 using ExcelPRIME.FromExternal;
 
@@ -16,9 +15,6 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
     private readonly string _rowRefAtom;
     private readonly ReaderAtoms _readerAtoms;
 
-    // Pool of Row instances shared by this reader (concurrent for safety).
-    private readonly ConcurrentBag<Row> _rowPool = [];
-
     public XmlSheetReader(NonClosingStream stream, InstanceContext instanceContext, XmlNameTable sharedNameTable, CancellationToken ct)
     {
         _instanceContext = instanceContext;
@@ -26,7 +22,7 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources
             IgnoreComments = true, // Skip parsing and allocating strings for comments
-            IgnoreWhitespace = true, // Ignore significant whitespace
+            IgnoreWhitespace = true, // Ignore insignificant whitespace
             CheckCharacters = false,
             CloseInput = true,
             ConformanceLevel = ConformanceLevel.Document,
@@ -111,15 +107,8 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
         _readerAtoms = new ReaderAtoms(_reader);
     }
 
-    private Row CreateRowFromPool() =>
-        _rowPool.TryTake(out Row? r)
-            ? r
-            : Row.Rent();
-
-    private void ReturnRowToPool(Row r) =>
-        // Row.Dispose handles returning to global pool; but we keep an internal pool for speed.
-        // Reset any reader-specific state is handled by Row.Reset inside Return.
-        _rowPool.Add(r);
+    private static Row CreateRowFromPool()
+        => Row.Rent();
 
     private bool ReadToNextStartRow(CancellationToken ct)
     {
@@ -149,8 +138,6 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
                 _lastNullRow = null;    // Do not call dispose, because they have been returned to the caller
                 _lastRow = null;    // Do not call dispose, because they have been returned to the caller
                 _reader.Dispose();
-                // optionally clear local pool references so they can be GC'd
-                while (_rowPool.TryTake(out _)) { }
             }
 
             _isDisposed = true;

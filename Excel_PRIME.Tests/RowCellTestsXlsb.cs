@@ -32,11 +32,11 @@ public class RowCellTestsXlsb
                 {
                     continue;
                 }
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                foreach (ICell? cell in rowCells)
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (cell == null)
+                    if (cell.CellValue.IsUnknown)
                     {
                         // Because this returns upto the dimension of the sheet width
                         break;
@@ -77,16 +77,16 @@ public class RowCellTestsXlsb
                 continue;
             }
             int c = 0;
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            foreach (ICell? cell in rowCells)
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (Cell cell in rowCells)
             {
                 // Because this returns upto the dimension of the sheet width
-                if (cell == null) // Because this returns upto the dimension of the sheet width
+                if (cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                 {
                     break;
                 }
 
-                cell.CellValue?.BoxedValue.Should().Be(workSheet1Content[r][c]);
+                cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                 c++;
             }
 
@@ -126,16 +126,16 @@ public class RowCellTestsXlsb
                 continue;
             }
             int c = 0;
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-            foreach (ICell? cell in rowCells)
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            foreach (Cell cell in rowCells)
             {
                 // Because this returns upto the dimension of the sheet width
-                if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
+                if (c > 0 && cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                 {
                     break;
                 }
 
-                cell?.CellValue?.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                 c++;
             }
 
@@ -179,16 +179,16 @@ public class RowCellTestsXlsb
                     continue;
                 }
                 int c = 0;
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                foreach (ICell? cell in rowCells)
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (cell == null) // Because this returns upto the dimension of the sheet width
+                    if (cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                     {
                         break;
                     }
 
-                    cell.CellValue?.BoxedValue.Should().Be(workSheet1Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                     c++;
                 }
 
@@ -230,16 +230,16 @@ public class RowCellTestsXlsb
                     continue;
                 }
                 int c = 0;
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                foreach (ICell? cell in rowCells)
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (c > 0 && cell == null) // Because this returns upto the dimension of the sheet width
+                    if (c > 0 && cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                     {
                         break;
                     }
 
-                    cell?.CellValue?.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }
 
@@ -284,10 +284,11 @@ public class RowCellTestsXlsb
                     continue;
                 }
                 int c = 0;
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                foreach (ICell? cell in rowCells)
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
-                    cell.CellValue?.BoxedValue.Should().Be(workSheet1Content[r][c]);
+                    if (cell.CellValue.IsUnknown) break;
+                    cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                     c++;
                 }
 
@@ -330,10 +331,11 @@ public class RowCellTestsXlsb
                     continue;
                 }
                 int c = 0;
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                foreach (ICell? cell in rowCells)
+                IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
-                    cell?.CellValue?.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    if (cell.CellValue.IsUnknown) break;
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }
 
@@ -378,18 +380,18 @@ public class RowCellTestsXlsb
                 continue;
             }
             int c = 0;
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
             {
-                foreach (ICell? cell in rowCells)
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (cell == null) // Because this returns upto the dimension of the sheet width
+                    if (cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                     {
                         continue;
                     }
 
-                    cell.CellValue?.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }
             }
@@ -438,18 +440,18 @@ public class RowCellTestsXlsb
                 continue;
             }
             int c = 0;
-            IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+            IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
             if (rowCells != null)
             {
-                foreach (ICell? cell in rowCells)
+                foreach (Cell cell in rowCells)
                 {
                     // Because this returns upto the dimension of the sheet width
-                    if (cell == null) // Because this returns upto the dimension of the sheet width
+                    if (cell.CellValue.IsUnknown) // Because this returns upto the dimension of the sheet width
                     {
                         continue;
                     }
 
-                    cell.CellValue?.BoxedValue.Should().Be(workSheet2Content[r][c]);
+                    cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }
             }
@@ -473,38 +475,38 @@ public class RowCellTestsXlsb
         await workbook.OpenAsync(fileName, new Options{ CellConversionType = CellConversion.ForceStyles}).ConfigureAwait(false);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(0, RowCellGet.PreGet).FirstAsync();
-        ICell? cell = await row.GetCellAsync(1).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<int>().And.Be(1);
-        cell.CellValue?.AsInt32.Should().Be(1);
+        Cell cell = await row.GetCellAsync(1).ConfigureAwait(false);
+        cell.CellValue.BoxedValue.Should().BeOfType<int>().And.Be(1);
+        cell.CellValue.AsInt32.Should().Be(1);
         cell = await row.GetCellAsync(2).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(2.3);
-        cell.CellValue?.AsDouble.Should().BeApproximately(2.3, 1E-8);
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(2.3);
+        cell.CellValue.AsDouble.Should().BeApproximately(2.3, 1E-8);
         cell = await row.GetCellAsync(3).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<string>().And.Be("abc");
-        cell.CellValue?.ToString().Should().Be("abc");
+        cell.CellValue.BoxedValue.Should().BeOfType<string>().And.Be("abc");
+        cell.CellValue.ToString().Should().Be("abc");
         cell = await row.GetCellAsync(4).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<bool>().And.Be(true);
-        cell.CellValue?.AsBoolean.Should().Be(true);
+        cell.CellValue.BoxedValue.Should().BeOfType<bool>().And.Be(true);
+        cell.CellValue.AsBoolean.Should().Be(true);
         cell = await row.GetCellAsync(5).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<bool>().And.Be(false);
-        cell.CellValue?.AsBoolean.Should().Be(false);
+        cell.CellValue.BoxedValue.Should().BeOfType<bool>().And.Be(false);
+        cell.CellValue.AsBoolean.Should().Be(false);
         cell = await row.GetCellAsync(6).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
-        cell.CellValue?.AsDouble.Should().Be(0.01);
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(0.01);//.Within(0.000001); % display
+        cell.CellValue.AsDouble.Should().Be(0.01);
         cell = await row.GetCellAsync(7).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
-        cell.CellValue?.AsDateTime.Should().Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2012, 8, 11)); // Date DD/MM/YYYY
         cell = await row.GetCellAsync(8).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
-        cell.CellValue?.AsDateTime.Should().Be(new DateTime(2021, 5, 12));
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2021, 5, 12));
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2021, 5, 12));
         cell = await row.GetCellAsync(9).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
-        cell.CellValue?.AsDateTime.Should().Be(new DateTime(2011, 5, 23, 19, 12, 30));
+        cell.CellValue.BoxedValue.Should().BeOfType<DateTime>().And.Be(new DateTime(2011, 5, 23, 19, 12, 30));
+        cell.CellValue.AsDateTime.Should().Be(new DateTime(2011, 5, 23, 19, 12, 30));
         cell = await row.GetCellAsync(10).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(2.3);//.Within(0.000001));
         cell = await row.GetCellAsync(11).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
+        cell.CellValue.BoxedValue.Should().BeOfType<double>().And.Be(3.3);//.Within(0.000001));
         cell = await row.GetCellAsync(12).ConfigureAwait(false);
-        cell.CellValue?.BoxedValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
+        cell.CellValue.BoxedValue.Should().BeOfType<string>().And.Be("abcTRUE"); // Number cell type??
     }
 }

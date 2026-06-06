@@ -27,11 +27,13 @@
   <Project Path="Excel_PRIMEXlsb.Bench/Excel_PRIMEXlsb.Bench.csproj" />
   <Project Path="Excel_PRIMEXlsb.RangeBench/Excel_PRIMEXlsb.RangeBench.csproj" />
   <Properties Name="AutomaticVersions" Scope="PostLoad">
+    <Property Name="AdvancedSettingsExpanded" Value="True" />
     <Property Name="AssemblyFileVersionSettings" Value="None.None.None.None" />
     <Property Name="AssemblyInfoVersionSettings" Value="None.None.None.None" />
     <Property Name="AssemblyInfoVersionType" Value="SettingsVersion" />
     <Property Name="AssemblyVersionSettings" Value="None.None.None.None" />
     <Property Name="InheritWinAppVersionFrom" Value="None" />
+    <Property Name="ShouldCreateLogs" Value="True" />
     <Property Name="UpdateAssemblyFileVersion" Value="True" />
     <Property Name="UpdateAssemblyInfoVersion" Value="True" />
     <Property Name="UpdateAssemblyVersion" Value="True" />

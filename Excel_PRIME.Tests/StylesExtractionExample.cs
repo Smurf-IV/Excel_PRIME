@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -38,7 +38,7 @@ public class StylesExtractionExample
                 continue;
             }
 
-            IReadOnlyList<ICell?>? cells = row.GetAllCells(ct);
+            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
             if (cells == null)
             {
                 continue;
@@ -46,13 +46,13 @@ public class StylesExtractionExample
 
             foreach (ICell? cell in cells)
             {
-                if (cell?.CellValue == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     continue;
                 }
 
                 // Example 1: Get the basic string representation
-                string basicString = cell.CellValue?.ToString() ?? "null";
+                string basicString = cell.CellValue.ToString() ?? "null";
                 Console.WriteLine($"Cell value: {basicString}");
 
                 // Example 2: Get the styled string representation using extracted styles
@@ -90,7 +90,7 @@ public class StylesExtractionExample
                 continue;
             }
 
-            IReadOnlyList<ICell?>? cells = row.GetAllCells(ct);
+            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
             if (cells == null)
             {
                 continue;
@@ -98,14 +98,14 @@ public class StylesExtractionExample
 
             foreach (ICell? cell in cells)
             {
-                if (cell?.CellValue == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     continue;
                 }
 
                 // Use ToStyledString with available styles
                 // Note: You may need to pass styles through your application's context
-                string value = cell.CellValue?.ToString() ?? "";
+                string value = cell.CellValue.ToString() ?? string.Empty;
                 Console.WriteLine($"Value: {value}");
             }
         }
@@ -137,7 +137,7 @@ public class NumberFormatExample
                 continue;
             }
 
-            IReadOnlyList<ICell?>? cells = row.GetAllCells(ct);
+            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
             if (cells == null)
             {
                 continue;
@@ -145,7 +145,7 @@ public class NumberFormatExample
 
             foreach (ICell? cell in cells)
             {
-                if (cell?.CellValue == null)
+                if (cell.CellValue.IsUnknown)
                 {
                     continue;
                 }
@@ -237,3 +237,4 @@ public static class CellStyleExtensions
         return count;
     }
 }
+

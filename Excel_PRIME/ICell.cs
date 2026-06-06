@@ -4,7 +4,7 @@
 /// The type of cell as indicated by the Excel schema (Not interpreted)
 /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-public enum CellType
+public enum CellType : byte
 {
     Unknown,
     Numeric,
@@ -28,7 +28,7 @@ public interface ICell
     /// <remarks>
     /// Could be the actual value type if specified, otherwise `string?`
     /// </remarks>
-    CellValue? CellValue { get; }
+    CellValue CellValue { get; }
 
     /// <summary>
     /// Returns the type as specified in the Excel file attribute

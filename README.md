@@ -296,6 +296,19 @@ Lets take each of the above elements and explain:
 ## Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️
 - ⛓️‍💥 **Breaking Change(s)**
     - Cell base type will resolve to decimal first before attempting double. #20
+    - `Cell` and `CellValue` converted from `class` to `readonly struct` to eliminate object-per-cell overhead.
+    - `IRow`, `ISheet`, and `IExcel_PRIME` interfaces updated to return structs directly, avoiding boxing.
+    - `GetAllCells` now returns `ArraySegment<Cell>` to provide zero-allocation access to pooled cell arrays.
+- **Memory & Allocation Optimizations**
+    - ✅ Significant reduction in memory allocations (up to 4x) for large files by eliminating object-per-cell overhead.
+    - ✅ Implemented `ArrayPool<Cell>` for row-level cell storage.
+    - ✅ Optimized `Cell` struct layout to exactly 32 bytes (half a cache line) for improved performance.
+- **Performance Improvements**
+    - ✅ Optimized numeric parsing: restored custom `TryDecimalParse` priority while maintaining `double` storage for non-integers.
+    - ✅ Reduced async overhead by using `ValueTask<Cell>` in sheet reading loops.
+    - ✅ Improved parallel throughput by making `SharedString` loaders thread-safe at the instance level rather than static.
+    - ✅ Added `AggressiveInlining` and `AggressiveOptimization` to all high-frequency methods.
+   - [ ] IAsyncEnumerable stream processing
 - ✅ Cell object type 📅
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests
@@ -309,18 +322,16 @@ Lets take each of the above elements and explain:
    - ✅ Optimisationm in the Xlsb workflow
    - ✅ Return to the usage of the FieldOffsets to store the BCL type to prevent boxings in the hot paths
    - ✅ Usage of the Fast convertors *i.e.Our ToDecimal is 3 times faster than Convert.ToDecimal* #20
-    - Some compile warnings
 - **Advanced Scenarios**
    - ✅ Enable `PublishTrimmed=true` with trim warnings resolved
    - ✅ Native AOT compilation testing
-   - [ ] IAsyncEnumerable stream processing
 - **Bug Fixes**
     - Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
     - `AsDecimal` method had an issue where it produces incorrect precision, but only with default options #20
     - When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
     - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
     - Update BugTesting
-- Switch to publish on `nugetTest`
+    - Resolved several compiler warnings and potential resource leaks.
 
 -----
 

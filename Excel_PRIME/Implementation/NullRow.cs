@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace ExcelPRIME.Implementation;
 
 internal sealed class NullRow(int rowOffset) : INullRowAsync
@@ -12,17 +13,17 @@ internal sealed class NullRow(int rowOffset) : INullRowAsync
 
     public int RowOffset { get; } = rowOffset;
 
-    public ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default) => ValueTask.FromResult<IReadOnlyList<ICell?>?>(null);
+    public ValueTask<ArraySegment<Cell>> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default) => ValueTask.FromResult<ArraySegment<Cell>>(default);
 
-    public IReadOnlyList<ICell?>? GetAllCells(CancellationToken ct = default) => null;
+    public ArraySegment<Cell> GetAllCells(CancellationToken ct = default) => default;
 
-    public ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default) => ValueTask.FromResult<ICell?>(null);
+    public ValueTask<Cell> GetCellAsync(int excelColumnIndex, CancellationToken ct = default) => ValueTask.FromResult<Cell>(default);
 
-    public ICell? GetCell(int excelColumnIndex, CancellationToken ct = default) => null;
+    public Cell GetCell(int excelColumnIndex, CancellationToken ct = default) => default;
 
-    public ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default) => ValueTask.FromResult<ICell?>(null);
+    public ValueTask<Cell> GetCellAsync(string columnLetters, CancellationToken ct = default) => ValueTask.FromResult<Cell>(default);
 
-    public ICell? GetCell(string columnLetters, CancellationToken ct = default) => null;
+    public Cell GetCell(string columnLetters, CancellationToken ct = default) => default;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)

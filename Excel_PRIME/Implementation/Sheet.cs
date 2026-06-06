@@ -68,7 +68,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn,
+    public async IAsyncEnumerable<Cell[]?> GetRowDataAsync(int startRow, int excelStartColumn, int excelEndColumn,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         await foreach (IRowAsync? row in GetRowDataAsync(startRow, RowCellGet.None, ct).ConfigureAwait(false))
@@ -81,7 +81,7 @@ internal sealed class Sheet : ISheetAsync
             try
             {
                 int length = excelEndColumn - excelStartColumn + 1;
-                ICell?[] cells = new ICell?[length];
+                Cell[] cells = new Cell[length];
                 int idx = 0;
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
@@ -98,7 +98,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <InheritDoc />
-    public IEnumerable<ICell?[]?> GetRowData(int startRow, int excelStartColumn, int excelEndColumn,
+    public IEnumerable<Cell[]?> GetRowData(int startRow, int excelStartColumn, int excelEndColumn,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         foreach (IRow? row in GetRowData(startRow, RowCellGet.None, ct))
@@ -112,7 +112,7 @@ internal sealed class Sheet : ISheetAsync
             try
             {
                 int length = excelEndColumn - excelStartColumn + 1;
-                ICell?[] cells = new ICell?[length];
+                Cell[] cells = new Cell[length];
                 int idx = 0;
                 for (int i = excelStartColumn; i <= excelEndColumn; i++)
                 {
@@ -129,7 +129,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <inheritdoc/>
-    public IAsyncEnumerable<ICell?[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn,
+    public IAsyncEnumerable<Cell[]?> GetRowDataAsync(int startRow, ReadOnlySpan<char> startExcelColumn,
         ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default)
     {
         int excelStartColumn = startExcelColumn.IntParse();
@@ -138,7 +138,7 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <inheritdoc/>
-    public IEnumerable<ICell?[]?> GetRowData(int startRow, ReadOnlySpan<char> startExcelColumn,
+    public IEnumerable<Cell[]?> GetRowData(int startRow, ReadOnlySpan<char> startExcelColumn,
         ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default)
     {
         int excelStartColumn = startExcelColumn.IntParse();
@@ -147,9 +147,9 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<ICell?[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
+    public async IAsyncEnumerable<Cell[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
     {
-        await foreach (ICell?[]? rowCells in GetRowDataAsync(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct).ConfigureAwait(false))
+        await foreach (Cell[]? rowCells in GetRowDataAsync(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct).ConfigureAwait(false))
         {
             if (rowCells == null
                 || _sheetReader!.CurrentRow > range.ExcelRowEnd)
@@ -162,9 +162,9 @@ internal sealed class Sheet : ISheetAsync
     }
 
     /// <InheritDoc />
-    public IEnumerable<ICell?[]> GetDefinedRange(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
+    public IEnumerable<Cell[]> GetDefinedRange(DefinedRange range, [EnumeratorCancellation] CancellationToken ct)
     {
-        foreach (ICell?[]? rowCells in GetRowData(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct))
+        foreach (Cell[]? rowCells in GetRowData(range.ExcelRowStart - 1, range.ExcelColumnStart, range.ExcelColumnEnd, ct))
         {
             if (rowCells == null
                 || _sheetReader!.CurrentRow > range.ExcelRowEnd
