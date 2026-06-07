@@ -91,4 +91,11 @@ public interface ISheetAsync : ISheet
     /// Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
     /// </summary>
     IAsyncEnumerable<Cell[]> GetDefinedRangeAsync(DefinedRange range, [EnumeratorCancellation] CancellationToken ct = default);
+
+    /// <summary>
+    /// Asynchronously retrieves the dimensions of the sheet.
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<(int Height, int Width)> GetSheetDimensionsAsync(CancellationToken ct = default);
 }

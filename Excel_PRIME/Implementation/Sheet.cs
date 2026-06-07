@@ -37,10 +37,20 @@ internal sealed class Sheet : ISheetAsync
     {
         get
         {
-            _sheetReader ??= (IOpenXmlSheetReaderAsync)_xmlSharedReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
+            if (_sheetReader == null)
+            {
+                _sheetReader = (IOpenXmlSheetReaderAsync)_xmlSharedReaderHelper.CreateSheetReader(_stream, _instanceContext, _sharedNameTable, CancellationToken.None);
+            }
 
             return _sheetReader.SheetDimensions;
         }
+    }
+
+    /// <InheritDoc />
+    public async Task<(int Height, int Width)> GetSheetDimensionsAsync(CancellationToken ct = default)
+    {
+        await CheckLocationAsync(0, ct).ConfigureAwait(false);
+        return _sheetReader!.SheetDimensions;
     }
 
     /// <inheritdoc/>

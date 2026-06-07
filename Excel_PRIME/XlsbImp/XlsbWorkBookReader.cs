@@ -299,12 +299,16 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
     // ReSharper restore InconsistentNaming
 
-    public XlsbWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    internal XlsbWorkBookReaderAsync(IZipReaderAsync zipReader)
 #pragma warning disable CA2016 // do not forward the ct to the public base constructor
         : base(zipReader)
 #pragma warning restore CA2016
     {
-        Stream? stream = zipReader.GetEntryAsync("xl/workbook.bin", ct).GetAwaiter().GetResult();
+    }
+
+    internal async Task InitializeAsync(CancellationToken ct)
+    {
+        Stream? stream = await _zipReaderA.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
         _streamWb = new BufferedStream(stream!, 64 * 1024);
         OpenWorkbookStream();
@@ -368,7 +372,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
         });
         Dictionary<string, string> worksheetRels = [];
         string relationshipsRefAtom = readerRels.NameTable.Add("Relationships");
-        if (!readerRels.ReadToFollowing(relationshipsRefAtom))
+        if (!await readerRels.ReadToFollowingAsync(relationshipsRefAtom).ConfigureAwait(false))
         {
             return worksheetRels;
         }

@@ -255,6 +255,83 @@ internal sealed class XlsbStylesExtractor : IDisposable
         }
     }
 
-    public Task<IReadOnlyDictionary<short, CellStyle>> ExtractStylesAsync(CancellationToken ct)
-        => Task.FromResult(ExtractStyles(ct));
+    public async Task<IReadOnlyDictionary<short, CellStyle>> ExtractStylesAsync(CancellationToken ct)
+    {
+        // Add XLSB default/implicit styles per ECMA-376 specification
+        AddDefaultStyles();
+
+        try
+        {
+            using Stream? styleStream = await ((IZipReaderAsync)_zipReader).GetEntryAsync("xl/styles.bin", ct).ConfigureAwait(false);
+            if (styleStream == null)
+            {
+                return _cellStyles;
+            }
+
+            using BufferedStream bufferedStream = new(styleStream, 64 * 1024);
+            XlsbStreamReader reader = new(bufferedStream);
+            await ParseStylesXlsbAsync(reader, ct).ConfigureAwait(false);
+            // XlsbStreamReader doesn't own the stream, so no dispose needed
+        }
+        catch (Exception)
+        {
+            // If style extraction fails, return dictionary with default styles
+            // This allows the workbook to continue working without style information
+        }
+
+        return _cellStyles;
+    }
+
+    private async Task ParseStylesXlsbAsync(XlsbStreamReader reader, CancellationToken ct)
+    {
+        PooledRecordBuffer record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        bool exitNow = false;
+        while (!exitNow && record.Succeeded && !ct.IsCancellationRequested)
+        {
+            try
+            {
+                short count;
+                switch (record.RecordType)
+                {
+                    case (RecordTypeIdentifier)XlsbRecordTypes.NumFmtStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.NumFmt)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseNumFmt(record, count);
+                        }
+                        break;
+
+                    case (RecordTypeIdentifier)XlsbRecordTypes.CellXFStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.CellXF)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseCellXf(record, offset);
+                        }
+                        exitNow = true;
+                        break;
+                }
+            }
+            finally
+            {
+                record.Dispose();
+            }
+
+            if (!exitNow)
+            {
+                record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+            }
+        }
+    }
 }

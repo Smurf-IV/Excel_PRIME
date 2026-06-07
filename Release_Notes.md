@@ -1,4 +1,4 @@
-﻿# 2026-06-06 - V5 - Alpha
+﻿# 2026-06-07 - V5 - Beta 1 Release Notes
 - ⛓️‍💥 **Breaking Change(s)**
     - Cell base type will resolve to decimal first before attempting double. #20
     - `Cell` and `CellValue` converted from `class` to `readonly struct` to eliminate object-per-cell overhead.
@@ -13,6 +13,7 @@
     - ✅ Reduced async overhead by using `ValueTask<Cell>` in sheet reading loops.
     - ✅ Improved parallel throughput by making `SharedString` loaders thread-safe at the instance level rather than static.
     - ✅ Added `AggressiveInlining` and `AggressiveOptimization` to all high-frequency methods.
+    - ✅ IAsyncEnumerable stream processing
 - ✅ Cell object type 📅
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests

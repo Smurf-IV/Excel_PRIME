@@ -133,7 +133,12 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     {
         using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
-        _sheetNamesToPathOffset = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary(StringComparer.OrdinalIgnoreCase);
+        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        await foreach (var kvp in wbr.GetSheetNamesAsync(ct).ConfigureAwait(false))
+        {
+            dict[kvp.Key] = kvp.Value;
+        }
+        _sheetNamesToPathOffset = dict;
     }
 
     private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
@@ -304,7 +309,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            stream = _zipReader.GetEntry(pathOffsetSheet)!;
+            stream = (await _zipReader.GetEntryAsync(pathOffsetSheet, ct).ConfigureAwait(false))!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, _instanceContext);
     }

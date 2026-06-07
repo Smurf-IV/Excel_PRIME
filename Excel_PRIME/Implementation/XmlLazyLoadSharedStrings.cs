@@ -9,7 +9,7 @@ namespace ExcelPRIME.Implementation;
 
 internal sealed class XmlLazyLoadSharedStrings : ISharedString
 {
-    private static readonly SemaphoreLocker _locker = new();
+    private readonly SemaphoreLocker _locker = new();
     private readonly Stream? _stream;
     private readonly XmlReader _reader;
     private readonly List<string> _currentlyLoaded;
@@ -35,7 +35,7 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
         _tRefAtom = string.Empty;
     }
 
-    public XmlLazyLoadSharedStrings(Stream stream, CancellationToken ct)
+    public XmlLazyLoadSharedStrings(Stream stream)
     {
         _stream = stream;
         _reader = XmlReader.Create(stream, new XmlReaderSettings
@@ -51,6 +51,29 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
             ValidationFlags = System.Xml.Schema.XmlSchemaValidationFlags.None,
             Async = true // TBD
         });
+        _siRefAtom = _reader.NameTable.Add("si");
+        _tRefAtom = _reader.NameTable.Add("t");
+        _currentlyLoaded = []; // Will be properly sized in Initialize
+    }
+
+    internal async Task InitializeAsync(CancellationToken ct)
+    {
+        // advance to the content
+        string sstRefAtom = _reader.NameTable.Add("sst");
+        await _reader.ReadToFollowingAsync(sstRefAtom).ConfigureAwait(false);
+
+        string uniqueCountRefAtom = _reader.NameTable.Add("uniqueCount");
+        string? countStr = _reader.GetAttribute(uniqueCountRefAtom);
+        if (!string.IsNullOrEmpty(countStr)
+            && int.TryParse(countStr, out int count)
+            && count >= 0)
+        {
+            _currentlyLoaded.Capacity = count;
+        }
+    }
+
+    internal void Initialize(CancellationToken ct)
+    {
         // advance to the content
         string sstRefAtom = _reader.NameTable.Add("sst");
         _reader.ReadToFollowing(sstRefAtom);
@@ -61,16 +84,8 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
             && int.TryParse(countStr, out int count)
             && count >= 0)
         {
-            // Just here to make the logic clearer
+            _currentlyLoaded.Capacity = count;
         }
-        else
-        {
-            count = 128;
-        }
-
-        _currentlyLoaded = new List<string>(count);
-        _siRefAtom = _reader.NameTable.Add("si");
-        _tRefAtom = _reader.NameTable.Add("t");
     }
 
     // TODO: Should this be refactored to take a Cancellation Token
@@ -208,6 +223,7 @@ internal sealed class XmlLazyLoadSharedStrings : ISharedString
             {
                 _reader.Dispose();
                 _stream?.Dispose();
+                _locker.Dispose();
             }
 
             _isDisposed = true;

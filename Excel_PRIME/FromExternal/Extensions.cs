@@ -75,6 +75,25 @@ internal static class Extensions
         return negative ? -result : result;
     }
 
+    /// <summary>
+    /// Reads until the element with the specified local name is found.
+    /// </summary>
+    /// <param name="reader"></param>
+    /// <param name="localName"></param>
+    /// <returns></returns>
+    public static async Task<bool> ReadToFollowingAsync(this System.Xml.XmlReader reader, string localName)
+    {
+        while (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            if (reader.NodeType == System.Xml.XmlNodeType.Element
+                && reader.LocalName == localName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ParseDecimal taken from https://stackoverflow.com/a/37754822
     // And then modified to be faster and allocate less
     private static readonly int[] s_powOf10 =

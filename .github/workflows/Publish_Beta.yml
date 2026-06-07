@@ -17,12 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
-        lfs: true
+        # lfs: true
         fetch-depth: 0
         #ref: 'main'
 
-    - name: Checkout LFS objects
-      run: git lfs checkout
+    # - name: Checkout LFS objects
+    #   run: git lfs checkout
 
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v4
@@ -49,8 +49,8 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
+    # - name: Test  is done in the "Build and Test" github workflow
+    #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
       run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release --version-suffix Beta

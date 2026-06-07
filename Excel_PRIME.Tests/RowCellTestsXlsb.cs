@@ -287,7 +287,11 @@ public class RowCellTestsXlsb
                 IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (Cell cell in rowCells)
                 {
-                    if (cell.CellValue.IsUnknown) break;
+                    if (cell.CellValue.IsUnknown)
+                    {
+                        break;
+                    }
+
                     cell.CellValue.BoxedValue.Should().Be(workSheet1Content[r][c]);
                     c++;
                 }
@@ -334,7 +338,11 @@ public class RowCellTestsXlsb
                 IReadOnlyList<Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 foreach (Cell cell in rowCells)
                 {
-                    if (cell.CellValue.IsUnknown) break;
+                    if (cell.CellValue.IsUnknown)
+                    {
+                        break;
+                    }
+
                     cell.CellValue.BoxedValue.Should().Be(workSheet2Content[r][c]);
                     c++;
                 }

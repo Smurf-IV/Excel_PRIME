@@ -4,8 +4,8 @@
 name: .NET Build and Test
 
 on:
-  push:
-  pull_request:
+  push: # all
+  pull_request: # all
 
 jobs:
   build:

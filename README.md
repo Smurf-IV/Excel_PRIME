@@ -308,7 +308,7 @@ Lets take each of the above elements and explain:
     - ✅ Reduced async overhead by using `ValueTask<Cell>` in sheet reading loops.
     - ✅ Improved parallel throughput by making `SharedString` loaders thread-safe at the instance level rather than static.
     - ✅ Added `AggressiveInlining` and `AggressiveOptimization` to all high-frequency methods.
-   - [ ] IAsyncEnumerable stream processing
+    - ✅ IAsyncEnumerable stream processing
 - ✅ Cell object type 📅
     - ✅ Store cell _style_ type (see Options enum)
     - ✅ Unit Tests
