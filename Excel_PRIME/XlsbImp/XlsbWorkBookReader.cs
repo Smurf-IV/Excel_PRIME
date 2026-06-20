@@ -141,7 +141,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
     public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         List<string>? sheetRefs = null;
 
         PooledRecordBuffer nextRecord = _readerWb.ReadNextRecord();
@@ -418,7 +418,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
     public async Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         List<string>? sheetRefs = null;
 
         PooledRecordBuffer nextRecord = await _readerWb.ReadNextRecordAsync(ct).ConfigureAwait(false);

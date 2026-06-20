@@ -1,4 +1,4 @@
-﻿# 2026-06-07 - V5 - Beta 1 Release Notes
+﻿# 2026-06-20 - V5 - Release Notes
 - ⛓️‍💥 **Breaking Change(s)**
     - Cell base type will resolve to decimal first before attempting double. #20
     - `Cell` and `CellValue` converted from `class` to `readonly struct` to eliminate object-per-cell overhead.
@@ -37,3 +37,4 @@
     - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
     - Update BugTesting
     - Resolved several compiler warnings and potential resource leaks.
+    - Excel itself treats named ranges in a case-insensitive manner #34

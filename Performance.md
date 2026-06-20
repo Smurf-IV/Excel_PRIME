@@ -35,7 +35,7 @@
 - [2026-04-27 - V4 - RC3](#2026-04-27---v4---rc3)
 - [2026-05-05 - V4](#2026-05-05---v4)
 - [2026-05-12 - V4 - Bug fixes](#2026-05-12---v4---bug-fixes)
-- [2026-06-06 - V5 - Alpha](#2026-06-06---v5---alpha)
+- [2026-06-20 - V5](#2026-06-20---v5)
 <!-- TOC -->
 
 # Intro
@@ -1262,7 +1262,7 @@ And then slightly different versions of the following dependent on date:
 | PrlAsyncExcel_PrimeTwice | sampl(...).xlsx [30] | 2.17x slower | 214000.0000 |  1000.0000 |          - |  2566.1 MB | 13.82x more |
 ```
 
-# 2026-06-07 - V5 - Beta 1 Release Notes
+# 2026-06-20 - V5
 - ⛓️‍💥 **Breaking Change(s)**
     - Cell base type will resolve to decimal first before attempting double. #20
     - `Cell` and `CellValue` converted from `class` to `readonly struct` to eliminate object-per-cell overhead.
@@ -1301,6 +1301,7 @@ And then slightly different versions of the following dependent on date:
     - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
     - Update BugTesting
     - Resolved several compiler warnings and potential resource leaks.
+    - Excel itself treats named ranges in a case-insensitive manner #34
 
 ```
 | Method                   | FileName             | Ratio        | Gen0        | Gen1       | Gen2      | Allocated  | Alloc Ratio |

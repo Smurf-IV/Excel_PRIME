@@ -141,7 +141,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
         string definedNamesRefAtom = _readerWb.NameTable.Add("definedNames");
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         if (!_readerWb.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
@@ -355,7 +355,7 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
         string definedNamesRefAtom = _readerWb.NameTable.Add("definedNames");
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         if (!await _readerWb.ReadToFollowingAsync(definedNamesRefAtom).ConfigureAwait(false))
         {
             definedRanges.TrimExcess();

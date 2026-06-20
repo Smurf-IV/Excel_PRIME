@@ -114,7 +114,7 @@ Lets take each of the above elements and explain:
   - [Phase Alpha](#phase-alpha)
   - [Phase Beta - Benchmarks ⏱️](#phase-beta---benchmarks-)
   - [Phase 1 - MVP 🔍](#phase-1---mvp-)
-  - [Phase 2 - RC](#phase-2---rc)
+  - [Phase 2](#phase-2)
     - [V2 Changes ➡️ 2025-12-14](#v2-changes--2025-12-14)
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
     - [V3 Changes ➡️ 2026-01-16](#v3-changes--2026-01-16)
@@ -175,7 +175,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 2 - RC
+## Phase 2
 - ✅ Add `IEnumerable`s _All_ the way down ⤵️
 - ✅ Nuget
     - ✅ Manual workflow deploy Release
@@ -332,6 +332,7 @@ Lets take each of the above elements and explain:
     - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
     - Update BugTesting
     - Resolved several compiler warnings and potential resource leaks.
+    - Excel itself treats named ranges in a case-insensitive manner #34
 
 -----
 

@@ -250,5 +250,21 @@ internal class BugTesting
         fs.Should().BeWriteOnly();
     }
 
+    [Test]
+    public async Task Bug_034_CaseRangeName()
+    {
+        const string fileName = "Data/named-range.xlsx";
+        using Excel_PRIME workbook = new();
+        await workbook.OpenAsync(fileName).ConfigureAwait(true);
+        // This is the expected behavior, the defined name is case-insensitive, so both "TaxRate" and "taxrate" should return the same value.
+        //CellValue[] taxRate = await workbook.GetDefinedRangeAsync("TaxRate").FirstAsync();
+        // Test uppercase and lowercase defined name, they should return the same value.
+        CellValue[] taxRate = await workbook.GetDefinedRangeAsync("TAXRATE").FirstAsync();
+        taxRate.First().ToString().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+        
+        taxRate = await workbook.GetDefinedRangeAsync("taxrate").FirstAsync();
+        taxRate.First().ToString().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
+    }
+
 }
 
