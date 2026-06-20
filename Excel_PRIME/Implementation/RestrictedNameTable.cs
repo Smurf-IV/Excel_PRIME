@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Xml;
 
 // ReSharper disable InconsistentNaming on "private const string"s
@@ -24,9 +23,9 @@ internal sealed class SharedStringsRestrictedNameTable : NameTable
 
     public override string Add(string key) => Get(key.AsSpan()) ?? base.Add(key);
 
-    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len));
+    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len)) ?? base.Get(key, start, len);
 
-    public override string? Get(string value) => Get(value.AsSpan());
+    public override string? Get(string value) => Get(value.AsSpan()) ?? base.Get(value);
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
@@ -88,9 +87,9 @@ internal sealed class SheetRestrictedNameTable : NameTable
 
     public override string Add(string key) => Get(key.AsSpan()) ?? base.Add(key);
 
-    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len));
+    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len)) ?? base.Get(key, start, len);
 
-    public override string? Get(string value) => Get(value.AsSpan());
+    public override string? Get(string value) => Get(value.AsSpan()) ?? base.Get(value);
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)
@@ -180,9 +179,9 @@ internal sealed class WorkBookRestrictedNameTable : NameTable
 
     public override string Add(string key) => Get(key.AsSpan()) ?? base.Add(key);
 
-    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len));
+    public override string? Get(char[] key, int start, int len) => Get(key.AsSpan(start, len)) ?? base.Get(key, start, len);
 
-    public override string? Get(string value) => Get(value.AsSpan());
+    public override string? Get(string value) => Get(value.AsSpan()) ?? base.Get(value);
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static string? Get(ReadOnlySpan<char> value)

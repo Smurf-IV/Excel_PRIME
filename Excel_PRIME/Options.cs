@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ExcelPRIME;
+﻿namespace ExcelPRIME;
 
 
 /// <summary>

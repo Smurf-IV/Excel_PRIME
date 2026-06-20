@@ -79,3 +79,4 @@ internal class PerformanceTesting
         cells.Should().Be(expectedCells);
     }
 }
+

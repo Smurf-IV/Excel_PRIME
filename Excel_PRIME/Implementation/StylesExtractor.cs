@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,14 +11,9 @@ namespace ExcelPRIME.Implementation;
 internal sealed class StylesExtractor : IDisposable
 {
     private readonly IZipReader _zipReader;
-    private Dictionary<int, string>? _numberFormats;
-    private Dictionary<int, CellStyle>? _cellStyles;
+    private readonly Dictionary<short, CellStyle> _numberFormats = Ecma376StandardProvider.GetDefaultStyles();
+    private readonly Dictionary<short, CellStyle> _cellStyles = [];
     private bool _isDisposed;
-
-    /// <summary>
-    /// Built-in number format codes defined in the ECMA-376 standard.
-    /// </summary>
-    private static readonly IReadOnlyDictionary<int, (string FormatCode, FormattingType Type)> BuiltInNumberFormats = Ecma376StandardProvider.BuiltInNumberFormats;
 
     public StylesExtractor(IZipReader zipReader)
     {
@@ -38,43 +31,42 @@ internal sealed class StylesExtractor : IDisposable
     /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
     /// Returns empty/default styles if styles.xml is not found.
     /// </returns>
-    public Dictionary<int, CellStyle> ExtractStyles(CancellationToken ct)
+    public IReadOnlyDictionary<short, CellStyle> ExtractStyles(CancellationToken ct)
     {
-        if (_cellStyles != null)
-        {
-            return _cellStyles;
-        }
-
-        _cellStyles = new Dictionary<int, CellStyle>();
-        _numberFormats = new Dictionary<int, string>();
-        
-        // Copy format codes from built-in formats
-        foreach ((int formatId, (string formatCode, FormattingType _)) in BuiltInNumberFormats)
-        {
-            _numberFormats[formatId] = formatCode;
-        }
-
         try
         {
-            using (Stream? styleStream = _zipReader.GetEntry("xl/styles.xml"))
+            using Stream? styleStream = _zipReader.GetEntry("xl/styles.xml");
+            if (styleStream == null)
             {
-                if (styleStream == null)
-                {
-                    return _cellStyles;
-                }
+                return _cellStyles;
+            }
+            XmlDocument doc = new();
+            doc.Load(styleStream);
+            if (doc.DocumentElement == null)
+            {
+                throw new InvalidDataException();
+            }
+            XmlNamespaceManager nsm = new(doc.NameTable);
+            string ns = doc.DocumentElement.NamespaceURI;
+            nsm.AddNamespace("x", ns);
+            XmlNodeList? nodes = doc.SelectNodes("/x:styleSheet/x:numFmts/x:numFmt", nsm);
 
-                using (XmlReader reader = XmlReader.Create(styleStream, new XmlReaderSettings
+            if (nodes != null)
+            {
+                foreach (XmlElement fmt in nodes)
                 {
-                    DtdProcessing = DtdProcessing.Prohibit,
-                    IgnoreComments = true,
-                    IgnoreWhitespace = true,
-                    CheckCharacters = false,
-                    CloseInput = true,
-                    ConformanceLevel = ConformanceLevel.Document,
-                    ValidationType = ValidationType.None,
-                }))
+                    ParseNumFmt(fmt);
+                }
+            }
+            XmlElement? xfsElem = (XmlElement?)doc.SelectSingleNode("/x:styleSheet/x:cellXfs", nsm);
+            if (xfsElem != null)
+            {
+                IEnumerable<XmlElement> cellNodes = xfsElem.ChildNodes.OfType<XmlElement>();
+                short styleIndex = 0;
+
+                foreach ( XmlElement cellNode in cellNodes)
                 {
-                    ParseStylesXml(reader);
+                    _cellStyles[styleIndex++] = ParseCellXfElement(cellNode);
                 }
             }
         }
@@ -87,86 +79,162 @@ internal sealed class StylesExtractor : IDisposable
         return _cellStyles;
     }
 
-    private void ParseStylesXml(XmlReader reader)
+
+    public async Task<IReadOnlyDictionary<short, CellStyle>> ExtractStylesAsync(CancellationToken ct)
     {
-        while (reader.Read())
+        try
         {
-            if (reader.NodeType == XmlNodeType.Element)
+            using Stream? styleStream = await ((IZipReaderAsync)_zipReader).GetEntryAsync("xl/styles.xml", ct).ConfigureAwait(false);
+            if (styleStream == null)
             {
-                switch (reader.LocalName)
+                return _cellStyles;
+            }
+
+            using XmlReader reader = XmlReader.Create(styleStream, new XmlReaderSettings
+            {
+                Async = true,
+                DtdProcessing = DtdProcessing.Prohibit,
+                IgnoreComments = true,
+                IgnoreWhitespace = true,
+                CheckCharacters = false
+            });
+
+            string numFmtsAtom = reader.NameTable.Add("numFmts");
+            string numFmtAtom = reader.NameTable.Add("numFmt");
+            string cellXfsAtom = reader.NameTable.Add("cellXfs");
+            string xfAtom = reader.NameTable.Add("xf");
+
+            while (await reader.ReadAsync().ConfigureAwait(false) && !ct.IsCancellationRequested)
+            {
+                if (reader.NodeType != XmlNodeType.Element)
                 {
-                    case "numFmt":
-                        ParseNumFmt(reader);
-                        break;
-                    case "cellXfs":
-                        ParseCellXfs(reader);
-                        break;
+                    continue;
+                }
+
+                if (ReferenceEquals(reader.LocalName, numFmtsAtom))
+                {
+                    if (reader.IsEmptyElement)
+                    {
+                        continue;
+                    }
+
+                    while (await reader.ReadAsync().ConfigureAwait(false) && !ct.IsCancellationRequested)
+                    {
+                        if (reader.NodeType == XmlNodeType.Element && ReferenceEquals(reader.LocalName, numFmtAtom))
+                        {
+                            ParseNumFmt(reader);
+                        }
+                        else if (reader.NodeType == XmlNodeType.EndElement && ReferenceEquals(reader.LocalName, numFmtsAtom))
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (ReferenceEquals(reader.LocalName, cellXfsAtom))
+                {
+                    if (reader.IsEmptyElement)
+                    {
+                        continue;
+                    }
+
+                    short styleIndex = 0;
+                    while (await reader.ReadAsync().ConfigureAwait(false) && !ct.IsCancellationRequested)
+                    {
+                        if (reader.NodeType == XmlNodeType.Element && ReferenceEquals(reader.LocalName, xfAtom))
+                        {
+                            _cellStyles[styleIndex++] = ParseCellXfElement(reader);
+                        }
+                        else if (reader.NodeType == XmlNodeType.EndElement && ReferenceEquals(reader.LocalName, cellXfsAtom))
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
+        catch
+        {
+            // Do nothing
+        }
+
+        return _cellStyles;
     }
 
     private void ParseNumFmt(XmlReader reader)
     {
-        string? numFmtIdAttr = reader.GetAttribute("numFmtId");
-        string? formatCodeAttr = reader.GetAttribute("formatCode");
+        string numFmtIdAttr = reader.GetAttribute("numFmtId") ?? string.Empty;
+        string formatCodeAttr = reader.GetAttribute("formatCode") ?? string.Empty;
 
-        if (numFmtIdAttr != null
-            && int.TryParse(numFmtIdAttr, out int numFmtId)
-            && formatCodeAttr != null)
+        if (short.TryParse(numFmtIdAttr, out short numFmtId)
+            && !string.IsNullOrWhiteSpace(formatCodeAttr)
+            )
         {
-            _numberFormats![numFmtId] = formatCodeAttr;
+            _numberFormats[numFmtId] = new CellStyle
+            {
+                ExcelFormatId = numFmtId,
+                Formatting = formatCodeAttr,
+            };
         }
     }
 
-    private void ParseCellXfs(XmlReader reader)
+    private CellStyle ParseCellXfElement(XmlReader reader)
     {
-        if (reader.IsEmptyElement)
+        CellStyle? style = null;
+        if (short.TryParse(reader.GetAttribute("numFmtId"), out short numFmtId))
         {
-            return;
+            Ecma376StandardProvider.TryGetCellStyle(numFmtId, out style);
+        }
+        if (style == null)
+        {
+            _numberFormats.TryGetValue(numFmtId, out style);
+            style ??= Ecma376StandardProvider.GetCellStyle(0);
         }
 
-        int styleIndex = 0;
-        while (reader.Read() && reader.NodeType != XmlNodeType.EndElement)
+        return style!;
+    }
+
+    private void ParseNumFmt(XmlElement fmt)
+    {
+        string numFmtIdAttr = fmt.GetAttribute("numFmtId");
+        string formatCodeAttr = fmt.GetAttribute("formatCode");
+
+        if (!string.IsNullOrWhiteSpace(numFmtIdAttr) 
+            && short.TryParse(numFmtIdAttr, out short numFmtId)
+            && !string.IsNullOrWhiteSpace(formatCodeAttr))
         {
-            if (reader.NodeType == XmlNodeType.Element && reader.LocalName == "xf")
+            _numberFormats[numFmtId] = new CellStyle
             {
-                CellStyle style = ParseCellXfElement(reader, styleIndex);
-                _cellStyles![styleIndex] = style;
-                styleIndex++;
-            }
+                ExcelFormatId = numFmtId,
+                Formatting = formatCodeAttr,
+                //FormattingType = // TODO: check if it contains magic for dates (i,e, locale stuff as well!)
+            };
         }
     }
 
-    private CellStyle ParseCellXfElement(XmlReader reader, int styleIndex)
-    {
-        CellStyle style = new CellStyle { StyleId = styleIndex };
 
-        // Parse attributes
-        if (int.TryParse(reader.GetAttribute("numFmtId"), out int numFmtId))
+    private CellStyle ParseCellXfElement(XmlElement reader)
+    {
+        CellStyle? style = null;
+        if (short.TryParse(reader.GetAttribute("numFmtId"), out short numFmtId))
         {
-            style.NumberFormatId = numFmtId;
-            //style.ApplyNumberFormat = reader.GetAttribute("applyNumberFormat") == "1";
-            
-            // Look up the format code
-            if (_numberFormats!.TryGetValue(numFmtId, out string? formatCode))
-            {
-                style.NumberFormatCode = formatCode;
-            }
+            Ecma376StandardProvider.TryGetCellStyle(numFmtId, out style);
+        }
+        if (style == null)
+        {
+            _numberFormats.TryGetValue(numFmtId, out style);
+            style ??= Ecma376StandardProvider.GetCellStyle(0);
         }
 
-        return style;
+        return style!;
     }
 
     public void Dispose()
     {
         if (!_isDisposed)
         {
-            _cellStyles?.Clear();
-            _numberFormats?.Clear();
+            //_cellStyles?.Clear(); returned to caller
+            _numberFormats.Clear();
             _isDisposed = true;
         }
     }
-
-    public async Task<IReadOnlyDictionary<int, CellStyle>> ExtractStylesAsync(CancellationToken ct) => throw new NotImplementedException();
 }

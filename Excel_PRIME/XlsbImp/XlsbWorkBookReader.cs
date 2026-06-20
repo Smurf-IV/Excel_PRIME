@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +19,11 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
     private protected XlsbStreamReader _readerWb;
     private bool _isDisposed;
 
-    protected XlsbWorkBookReader(IZipReader zipReader) => _zipReader = zipReader;
+    protected XlsbWorkBookReader(IZipReader zipReader)
+    {
+        ArgumentNullException.ThrowIfNull(zipReader);
+        _zipReader = zipReader;
+    }
 
     public XlsbWorkBookReader(IZipReader zipReader, CancellationToken _)
         : this(zipReader)
@@ -140,7 +141,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
     public IReadOnlyDictionary<string, DefinedRange> GetDefinedRanges(
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         List<string>? sheetRefs = null;
 
         PooledRecordBuffer nextRecord = _readerWb.ReadNextRecord();
@@ -234,7 +235,8 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
                     int row = nextRecord.GetInt32(offset) + 1;
                     offset += 4;
                     int col = nextRecord.GetInt16(offset) + 1;
-                    return (col.GetExcelColumnName(), col.GetExcelColumnName(), row, row, false, sheetRef);
+                    string colName = new(col.GetExcelColumnName());
+                    return (colName, colName, row, row, false, sheetRef);
                 }
 
             case 0x3B:  //PtgArea3d
@@ -261,7 +263,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
         //    sheetRef = nextRecord.GetInt16(offset + 5);
         //}
 
-        return (colFirst.GetExcelColumnName(), colLast.GetExcelColumnName(), rowFirst, rowLast, false, sheetRef);
+        return (new string(colFirst.GetExcelColumnName()), new string(colLast.GetExcelColumnName()), rowFirst, rowLast, false, sheetRef);
     }
 
     private void Dispose(bool isDisposing)
@@ -297,12 +299,16 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
     // ReSharper restore InconsistentNaming
 
-    public XlsbWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    internal XlsbWorkBookReaderAsync(IZipReaderAsync zipReader)
 #pragma warning disable CA2016 // do not forward the ct to the public base constructor
         : base(zipReader)
 #pragma warning restore CA2016
     {
-        Stream? stream = zipReader.GetEntryAsync("xl/workbook.bin", ct).GetAwaiter().GetResult();
+    }
+
+    internal async Task InitializeAsync(CancellationToken ct)
+    {
+        Stream? stream = await _zipReaderA.GetEntryAsync("xl/workbook.bin", ct).ConfigureAwait(false);
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
         _streamWb = new BufferedStream(stream!, 64 * 1024);
         OpenWorkbookStream();
@@ -366,7 +372,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
         });
         Dictionary<string, string> worksheetRels = [];
         string relationshipsRefAtom = readerRels.NameTable.Add("Relationships");
-        if (!readerRels.ReadToFollowing(relationshipsRefAtom))
+        if (!await readerRels.ReadToFollowingAsync(relationshipsRefAtom).ConfigureAwait(false))
         {
             return worksheetRels;
         }
@@ -412,7 +418,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
     public async Task<IReadOnlyDictionary<string, DefinedRange>> GetDefinedRangesAsync(
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         List<string>? sheetRefs = null;
 
         PooledRecordBuffer nextRecord = await _readerWb.ReadNextRecordAsync(ct).ConfigureAwait(false);
@@ -507,7 +513,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
                     int row = nextRecord.GetInt32(offset) + 1;
                     offset += 4;
                     int col = nextRecord.GetInt16(offset) + 1;
-                    string excelColumnName = col.GetExcelColumnName();
+                    string excelColumnName = new(col.GetExcelColumnName());
                     return (excelColumnName, excelColumnName, row, row, false, sheetRef);
                 }
 
@@ -535,7 +541,7 @@ internal sealed class XlsbWorkBookReaderAsync : XlsbWorkBookReader, IOpenXmlWork
         //    sheetRef = nextRecord.GetInt16(offset + 5);
         //}
 
-        string columnName = colLast.GetExcelColumnName();
-        return (colFirst.GetExcelColumnName(), columnName, rowFirst, rowLast, false, sheetRef);
+        string columnName = new(colLast.GetExcelColumnName());
+        return (new string(colFirst.GetExcelColumnName()), columnName, rowFirst, rowLast, false, sheetRef);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ExcelPRIME.XlsbImp;
+﻿// ReSharper disable InconsistentNaming
+// ReSharper disable IdentifierTypo
+namespace ExcelPRIME.XlsbImp;
 
 /// <summary>
 /// Creating an exhaustive list of all possible record type identifiers for .xlsb files would require referencing the official
@@ -54,13 +56,13 @@ internal enum RecordTypeIdentifier
     // Row and Column Records
     BRTRWDESCENT = 0x0400,  // 1024: specifies the vertical distance in pixels from the bottom of the cell to the typographical baseline of the cell contents for the current row
     ROWHDR = 0x0000,
-    DATAEND = 0x0092,       // 146: End of row data
+    DATAEND = SHEETDATAEND, //0x0092,       // 146: End of row data
     CELLBLANK = 0x0001,
     CELLRK = 0x0002,
     CELLERROR = 0x0003,
     CELLBOOL = 0x0004,
     CELLREAL = 0x0005,
-    CELLST = 0x0006,
+    CELLST = FORMULA, // 0x0006,
     CELLISST = 0x0007,
     CELLFMLASTRING = 0x0008,
     CELLFMLANUM = 0x0009,

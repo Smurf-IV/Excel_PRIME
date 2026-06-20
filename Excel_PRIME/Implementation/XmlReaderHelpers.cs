@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -40,9 +39,14 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         }
 
         // Check that the shared string actually exists
-        return sharedStringsStream == null
-            ? new XmlLazyLoadSharedStrings()
-            : new XmlLazyLoadSharedStrings(sharedStringsStream, ct);
+        if (sharedStringsStream == null)
+        {
+            return new XmlLazyLoadSharedStrings();
+        }
+
+        XmlLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        await sharedStrings.InitializeAsync(ct).ConfigureAwait(false);
+        return sharedStrings;
     }
 
     /// <InheritDoc />
@@ -69,44 +73,55 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         }
 
         // Check that the shared string actually exists
-        return sharedStringsStream == null
-            ? new XmlLazyLoadSharedStrings()
-            : new XmlLazyLoadSharedStrings(sharedStringsStream, ct);
+        if (sharedStringsStream == null)
+        {
+            return new XmlLazyLoadSharedStrings();
+        }
+
+        XmlLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        sharedStrings.Initialize(ct);
+        return sharedStrings;
     }
 
 
     /// <InheritDoc />
-    public Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
-        IOpenXmlWorkBookReaderAsync xmlWorkBookReaderAsync = new XmlWorkBookReaderAsync(zipReader, ct);
-        return Task.FromResult(xmlWorkBookReaderAsync);
+        XmlWorkBookReaderAsync xmlWorkBookReaderAsync = new XmlWorkBookReaderAsync(zipReader);
+        await xmlWorkBookReaderAsync.InitializeAsync(ct).ConfigureAwait(false);
+        return xmlWorkBookReaderAsync;
     }
 
     /// <InheritDoc />
     public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XmlWorkBookReader(zipReader, ct);
 
 
-    /// <InheritDoc />
-    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
+    public async Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
         InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
     {
-        IOpenXmlSheetReaderAsync reader = new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
-        return Task.FromResult(reader);
+        XmlSheetReader reader = new(stream, instanceContext, sharedNameTable);
+        await reader.InitializeAsync(ct).ConfigureAwait(false);
+        return reader;
     }
 
-    public async Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IReadOnlyDictionary<short, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader,
+        CancellationToken ct)
     {
         using StylesExtractor extractor = new(zipReader);
-        return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+        IReadOnlyDictionary<short, CellStyle> extractStylesAsync = await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
+        return extractStylesAsync;
     }
 
-    /// <InheritDoc />
     public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable sharedNameTable, CancellationToken ct)
-        => new XmlSheetReader(stream, instanceContext, sharedNameTable, ct);
+    {
+        XmlSheetReader reader = new(stream, instanceContext, sharedNameTable);
+        reader.Initialize(ct);
+        return reader;
+    }
 
-    public IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
+    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
     {
         using StylesExtractor extractor = new(zipReader);
         return extractor.ExtractStyles(ct);

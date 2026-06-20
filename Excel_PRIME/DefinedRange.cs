@@ -1,6 +1,4 @@
-﻿using System;
-
-using ExcelPRIME.FromExternal;
+﻿using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME;
 
@@ -16,6 +14,7 @@ public record DefinedRange
     /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
     internal DefinedRange(string reference)
     {
+        Name = string.Empty;
         ReadOnlySpan<char> span = reference.AsSpan();
         int exclIndex = span.IndexOf('!');
         if (exclIndex >= 0)

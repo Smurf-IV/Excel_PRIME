@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ExcelPRIME.Implementation;
 
-using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME;
 
@@ -17,7 +16,7 @@ public class InstanceContext
     /// <summary>
     /// How to open sheets / convert cells etc.
     /// </summary>
-    public Options Options { get; set; } = new Options();
+    public Options Options { get; set; } = new();
 
     /// <summary>
     /// What ranges have been defined
@@ -27,6 +26,6 @@ public class InstanceContext
     /// <summary>
     /// Cell styles extracted from the workbook's styles.xml file.
     /// </summary>
-    public IReadOnlyDictionary<int, CellStyle>? CellStyles { get; set; }
+    public IReadOnlyDictionary<short, CellStyle>? CellStyles { get; set; }
 
 }

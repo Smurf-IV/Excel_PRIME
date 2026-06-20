@@ -1,5 +1,5 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -19,6 +19,8 @@ internal sealed class PooledRecordBuffer : IDisposable
     }
 
     public ref readonly byte this[int index] => ref _array[index];
+
+    public ReadOnlySpan<byte> AsSpan(int offset, int length) => _array.AsSpan(offset, length);
 
     public RecordTypeIdentifier RecordType { get; }
 
@@ -42,21 +44,21 @@ internal sealed class PooledRecordBuffer : IDisposable
     /// Heavily inlined for performance.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public int GetInt32(int offset) => BitConverter.ToInt32(_array, offset);
+    public int GetInt32(int offset) => BinaryPrimitives.ReadInt32LittleEndian(_array.AsSpan(offset));
 
     /// <summary>
     /// Get 64-bit floating-point value from buffer at offset.
     /// Heavily inlined for performance.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public double GetDouble(int offset) => BitConverter.ToDouble(_array, offset);
+    public double GetDouble(int offset) => BinaryPrimitives.ReadDoubleLittleEndian(_array.AsSpan(offset));
 
     /// <summary>
     /// Get 16-bit integer from buffer at offset.
     /// Heavily inlined for performance.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public short GetInt16(int offset) => BitConverter.ToInt16(_array, offset);
+    public short GetInt16(int offset) => BinaryPrimitives.ReadInt16LittleEndian(_array.AsSpan(offset));
 
     /// <summary>
     /// Get single byte from buffer at offset.
@@ -72,7 +74,7 @@ internal sealed class PooledRecordBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public string GetString(int offset)
     {
-        int len = BitConverter.ToInt32(_array, offset);
+        int len = BinaryPrimitives.ReadInt32LittleEndian(_array.AsSpan(offset));
         // Use hybrid SIMD decoder - automatically optimizes for string length
         return SimdStringDecoder.DecodeUtf16WithHybridFastPath(_array, offset + 4, len * 2, len);
     }
@@ -84,7 +86,7 @@ internal sealed class PooledRecordBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public string? GetString(int offset, out int end)
     {
-        int len = BitConverter.ToInt32(_array, offset);
+        int len = BinaryPrimitives.ReadInt32LittleEndian(_array.AsSpan(offset));
         if (len == -1)
         {
             end = offset + 4;

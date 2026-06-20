@@ -48,13 +48,12 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
-    # - name: Test
+
+    # - name: Test  is done in the "Build and Test" github workflow
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release --version-suffix Beta
-                                                                            #Beta
+      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release --version-suffix Beta
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}

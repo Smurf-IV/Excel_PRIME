@@ -16,6 +16,7 @@
   </Folder>
   <Folder Name="/Z_SolutionItems/.github/workflows/">
     <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/Publish_Alpha.yml" />
     <File Path=".github/workflows/Publish_Beta.yml" />
     <File Path=".github/workflows/Publish_Release.yml" />
   </Folder>
@@ -25,15 +26,4 @@
   <Project Path="Excel_PRIME/Excel_PRIME.csproj" />
   <Project Path="Excel_PRIMEXlsb.Bench/Excel_PRIMEXlsb.Bench.csproj" />
   <Project Path="Excel_PRIMEXlsb.RangeBench/Excel_PRIMEXlsb.RangeBench.csproj" />
-  <Properties Name="AutomaticVersions" Scope="PostLoad">
-    <Property Name="AssemblyFileVersionSettings" Value="None.None.None.None" />
-    <Property Name="AssemblyInfoVersionSettings" Value="None.None.None.None" />
-    <Property Name="AssemblyInfoVersionType" Value="SettingsVersion" />
-    <Property Name="AssemblyVersionSettings" Value="None.None.None.None" />
-    <Property Name="InheritWinAppVersionFrom" Value="None" />
-    <Property Name="UpdateAssemblyFileVersion" Value="True" />
-    <Property Name="UpdateAssemblyInfoVersion" Value="True" />
-    <Property Name="UpdateAssemblyVersion" Value="True" />
-    <Property Name="UpdatePackageVersion" Value="False" />
-  </Properties>
 </Solution>

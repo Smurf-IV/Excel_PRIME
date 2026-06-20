@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -15,14 +13,9 @@ namespace ExcelPRIME.XlsbImp;
 internal sealed class XlsbStylesExtractor : IDisposable
 {
     private readonly IZipReader _zipReader;
-    private Dictionary<int, string>? _numberFormats;
-    private Dictionary<int, CellStyle>? _cellStyles;
+    private readonly Dictionary<short, CellStyle> _numberFormats = Ecma376StandardProvider.GetDefaultStyles();
+    private readonly Dictionary<short, CellStyle> _cellStyles = [];
     private bool _isDisposed;
-
-    /// <summary>
-    /// Built-in number format codes defined in the ECMA-376 standard.
-    /// </summary>
-    private static readonly IReadOnlyDictionary<int, (string FormatCode, FormattingType Type)> BuiltInNumberFormats = Ecma376StandardProvider.BuiltInNumberFormats;
 
     /// <summary>
     /// XLSB Record Type IDs for styles-related records.
@@ -30,29 +23,11 @@ internal sealed class XlsbStylesExtractor : IDisposable
     /// </summary>
     private static class XlsbRecordTypes
     {
-        // Number Formats
-        public const int NUMFMT = 0x0450; // 1104
+        public const int NumFmtStart = 615;
+        public const int NumFmt = 44;
 
-        // Fonts
-        public const int FONT = 0x0470; // 1136
-
-        // Fills
-        public const int FILL = 0x002F; // 47
-
-        // Borders
-        public const int BORDER = 0x0471; // 1137
-
-        // Alignments
-        public const int XFID = 0x0408; // 1032
-
-        // Cell Format Style (cellXfs equivalent)
-        public const int CELLXF = 0x044F; // 1103
-
-        // Style Format (cellStyleXfs equivalent)
-        public const int STYLEXF = 0x04AD; // 1197
-
-        // Number Format ID (fmtId)
-        public const int FMTID = 0x0449; // 1097
+        public const int CellXFStart = 617;
+        public const int CellXF = 47;
     }
 
     public XlsbStylesExtractor(IZipReader zipReader)
@@ -70,41 +45,23 @@ internal sealed class XlsbStylesExtractor : IDisposable
     /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
     /// Returns empty/default styles if styles.bin is not found.
     /// </returns>
-    public Dictionary<int, CellStyle> ExtractStyles(CancellationToken ct)
+    public IReadOnlyDictionary<short, CellStyle> ExtractStyles(CancellationToken ct)
     {
-        if (_cellStyles != null)
-        {
-            return _cellStyles;
-        }
-
-        _cellStyles = new Dictionary<int, CellStyle>();
-        _numberFormats = new Dictionary<int, string>();
-        
-        // Copy format codes from built-in formats
-        foreach ((int formatId, (string formatCode, FormattingType _)) in BuiltInNumberFormats)
-        {
-            _numberFormats[formatId] = formatCode;
-        }
-
         // Add XLSB default/implicit styles per ECMA-376 specification
         AddDefaultStyles();
 
         try
         {
-            using (Stream? styleStream = _zipReader.GetEntry("xl/styles.bin"))
+            using Stream? styleStream = _zipReader.GetEntry("xl/styles.bin");
+            if (styleStream == null)
             {
-                if (styleStream == null)
-                {
-                    return _cellStyles;
-                }
-
-                using (BufferedStream bufferedStream = new(styleStream, 64 * 1024))
-                {
-                    XlsbStreamReader reader = new(bufferedStream);
-                    ParseStylesXlsb(reader);
-                    // XlsbStreamReader doesn't own the stream, so no dispose needed
-                }
+                return _cellStyles;
             }
+
+            using BufferedStream bufferedStream = new(styleStream, 64 * 1024);
+            XlsbStreamReader reader = new(bufferedStream);
+            ParseStylesXlsb(reader);
+            // XlsbStreamReader doesn't own the stream, so no dispose needed
         }
         catch (Exception)
         {
@@ -118,34 +75,56 @@ internal sealed class XlsbStylesExtractor : IDisposable
     /// <summary>
     /// Adds the XLSB default/implicit styles per ECMA-376 Part 2.
     /// These are always present in an XLSB file, even if not explicitly defined in styles.bin.
+    /// Reference: ECMA-376-1:2016 Section 18.8.10 (Cell Formats - cellXfs)
     /// </summary>
     private void AddDefaultStyles()
     {
-        IReadOnlyDictionary<int, CellStyle> defaultStyles = Ecma376StandardProvider.DefaultStyles.GetAll();
-        foreach (KeyValuePair<int, CellStyle> kvp in defaultStyles)
-        {
-            _cellStyles![kvp.Key] = kvp.Value;
-        }
+        _cellStyles[0] = Ecma376StandardProvider.GetCellStyle(0)!;
+        _cellStyles[1] = Ecma376StandardProvider.GetCellStyle(3)!;// Style 1 - Comma format
+        _cellStyles[2] = Ecma376StandardProvider.GetCellStyle(4)!;// Style 2 - Comma (2 decimal places)
+        _cellStyles[3] = Ecma376StandardProvider.GetCellStyle(5)!;// Style 3 - Currency
+        _cellStyles[4] = Ecma376StandardProvider.GetCellStyle(6)!;// Style 4 - Currency (2 decimal places)
+        _cellStyles[5] = Ecma376StandardProvider.GetCellStyle(90)!;// Style 5 - Percent
     }
 
     private void ParseStylesXlsb(XlsbStreamReader reader)
     {
         PooledRecordBuffer record = reader.ReadNextRecord();
-        int styleIndex = 0;
-
-        while (record.Succeeded)
+        bool exitNow = false;
+        while (!exitNow && record.Succeeded)
         {
             try
             {
+                short count;
                 switch (record.RecordType)
                 {
-                    case (RecordTypeIdentifier)XlsbRecordTypes.NUMFMT:
-                        ParseNumFmt(record);
+                    case (RecordTypeIdentifier)XlsbRecordTypes.NumFmtStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = reader.ReadNextRecord();
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.NumFmt)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseNumFmt(record, count);
+                        }
                         break;
 
-                    case (RecordTypeIdentifier)XlsbRecordTypes.CELLXF:
-                        ParseCellXf(record, styleIndex);
-                        styleIndex++;
+                    case (RecordTypeIdentifier)XlsbRecordTypes.CellXFStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = reader.ReadNextRecord();
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.CellXF)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseCellXf(record, offset);
+                        }
+                        exitNow = true;
                         break;
                 }
             }
@@ -165,18 +144,19 @@ internal sealed class XlsbStylesExtractor : IDisposable
     /// - numFmtId (4 bytes): Format ID
     /// - formatCode (variable): Format code string
     /// </summary>
-    private void ParseNumFmt(PooledRecordBuffer record)
+    private void ParseNumFmt(PooledRecordBuffer record, short count)
     {
         try
         {
-            int numFmtId = record.GetInt32(0);
-            // The format code string starts at offset 4
-            string? formatCode = ParseStringFromRecord(record, 4);
+            short numFmtId = record.GetInt16(0);
+            string? formatCode = ParseStringFromRecord(record, 2);
 
-            if (formatCode != null)
+            _numberFormats[numFmtId] = new CellStyle
             {
-                _numberFormats![numFmtId] = formatCode;
-            }
+                ExcelFormatId = numFmtId,
+                Formatting = formatCode,
+                //FormattingType = // TODO: check if it contains magic for dates (i,e, locale stuff as well!)
+            };
         }
         catch (Exception)
         {
@@ -195,34 +175,25 @@ internal sealed class XlsbStylesExtractor : IDisposable
     /// - alignment info: Various alignment flags
     /// - protection info: Various protection flags
     /// </summary>
-    private void ParseCellXf(PooledRecordBuffer record, int styleIndex)
+    private void ParseCellXf(PooledRecordBuffer record, short styleIndex)
     {
         try
         {
-            CellStyle style = new CellStyle { StyleId = styleIndex };
-
+            CellStyle? style = null;
             // Extract IDs from the record
             // Offsets are based on XLSB CELLXF record format
-            if (record.RecordType == (RecordTypeIdentifier)XlsbRecordTypes.CELLXF)
+            if (TryGetInt16(record, 2, out short numFmtId))
             {
-                // Note: Exact byte offsets depend on the XLSB specification
-                // These are approximate based on common XLSB implementations
-                // Offset 0-1: fontId
-                // Offset 2-3: numFmtId
-                if (TryGetInt16(record, 2, out short numFmtId))
-                {
-                    style.NumberFormatId = numFmtId;
-                    //style.ApplyNumberFormat = true;
-
-                    // Look up the format code
-                    if (_numberFormats!.TryGetValue(numFmtId, out string? formatCode))
-                    {
-                        style.NumberFormatCode = formatCode;
-                    }
-                }
+                Ecma376StandardProvider.TryGetCellStyle(numFmtId, out style);
             }
 
-            _cellStyles![styleIndex] = style;
+            if (style == null)
+            {
+                _numberFormats.TryGetValue(numFmtId, out style);
+                style ??= Ecma376StandardProvider.GetCellStyle(0);
+            }
+
+            _cellStyles[styleIndex] = style!;
         }
         catch (Exception)
         {
@@ -238,23 +209,6 @@ internal sealed class XlsbStylesExtractor : IDisposable
         try
         {
             value = record.GetInt16(offset);
-            return true;
-        }
-        catch
-        {
-            value = 0;
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Tries to get a single byte from the record at the specified offset.
-    /// </summary>
-    private static bool TryGetByte(PooledRecordBuffer record, int offset, out byte value)
-    {
-        try
-        {
-            value = record.GetByte(offset);
             return true;
         }
         catch
@@ -282,13 +236,8 @@ internal sealed class XlsbStylesExtractor : IDisposable
 
             // The actual string data starts at offset + 4
             // In XLSB, strings are UTF-16 LE encoded
-            byte[] buffer = new byte[length * 2];
-            for (int i = 0; i < length * 2; i++)
-            {
-                buffer[i] = record.GetByte(offset + 4 + i);
-            }
-
-            return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+            // Use span-based GetString to avoid intermediate byte array allocation
+            return Encoding.Unicode.GetString(record.AsSpan(offset + 4, length * 2)).TrimEnd('\0');
         }
         catch
         {
@@ -300,11 +249,89 @@ internal sealed class XlsbStylesExtractor : IDisposable
     {
         if (!_isDisposed)
         {
-            _cellStyles?.Clear();
-            _numberFormats?.Clear();
+            // _cellStyles.Clear(); returned to the caller, so we should not clear it here
+            _numberFormats.Clear();
             _isDisposed = true;
         }
     }
 
-    public async Task<IReadOnlyDictionary<int, CellStyle>> ExtractStylesAsync(CancellationToken ct) => throw new NotImplementedException();
+    public async Task<IReadOnlyDictionary<short, CellStyle>> ExtractStylesAsync(CancellationToken ct)
+    {
+        // Add XLSB default/implicit styles per ECMA-376 specification
+        AddDefaultStyles();
+
+        try
+        {
+            using Stream? styleStream = await ((IZipReaderAsync)_zipReader).GetEntryAsync("xl/styles.bin", ct).ConfigureAwait(false);
+            if (styleStream == null)
+            {
+                return _cellStyles;
+            }
+
+            using BufferedStream bufferedStream = new(styleStream, 64 * 1024);
+            XlsbStreamReader reader = new(bufferedStream);
+            await ParseStylesXlsbAsync(reader, ct).ConfigureAwait(false);
+            // XlsbStreamReader doesn't own the stream, so no dispose needed
+        }
+        catch (Exception)
+        {
+            // If style extraction fails, return dictionary with default styles
+            // This allows the workbook to continue working without style information
+        }
+
+        return _cellStyles;
+    }
+
+    private async Task ParseStylesXlsbAsync(XlsbStreamReader reader, CancellationToken ct)
+    {
+        PooledRecordBuffer record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        bool exitNow = false;
+        while (!exitNow && record.Succeeded && !ct.IsCancellationRequested)
+        {
+            try
+            {
+                short count;
+                switch (record.RecordType)
+                {
+                    case (RecordTypeIdentifier)XlsbRecordTypes.NumFmtStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.NumFmt)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseNumFmt(record, count);
+                        }
+                        break;
+
+                    case (RecordTypeIdentifier)XlsbRecordTypes.CellXFStart:
+                        count = record.GetInt16(0);
+                        for (short offset = 0; offset < count; offset++)
+                        {
+                            record.Dispose();
+                            record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                            if (record.RecordType != (RecordTypeIdentifier)XlsbRecordTypes.CellXF)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            ParseCellXf(record, offset);
+                        }
+                        exitNow = true;
+                        break;
+                }
+            }
+            finally
+            {
+                record.Dispose();
+            }
+
+            if (!exitNow)
+            {
+                record = await reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+            }
+        }
+    }
 }

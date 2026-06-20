@@ -121,7 +121,7 @@ public class AccessEveryCellBenchmarksXlsb
                 bool rowHasData = false;
                 for (int c = 0; c <= maxCol; c++)
                 {
-                    Cell cell = wsCells[r, c];
+                    Aspose.Cells.Cell cell = wsCells[r, c];
                     if (cell != null)
                     {
                         rowHasData = true;
@@ -129,12 +129,14 @@ public class AccessEveryCellBenchmarksXlsb
                     }
                 }
                 if (!rowHasData)
+                {
                     continue;
+                }
 
                 // Process row r
                 for (int c = 0; c <= maxCol; c++)
                 {
-                    Cell cell = wsCells[r, c];
+                    Aspose.Cells.Cell cell = wsCells[r, c];
                     string? value = cell.ToString();
                     if (!string.IsNullOrEmpty(value))
                     {
@@ -167,13 +169,13 @@ public class AccessEveryCellBenchmarksXlsb
                     continue;
                 }
 
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                 if (rowCells != null)
                 {
-                    foreach (ICell? cell in rowCells)
+                    foreach (ExcelPRIME.Cell cell in rowCells)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.CellValue.ToString();
+                        string? value = cell.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
                             cells++;
@@ -208,13 +210,13 @@ public class AccessEveryCellBenchmarksXlsb
                 {
                     continue;
                 }
-                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
+                IReadOnlyList<ExcelPRIME.Cell>? rowCells = row.GetAllCells();
                 if (rowCells != null)
                 {
-                    foreach (ICell? cell in rowCells)
+                    foreach (ExcelPRIME.Cell cell in rowCells)
                     {
                         // Because this returns upto the dimension of the sheet width
-                        string? value = cell?.CellValue.ToString();
+                        string? value = cell.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
                             cells++;
@@ -263,13 +265,13 @@ public class AccessEveryCellBenchmarksXlsb
                     {
                         continue;
                     }
-                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                     if (rowCells != null)
                     {
-                        foreach (ICell? cell in rowCells)
+                        foreach (ExcelPRIME.Cell cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            string? value = cell?.CellValue.ToString();
+                            string? value = cell.CellValue.ToString();
                             if (!string.IsNullOrEmpty(value))
                             {
                                 Interlocked.Increment(ref cells);
@@ -299,13 +301,13 @@ public class AccessEveryCellBenchmarksXlsb
                     {
                         continue;
                     }
-                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
                     if (rowCells != null)
                     {
-                        foreach (ICell? cell in rowCells)
+                        foreach (ExcelPRIME.Cell cell in rowCells)
                         {
                             // Because this returns upto the dimension of the sheet width
-                            string? value = cell?.CellValue.ToString();
+                            string? value = cell.CellValue.ToString();
                             if (!string.IsNullOrEmpty(value))
                             {
                                 Interlocked.Increment(ref cells);

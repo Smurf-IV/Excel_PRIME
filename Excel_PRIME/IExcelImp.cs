@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,7 +34,7 @@ public interface IExcelImp : IDisposable
     /// <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null,
+    IEnumerable<CellValue[]> GetDefinedRange(string rangeName, string? useThisSheetName = null,
         [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
@@ -46,7 +44,7 @@ public interface IExcelImp : IDisposable
     /// <param name="sheetName"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IEnumerable<CellValue?[]> GetUserRange(string range, string sheetName,
+    IEnumerable<CellValue[]> GetUserRange(string range, string sheetName,
         [EnumeratorCancellation] CancellationToken ct = default);
 }
 
@@ -73,7 +71,7 @@ public interface IExcelImpAsync : IExcelImp
     /// <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null,
+    IAsyncEnumerable<CellValue[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null,
         [EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
@@ -83,7 +81,7 @@ public interface IExcelImpAsync : IExcelImp
     /// <param name="sheetName"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    IAsyncEnumerable<CellValue?[]> GetUserRangeAsync(string range, string sheetName,
+    IAsyncEnumerable<CellValue[]> GetUserRangeAsync(string range, string sheetName,
         [EnumeratorCancellation] CancellationToken ct = default);
 
 }

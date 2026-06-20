@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -51,7 +49,7 @@ public interface IOpenXmlReaderHelpers : IDisposable
     /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
     /// Returns empty/default styles if styles.#### is not found.
     /// </returns>
-    IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct);
+    IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct);
 }
 
 /// <summary>
@@ -95,5 +93,5 @@ public interface IOpenXmlReaderHelpersAsync : IOpenXmlReaderHelpers
     /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
     /// Returns empty/default styles if styles.#### is not found.
     /// </returns>
-    Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct);
+    Task<IReadOnlyDictionary<short, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct);
 }

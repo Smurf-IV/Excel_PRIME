@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>ExcelPRIME.Bench.RangeVsSliceBenchmark-20260514-090103</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.8246/25H2/2025Update/HudsonValley2)
+13th Gen Intel Core i5-13600KF 2.60GHz, 1 CPU, 20 logical and 14 physical cores
+.NET SDK 10.0.203
+  [Host]   : .NET 8.0.27 (8.0.27, 8.0.2726.22922), X64 RyuJIT x86-64-v3
+  ShortRun : .NET 8.0.27 (8.0.27, 8.0.2726.22922), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>Job=ShortRun  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Length</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Ratio  </th><th>RatioSD</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>Slice</td><td>10</td><td>0.1840 ns</td><td>0.0061 ns</td><td>0.0003 ns</td><td>baseline</td><td></td><td>-</td><td>NA</td>
+</tr><tr><td>Range</td><td>10</td><td>0.1849 ns</td><td>0.0182 ns</td><td>0.0010 ns</td><td>1.01x slower</td><td>0.00x</td><td>-</td><td>NA</td>
+</tr><tr><td>SliceEnd</td><td>10</td><td>0.0181 ns</td><td>0.0832 ns</td><td>0.0046 ns</td><td>10.58x faster</td><td>2.02x</td><td>-</td><td>NA</td>
+</tr><tr><td>RangeEnd</td><td>10</td><td>0.3602 ns</td><td>0.1470 ns</td><td>0.0081 ns</td><td>1.96x slower</td><td>0.04x</td><td>-</td><td>NA</td>
+</tr><tr><td>Slice</td><td>100</td><td>0.1844 ns</td><td>0.0692 ns</td><td>0.0038 ns</td><td>baseline</td><td></td><td>-</td><td>NA</td>
+</tr><tr><td>Range</td><td>100</td><td>0.1818 ns</td><td>0.0413 ns</td><td>0.0023 ns</td><td>1.01x faster</td><td>0.02x</td><td>-</td><td>NA</td>
+</tr><tr><td>SliceEnd</td><td>100</td><td>0.0051 ns</td><td>0.0225 ns</td><td>0.0012 ns</td><td>37.36x faster</td><td>7.10x</td><td>-</td><td>NA</td>
+</tr><tr><td>RangeEnd</td><td>100</td><td>0.3679 ns</td><td>0.1026 ns</td><td>0.0056 ns</td><td>2.00x slower</td><td>0.04x</td><td>-</td><td>NA</td>
+</tr><tr><td>Slice</td><td>1000</td><td>0.1854 ns</td><td>0.0766 ns</td><td>0.0042 ns</td><td>baseline</td><td></td><td>-</td><td>NA</td>
+</tr><tr><td>Range</td><td>1000</td><td>0.1831 ns</td><td>0.0954 ns</td><td>0.0052 ns</td><td>1.01x faster</td><td>0.03x</td><td>-</td><td>NA</td>
+</tr><tr><td>SliceEnd</td><td>1000</td><td>0.3167 ns</td><td>6.2099 ns</td><td>0.3404 ns</td><td>1.71x slower</td><td>1.59x</td><td>-</td><td>NA</td>
+</tr><tr><td>RangeEnd</td><td>1000</td><td>0.3457 ns</td><td>0.0081 ns</td><td>0.0004 ns</td><td>1.87x slower</td><td>0.04x</td><td>-</td><td>NA</td>
+</tr></tbody></table>
+</body>
+</html>

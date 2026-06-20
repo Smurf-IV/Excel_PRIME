@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +23,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private readonly IZipReaderAsync _zipReader;
     private Stream? _fs;
     private readonly Dictionary<string /*pathOffsetSheet*/, TempFile> _sheetFiles = [];
-    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>().AsReadOnly();
+    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>(StringComparer.Ordinal);
     private readonly InstanceContext _instanceContext = new();
     private readonly SemaphoreLocker _locker = new();
     private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
@@ -52,7 +49,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 0x8000/*64*1024*/, true);
         return OpenAsync(fs, options, ct);
     }
     /// <InheritDoc />
@@ -60,7 +57,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.None, 0x8000/*64*1024*/, true);
+        FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 0x8000/*64*1024*/, true);
         Open(fs, options, ct);
     }
 
@@ -82,7 +79,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         await GetSharedStringsAsync(ct).ConfigureAwait(false);
 
         // Extract styles from the workbook
-        if (options.CellConversionType >= CellConversion.ExcelCellStyle)
+        if (options.CellConversionType >= CellConversion.ExcelCellType)
         {
             await GetStylesAsync(ct).ConfigureAwait(false);
         }
@@ -109,7 +106,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         GetSharedStrings(ct);
 
         // Extract styles from the workbook
-        if (options.CellConversionType >= CellConversion.ExcelCellStyle)
+        if (options.CellConversionType >= CellConversion.ExcelCellType)
         {
             GetStyles(ct);
         }
@@ -125,8 +122,9 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     private void GetSharedStrings(CancellationToken ct)
         => _instanceContext.SharedStrings = _xmlReaderHelper.GetSharedStrings(_zipReader, _instanceContext.Options.AccessExcelFileInForwardOnlyMode, ct);
 
-    private async Task GetStylesAsync(CancellationToken ct)
-        => _instanceContext.CellStyles = await _xmlReaderHelper.GetExtractStylesAsync(_zipReader,ct).ConfigureAwait(false);
+    private async Task GetStylesAsync(CancellationToken ct) =>
+        _instanceContext.CellStyles =
+            await _xmlReaderHelper.GetExtractStylesAsync(_zipReader, ct).ConfigureAwait(false);
 
     private void GetStyles(CancellationToken ct)
         => _instanceContext.CellStyles = _xmlReaderHelper.GetExtractStyles(_zipReader, ct);
@@ -135,20 +133,25 @@ public class Excel_PRIME : IExcel_PRIMEAsync
     {
         using IOpenXmlWorkBookReaderAsync wbr = await _xmlReaderHelper.CreateWorkBookReaderAsync(zipReader, ct)
             .ConfigureAwait(false);
-        _sheetNamesToPathOffset = wbr.GetSheetNamesAsync(ct).ToBlockingEnumerable(ct).ToDictionary();
+        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        await foreach (var kvp in wbr.GetSheetNamesAsync(ct).ConfigureAwait(false))
+        {
+            dict[kvp.Key] = kvp.Value;
+        }
+        _sheetNamesToPathOffset = dict;
     }
 
     private void GetSheetNames(IZipReader zipReader, CancellationToken ct)
     {
         using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(zipReader, ct);
-        _sheetNamesToPathOffset = wbr.GetSheetNames(ct).ToDictionary();
+        _sheetNamesToPathOffset = wbr.GetSheetNames(ct).ToDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <InheritDoc />
     public IEnumerable<string> SheetNames() => _sheetNamesToPathOffset.Keys;
 
     /// <InheritDoc />
-    public virtual async IAsyncEnumerable<CellValue?[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public virtual async IAsyncEnumerable<CellValue[]> GetDefinedRangeAsync(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -185,14 +188,14 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
-        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
+        await foreach (Cell[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<CellValue?[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
         if (_definedRanges == null)
         {
@@ -238,42 +241,42 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
         }
 
-        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
 
     /// <InheritDoc />
-    public async IAsyncEnumerable<CellValue?[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<CellValue[]> GetUserRangeAsync(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheetAsync? targetSheet = await GetSheetAsync(sheetName, ct: ct).ConfigureAwait(false);
         if (targetSheet == null)
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
-        DefinedRange definedRange = new DefinedRange(range, sheetName);
+        DefinedRange definedRange = new(range, sheetName);
 
-        await foreach (ICell?[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
+        await foreach (Cell[] rowCells in targetSheet.GetDefinedRangeAsync(definedRange, ct).ConfigureAwait(false))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
     /// <InheritDoc />
-    public IEnumerable<CellValue?[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    public IEnumerable<CellValue[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
     {
         using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
         if (targetSheet == null)
         {
             throw new KeyNotFoundException($"{sheetName} does not exist");
         }
-        DefinedRange definedRange = new DefinedRange(range, sheetName);
+        DefinedRange definedRange = new(range, sheetName);
 
-        foreach (ICell?[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
+        foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
         {
-            yield return rowCells.Select(cell => cell?.CellValue).ToArray();
+            yield return rowCells.Select(cell => cell.CellValue).ToArray();
         }
     }
 
@@ -306,7 +309,7 @@ public class Excel_PRIME : IExcel_PRIMEAsync
         }
         else
         {
-            stream = _zipReader.GetEntry(pathOffsetSheet)!;
+            stream = (await _zipReader.GetEntryAsync(pathOffsetSheet, ct).ConfigureAwait(false))!;
         }
         return new Sheet(stream, _xmlReaderHelper, sheetName, _instanceContext);
     }
@@ -361,11 +364,12 @@ public class Excel_PRIME : IExcel_PRIMEAsync
             {
                 _instanceContext.SharedStrings?.Dispose();
                 _instanceContext.SharedStrings = null;
+                _zipReader.Dispose();
+                _xmlReaderHelper.Dispose();
                 foreach ((string _, TempFile tf) in _sheetFiles)
                 {
                     tf.Dispose();
                 }
-                _zipReader.Dispose();
                 _fs?.Dispose();
                 _fs = null;
                 _locker.Dispose();

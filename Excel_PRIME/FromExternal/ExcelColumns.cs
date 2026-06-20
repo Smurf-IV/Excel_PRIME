@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 
 // ReSharper disable ForCanBeConvertedToForeach
@@ -12,8 +12,9 @@ namespace ExcelPRIME.FromExternal;
 /// </summary>
 internal static class ExcelColumns
 {
+    private static readonly SearchValues<char> s_asciiLetters = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     // Precomputed lookup table for first 64 columns (A-)
-    private static readonly string[] s_columnNameCache = new string[64 + 1];
+    private static readonly char[][] s_columnNameCache = new char[64 + 1][];
 
     static ExcelColumns()
     {
@@ -25,7 +26,7 @@ internal static class ExcelColumns
 
     // CHANGED: Use lookup table for common columns, reduces allocations
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string GetExcelColumnName(this int columnNumber)
+    public static char[] GetExcelColumnName(this int columnNumber)
     {
         if (columnNumber > 0 && columnNumber < s_columnNameCache.Length)
         {
@@ -35,7 +36,7 @@ internal static class ExcelColumns
         return ComputeColumnName(columnNumber);
     }
 
-    private static string ComputeColumnName(int columnNumber)
+    private static char[] ComputeColumnName(int columnNumber)
     {
         // Use stackalloc for temp buffer (max 3 chars for column names up to XFD/16384)
         Span<char> buffer = stackalloc char[4];
@@ -49,26 +50,22 @@ internal static class ExcelColumns
             dividend = (dividend - modulo) / 26;
         }
 
-        return new string(buffer.Slice(pos));
+        return buffer.Slice(pos).ToArray();
     }
 
-    // CHANGED: Use ref readonly for better performance
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int ParseColumnOffset(char[] buffer, int len)
+    public static int ParseColumnOffset(ReadOnlySpan<char> buffer)
     {
         int colExcel = -1;
-        int i = 0;
-        for (; i < len; i++)
+        int i = buffer.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
         {
-            ref readonly char c = ref buffer[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            i = buffer.Length;
+        }
+
+        for (int j = 0; j < i; j++)
+        {
+            colExcel = ((colExcel + 1) * 26) + (buffer[j] - 'A');
         }
         return colExcel + 1; // Make it into the Excel 1 offset #
     }
@@ -85,18 +82,15 @@ internal static class ExcelColumns
     {
         ReadOnlySpan<char> span = columnRowRef.AsSpan();
         int colExcel = -1;
-        int i = 0;
-        for (; i < span.Length; i++)
+        int i = span.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
         {
-            ref readonly char c = ref span[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            i = span.Length;
+        }
+
+        for (int j = 0; j < i; j++)
+        {
+            colExcel = ((colExcel + 1) * 26) + (span[j] - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -109,18 +103,15 @@ internal static class ExcelColumns
     public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRowRefSpan)
     {
         int colExcel = -1;
-        int i = 0;
-        for (; i < columnRowRefSpan.Length; i++)
+        int i = columnRowRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
         {
-            ref readonly char c = ref columnRowRefSpan[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            i = columnRowRefSpan.Length;
+        }
+
+        for (int j = 0; j < i; j++)
+        {
+            colExcel = ((colExcel + 1) * 26) + (columnRowRefSpan[j] - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -133,20 +124,50 @@ internal static class ExcelColumns
     public static int GetColNumber(this ReadOnlySpan<char> columnRefSpan)
     {
         int colExcel = -1;
-        for (int i = 0; i < columnRefSpan.Length; i++)
+        int i = columnRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
         {
-            ref readonly char c = ref columnRefSpan[i];
-            if (c >= 'A')
-            {
-                colExcel = ((colExcel + 1) * 26) + (c - 'A');
-            }
-            else
-            {
-                break;
-            }
+            i = columnRefSpan.Length;
+        }
+
+        for (int j = 0; j < i; j++)
+        {
+            colExcel = ((colExcel + 1) * 26) + (columnRefSpan[j] - 'A');
         }
 
         return ++colExcel; // Make it into the Excel 1 offset #
+    }
+
+    /// <summary>
+    /// Extract the row number from a cell reference like "A1" by finding the first digit.
+    /// Uses span to avoid allocations.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static int GetRowNumberFromRef(this ReadOnlySpan<char> cellRefSpan)
+    {
+        int i = cellRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1 || i >= cellRefSpan.Length)
+        {
+            return 0;
+        }
+
+        return cellRefSpan.Slice(i).IntParse();
+    }
+
+    /// <summary>
+    /// Extract just the column letters from a cell reference like "A1".
+    /// Uses span to avoid allocations when possible.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<char> GetColumnLettersFromRef(this ReadOnlySpan<char> cellRefSpan)
+    {
+        int i = cellRefSpan.IndexOfAnyExcept(s_asciiLetters);
+        if (i == -1)
+        {
+            return cellRefSpan;
+        }
+
+        return cellRefSpan.Slice(0, i);
     }
 
 }

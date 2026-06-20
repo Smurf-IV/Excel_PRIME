@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,7 +141,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
         string definedNamesRefAtom = _readerWb.NameTable.Add("definedNames");
-        Dictionary<string, DefinedRange> definedRanges = [];
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         if (!_readerWb.ReadToFollowing(definedNamesRefAtom))
         {
             definedRanges.TrimExcess();
@@ -245,12 +242,16 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
     private IZipReaderAsync _zipReaderA => (IZipReaderAsync)base._zipReader;
     // ReSharper restore InconsistentNaming
 
-    public XmlWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    internal XmlWorkBookReaderAsync(IZipReaderAsync zipReader)
 #pragma warning disable CA2016 // do not forward the ct to the public base constructor
         : base(zipReader)
 #pragma warning restore CA2016
     {
-        _streamWb = zipReader.GetEntryAsync("xl/workbook.xml", ct).GetAwaiter().GetResult()!;
+    }
+
+    internal async Task InitializeAsync(CancellationToken ct)
+    {
+        _streamWb = (await _zipReaderA.GetEntryAsync("xl/workbook.xml", ct).ConfigureAwait(false))!;
         OpenWorkbookStream();
     }
 
@@ -260,7 +261,7 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
 
         string sheetsRefAtom = _readerWb.NameTable.Add("sheets");
         if (!worksheetRels.Any()
-            || !_readerWb.ReadToFollowing(sheetsRefAtom))
+            || !await _readerWb.ReadToFollowingAsync(sheetsRefAtom).ConfigureAwait(false))
         {
             yield break;
         }
@@ -307,7 +308,7 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
         });
         Dictionary<string, string> worksheetRels = [];
         string relationshipsRefAtom = readerRels.NameTable.Add("Relationships");
-        if (!readerRels.ReadToFollowing(relationshipsRefAtom))
+        if (!await readerRels.ReadToFollowingAsync(relationshipsRefAtom).ConfigureAwait(false))
         {
             return worksheetRels;
         }
@@ -354,8 +355,8 @@ internal sealed class XmlWorkBookReaderAsync : XmlWorkBookReader, IOpenXmlWorkBo
         IReadOnlyDictionary<string, string> sheetNamesToOffsetSheetId, CancellationToken ct)
     {
         string definedNamesRefAtom = _readerWb.NameTable.Add("definedNames");
-        Dictionary<string, DefinedRange> definedRanges = [];
-        if (!_readerWb.ReadToFollowing(definedNamesRefAtom))
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
+        if (!await _readerWb.ReadToFollowingAsync(definedNamesRefAtom).ConfigureAwait(false))
         {
             definedRanges.TrimExcess();
             return definedRanges;

@@ -1,8 +1,8 @@
-using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+
 
 namespace ExcelPRIME.XlsbImp;
 
@@ -34,7 +34,7 @@ internal static class SimdStringDecoder
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static string DecodeUtf16WithSimdFastPath(byte[] buffer, int offset, int byteCount, int charCount)
     {
-        ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(buffer, offset, byteCount);
+        ReadOnlySpan<byte> span = new(buffer, offset, byteCount);
 
         // View bytes as UTF-16 LE code units (ushort)
         ReadOnlySpan<ushort> units = MemoryMarshal.Cast<byte, ushort>(span);
@@ -49,12 +49,12 @@ internal static class SimdStringDecoder
         int simdEnd = unitsLength - (unitsLength % vectorSize);
 
         // Create mask for high byte: 0xFF00
-        Vector<ushort> highByteMask = new Vector<ushort>(0xFF00);
+        Vector<ushort> highByteMask = new(0xFF00);
 
         for (; i < simdEnd; i += vectorSize)
         {
             // Load vector of code units
-            Vector<ushort> vector = new Vector<ushort>(units.Slice(i, vectorSize));
+            Vector<ushort> vector = new(units.Slice(i, vectorSize));
 
             // Mask out high bytes
             Vector<ushort> highBytes = vector & highByteMask;
@@ -93,7 +93,7 @@ internal static class SimdStringDecoder
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static string DecodeUtf16WithHybridFastPath(byte[] buffer, int offset, int byteCount, int charCount)
     {
-        ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(buffer, offset, byteCount);
+        ReadOnlySpan<byte> span = new(buffer, offset, byteCount);
         ReadOnlySpan<ushort> units = MemoryMarshal.Cast<byte, ushort>(span);
 
         int i = 0;
@@ -115,11 +115,11 @@ internal static class SimdStringDecoder
             // For longer strings, use SIMD
             int vectorSize = Vector<ushort>.Count;
             int simdEnd = unitsLength - (unitsLength % vectorSize);
-            Vector<ushort> highByteMask = new Vector<ushort>(0xFF00);
+            Vector<ushort> highByteMask = new(0xFF00);
 
             for (; i < simdEnd; i += vectorSize)
             {
-                Vector<ushort> vector = new Vector<ushort>(units.Slice(i, vectorSize));
+                Vector<ushort> vector = new(units.Slice(i, vectorSize));
                 Vector<ushort> highBytes = vector & highByteMask;
 
                 if (!Vector.EqualsAll(highBytes, Vector<ushort>.Zero))

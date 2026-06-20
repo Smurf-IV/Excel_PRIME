@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -47,9 +46,14 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         }
 
         // Check that the shared string actually exists
-        return sharedStringsStream == null
-            ? new XlsbLazyLoadSharedStrings()
-            : new XlsbLazyLoadSharedStrings(sharedStringsStream, ct);
+        if (sharedStringsStream == null)
+        {
+            return new XlsbLazyLoadSharedStrings();
+        }
+
+        XlsbLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        await sharedStrings.InitializeAsync(ct).ConfigureAwait(false);
+        return sharedStrings;
     }
 
     /// <InheritDoc />
@@ -76,30 +80,42 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         }
 
         // Check that the shared string actually exists
-        return sharedStringsStream == null
-            ? new XlsbLazyLoadSharedStrings()
-            : new XlsbLazyLoadSharedStrings(sharedStringsStream, ct);
+        if (sharedStringsStream == null)
+        {
+            return new XlsbLazyLoadSharedStrings();
+        }
+
+        XlsbLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        sharedStrings.Initialize(ct);
+        return sharedStrings;
     }
 
 
     /// <InheritDoc />
-    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct) => new XlsbWorkBookReaderAsync(zipReader, ct);
+    public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    {
+        XlsbWorkBookReaderAsync xlsbWorkBookReaderAsync = new XlsbWorkBookReaderAsync(zipReader);
+        await xlsbWorkBookReaderAsync.InitializeAsync(ct).ConfigureAwait(false);
+        return xlsbWorkBookReaderAsync;
+    }
 
     /// <InheritDoc />
     public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XlsbWorkBookReader(zipReader, ct);
 
 
     /// <InheritDoc />
-    public Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
+    public async Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
         InstanceContext instanceContext,
         XmlNameTable _, CancellationToken ct)
     {
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
-        IOpenXmlSheetReaderAsync reader = new XlsbSheetReader(new BufferedStream(stream, 64 * 1024), instanceContext, ct);
-        return Task.FromResult(reader);
+        XlsbSheetReader reader = new(new BufferedStream(stream, 64 * 1024), instanceContext);
+        await reader.InitializeAsync(ct).ConfigureAwait(false);
+        return reader;
     }
 
-    public async Task<IReadOnlyDictionary<int, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader, CancellationToken ct)
+    public async Task<IReadOnlyDictionary<short, CellStyle>> GetExtractStylesAsync(IZipReaderAsync zipReader,
+        CancellationToken ct)
     {
         using XlsbStylesExtractor extractor = new(zipReader);
         return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
@@ -108,9 +124,14 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     /// <InheritDoc />
     public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
         XmlNameTable _, CancellationToken ct)
-        => new XlsbSheetReader(new BufferedStream(stream, 64 * 1024), instanceContext, ct);
+    {
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        XlsbSheetReader reader = new(new BufferedStream(stream, 64 * 1024), instanceContext);
+        reader.Initialize(ct);
+        return reader;
+    }
 
-    public IReadOnlyDictionary<int, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
+    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
     {
         using XlsbStylesExtractor extractor = new(zipReader);
         return extractor.ExtractStyles(ct);

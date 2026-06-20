@@ -25,6 +25,8 @@
 		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
 		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
 		<TieredPGO>true</TieredPGO>
+		<!-- NEW in .NET 9: Dynamic PGO gets better -->
+		<TieredCompilationDynamicPgo>true</TieredCompilationDynamicPgo>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -35,7 +37,7 @@
 	<ItemGroup>
 		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="all" />
 		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="all" />
-		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.3.26207.106">
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-preview.5.26230.115">
 			<!-- Used for source code linking in NuGet packages.
 				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
 				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
@@ -49,7 +51,7 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<Title>Excel_PRIME</Title>
+		<Title>Excel-PRIME</Title>
 		<PackageId>Excel-PRIME</PackageId>
 		<RepositoryType>git</RepositoryType>
 		<Copyright>© Smurf-IV</Copyright>
@@ -61,7 +63,7 @@
 		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
-		<VersionPrefix>4.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
+		<VersionPrefix>5.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
 		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
 		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -71,8 +73,6 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
-		<AssemblyVersion>26.5.6.5</AssemblyVersion>
-		<FileVersion>26.5.6.5</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

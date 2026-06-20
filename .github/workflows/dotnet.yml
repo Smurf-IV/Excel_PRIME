@@ -4,15 +4,16 @@
 name: .NET Build and Test
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  push: # all
+  pull_request: # all
 
 jobs:
   build:
 
     runs-on: windows-latest
+    permissions: write-all
+      # packages: write
+      # contents: read
 
     steps:
     - uses: actions/checkout@v6

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 
 using ExcelPRIME.FromExternal;
@@ -22,20 +21,36 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
         _reader = new XlsbStreamReader();
     }
 
-    public XlsbLazyLoadSharedStrings(Stream stream, CancellationToken ct)
+    public XlsbLazyLoadSharedStrings(Stream stream)
     {
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
         _stream = new BufferedStream(stream, 64 * 1024);
         _reader = new XlsbStreamReader(_stream);
+        _currentlyLoaded = []; // Will be properly sized in Initialize
+    }
+
+    internal async Task InitializeAsync(CancellationToken ct)
+    {
         // advance to the content
-        using PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
-        if ( !nextRecord.Succeeded || nextRecord.RecordType != RecordTypeIdentifier.SSTBEGIN)
+        using PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        if (!nextRecord.Succeeded || nextRecord.RecordType != RecordTypeIdentifier.SSTBEGIN)
         {
             throw new InvalidDataException("The provided stream is not a valid XLSB shared strings stream.");
         }
-        //int totalCount = nextRecord.GetInt32(0);
         int count = nextRecord.GetInt32(4);
-        _currentlyLoaded = new List<string>(count);
+        _currentlyLoaded.Capacity = count;
+    }
+
+    internal void Initialize(CancellationToken ct)
+    {
+        // advance to the content
+        using PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        if (!nextRecord.Succeeded || nextRecord.RecordType != RecordTypeIdentifier.SSTBEGIN)
+        {
+            throw new InvalidDataException("The provided stream is not a valid XLSB shared strings stream.");
+        }
+        int count = nextRecord.GetInt32(4);
+        _currentlyLoaded.Capacity = count;
     }
 
     // TODO: Should this be refactored to take a Cancellation Token

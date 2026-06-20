@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,7 +91,7 @@ public sealed class NonClosingStream : Stream
         // Optionally flush the inner stream if disposing is true.
         if (disposing && !_disposed)
         {
-            try 
+            try
             {
                 _inner.Flush();
             }
@@ -107,7 +106,11 @@ public sealed class NonClosingStream : Stream
     }
 
     /// If you want to allow explicit close of the inner stream:
-    public void CloseInnerStream() => _inner.Close();
+    public void CloseInnerStream()
+    {
+        _disposed = true;
+        _inner.Close();
+    }
 
     /// <inheritdoc/>
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>

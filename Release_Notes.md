@@ -1,42 +1,40 @@
-﻿# 2026-05-12 - V4 - Bug fixes
-- Return null when `EndValue` is potted in the xml #22
-- Return null for not found SheetId #23
-- Changed CellValue to an abstract base class and removed all [FieldOffset(0)] fields.
-- Introduced internal sealed class CellValue<T> : CellValue to store values of type T without boxing for value types.
-
-# 2026-05-05 - V4
+﻿# 2026-06-20 - V5 - Release Notes
 - ⛓️‍💥 **Breaking Change(s)**
-    - Removal of `GetSheetFileName(int offsetSheetId);`
-    - Removal of `GetDefinedRange` via `int sheetId`
-    - Removal of `Index` property from `ISheet`
-    - Internal Creation of WorkBooks
-    - Internal implementation of `IOpenXmlWorkBookReader::GetSheetNames` now returns the relative path to the sheetName
-    - `CellValue` is now a `class`, therefore no need to use `.Value`
-    - `ICell.CellValue` is now nullable
-- `ArrayPool` support has been added to ThreadStringBuilderPool using ArrayPool<char>.
-- Release-specific optimizations added
-  - EnableTrimAnalyzer: true
-  - TieredCompilation: true
-  - TieredCompilationQuickJit: true
-  - TieredCompilationQuickJitForLoops: true
-- Implement `System.DBNull` return option, for empty cells
-  - Implement `INullRow` return option, for empty rows
-  - Update tests to use `INullRow` detection
-- Implement `GetCell###(string columnLetters, ...)` #8
-- Implement `System.DBNull` return option, for empty cells
-- Mark up usage of userdefined cells styles for V5
-- Remove `in` usages (Supposed to not benefit !)
-- Make use of ThreadStatic in XlsbRow
-- Remove secoundary usage of a struct
-- Re-introduce the CellConversion for the XLSX cell types
-- Use `ValueTask` and reduce memory allocations in some hot paths
-- Cell object type 📅
-    - "Best Effort" `Operator` based conversion
-    - TryGet`Type` will return `out type`, if stored as that type.
-- Add `Ecma376StandardProvider`
-- Add `StylesExtractor`
-- Attempt to make use of the Cell types
-- Tinker with some `MethodImpl`
-- Add `_iStyleRef` and start to add formatting based on it
-- Fix fallout from making `CellValue` is now a `class`
-- 🚀 [2026-05-05](https://github.com/Smurf-IV/Excel_PRIME/blob/main/Performance.md#2026-05-05---v4)
+    - Cell base type will resolve to decimal first before attempting double. #20
+    - `Cell` and `CellValue` converted from `class` to `readonly struct` to eliminate object-per-cell overhead.
+    - `IRow`, `ISheet`, and `IExcel_PRIME` interfaces updated to return structs directly, avoiding boxing.
+    - `GetAllCells` now returns `ArraySegment<Cell>` to provide zero-allocation access to pooled cell arrays.
+- **Memory & Allocation Optimizations**
+    - ✅ Significant reduction in memory allocations (up to 4x) for large files by eliminating object-per-cell overhead.
+    - ✅ Implemented `ArrayPool<Cell>` for row-level cell storage.
+    - ✅ Optimized `Cell` struct layout to exactly 32 bytes (half a cache line) for improved performance.
+- **Performance Improvements**
+    - ✅ Optimized numeric parsing: restored custom `TryDecimalParse` priority while maintaining `double` storage for non-integers.
+    - ✅ Reduced async overhead by using `ValueTask<Cell>` in sheet reading loops.
+    - ✅ Improved parallel throughput by making `SharedString` loaders thread-safe at the instance level rather than static.
+    - ✅ Added `AggressiveInlining` and `AggressiveOptimization` to all high-frequency methods.
+    - ✅ IAsyncEnumerable stream processing
+- ✅ Cell object type 📅
+    - ✅ Store cell _style_ type (see Options enum)
+    - ✅ Unit Tests
+    - ✅ Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+    - Fixup `Ecma376StandardProvider`
+    - Fix the `StylesExtractor`'s
+    - Add more `cellStyles`
+    - Make the CellVaule default to the lowest type rather than sticking with `decimal`
+- **Code-Level Optimizations**
+   - ✅ Implement `ISpanFormattable` in CellValue
+   - ✅ Optimisationm in the Xlsb workflow
+   - ✅ Return to the usage of the FieldOffsets to store the BCL type to prevent boxings in the hot paths
+   - ✅ Usage of the Fast convertors *i.e.Our ToDecimal is 3 times faster than Convert.ToDecimal* #20
+- **Advanced Scenarios**
+   - ✅ Enable `PublishTrimmed=true` with trim warnings resolved
+   - ✅ Native AOT compilation testing
+- **Bug Fixes**
+    - Implement reading of the styles to determine the default `DateTime` / `DateOnly` / `TimeOnly` formats #19
+    - `AsDecimal` method had an issue where it produces incorrect precision, but only with default options #20
+    - When Attempting to use the "SkipRows" on a a sheet that has null rows to start with, causes infinite loop #27
+    - When opening the source file, then use "Sharing Mode" to allow it to be opened by other things! (i.e. 2 instances of this !) #28
+    - Update BugTesting
+    - Resolved several compiler warnings and potential resource leaks.
+    - Excel itself treats named ranges in a case-insensitive manner #34

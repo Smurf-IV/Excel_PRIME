@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace ExcelPRIME;
+﻿namespace ExcelPRIME;
 
 /// <summary>
 /// The type of cell as indicated by the Excel schema (Not interpreted)
 /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-public enum CellType
+public enum CellType : byte
 {
     Unknown,
     Numeric,
@@ -15,7 +13,7 @@ public enum CellType
     InlineString,   // Probably a RichText string
     Boolean,    // 0 or 1 converted to `bool`
     Error,      // Excel error TODO interpret this please.
-    Date        // ISO 8601 Format
+    Date        // ISO 8601 Format. Only applicable when "Strict" Excel save type is used
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -30,7 +28,7 @@ public interface ICell
     /// <remarks>
     /// Could be the actual value type if specified, otherwise `string?`
     /// </remarks>
-    CellValue? CellValue { get; }
+    CellValue CellValue { get; }
 
     /// <summary>
     /// Returns the type as specified in the Excel file attribute

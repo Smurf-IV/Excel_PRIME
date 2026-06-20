@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -21,9 +20,6 @@ internal sealed class XlsbStreamReader
 {
     private readonly BufferedStream _stream;
     private PooledRecordBuffer? _rollBackRecord;
-    
-    // Reusable single-byte buffer to reduce allocations and improve cache locality
-    private readonly byte[] _singleByteBuffer = new byte[1];
 
     /// <summary>
     /// Empty stream for unknown files
@@ -55,16 +51,14 @@ internal sealed class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int read = 0;
-        while (read < count)
+        try
         {
-            int bytesRead = _stream.Read(buffer, read, count - read);
-            if (bytesRead == 0)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-                throw new EndOfStreamException();
-            }
-            read += bytesRead;
+            _stream.ReadExactly(buffer.AsSpan(0, count));
+        }
+        catch (EndOfStreamException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
         }
 
         return buffer;
@@ -75,16 +69,19 @@ internal sealed class XlsbStreamReader
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
-        int read = 0;
-        while (read < count)
+        try
         {
-            int bytesRead = await _stream.ReadAsync(buffer.AsMemory(read, count- read), ct).ConfigureAwait(false);
-            if (bytesRead == 0)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-                throw new EndOfStreamException();
-            }
-            read += bytesRead;
+            await _stream.ReadExactlyAsync(buffer.AsMemory(0, count), ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
+        }
+        catch (EndOfStreamException)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
         }
 
         return buffer;
@@ -104,7 +101,7 @@ internal sealed class XlsbStreamReader
             )
         {
             return new PooledRecordBuffer(recordType, succeeded: recordType != RecordTypeIdentifier.EOF);
-    }
+        }
 
         try
         {
@@ -140,9 +137,9 @@ internal sealed class XlsbStreamReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool ReadRecordType(out RecordTypeIdentifier recordType)
     {
-        if (CarefulFieldRead( out uint value))
+        if (CarefulFieldRead(out uint value))
         {
-            recordType = (RecordTypeIdentifier)(value);
+            recordType = (RecordTypeIdentifier)value;
             return true;
         }
 
@@ -162,13 +159,14 @@ internal sealed class XlsbStreamReader
     private bool CarefulFieldRead(out uint value)
     {
         value = 0u;
+        Span<byte> buffer = stackalloc byte[1];
 
-        if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
+        if (_stream.Read(buffer) == 0)
         {
             return false;
         }
 
-        ref byte b1 = ref _singleByteBuffer[0];
+        byte b1 = buffer[0];
         value = (uint)(b1 & 0x7F);
 
         if ((b1 & 0x80) == 0)
@@ -176,12 +174,12 @@ internal sealed class XlsbStreamReader
             return true;
         }
 
-        if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
+        if (_stream.Read(buffer) == 0)
         {
             return false;
         }
 
-        ref byte b2 = ref _singleByteBuffer[0];
+        byte b2 = buffer[0];
         value = ((uint)(b2 & 0x7F) << 7) | value;
 
         if ((b2 & 0x80) == 0)
@@ -189,12 +187,12 @@ internal sealed class XlsbStreamReader
             return true;
         }
 
-        if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
+        if (_stream.Read(buffer) == 0)
         {
             return false;
         }
 
-        ref byte b3 = ref _singleByteBuffer[0];
+        byte b3 = buffer[0];
         value = ((uint)(b3 & 0x7F) << 14) | value;
 
         if ((b3 & 0x80) == 0)
@@ -202,12 +200,12 @@ internal sealed class XlsbStreamReader
             return true;
         }
 
-        if (_stream.Read(_singleByteBuffer, 0, 1) == 0)
+        if (_stream.Read(buffer) == 0)
         {
             return false;
         }
 
-        ref byte b4 = ref _singleByteBuffer[0];
+        byte b4 = buffer[0];
         value = ((uint)(b4 & 0x7F) << 21) | value;
 
         return true;

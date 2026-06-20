@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -31,7 +30,7 @@ public class AccessEveryCellBenchmarks
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     
-    static ExcelDataReaderOptions ErrorsAsString = 
+    static readonly ExcelDataReaderOptions ErrorsAsString = 
         new ExcelDataReaderOptions { 
             // formula errors read as their string values
             FormulaErrorHandling = FormulaErrorHandling.String 
@@ -73,9 +72,9 @@ public class AccessEveryCellBenchmarks
         foreach (Worksheet worksheet in workbook.Worksheets)
         {
             using WorksheetReader worksheetReader = worksheet.WorksheetReader;
-            foreach (Row row in worksheetReader)
+            foreach (XlsxHelper.Row row in worksheetReader)
             {
-                foreach (Cell cell in row.Cells)
+                foreach (XlsxHelper.Cell cell in row.Cells)
                 {
                     if (!string.IsNullOrEmpty(cell.CellValue))
                     {
@@ -130,16 +129,13 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
-                if (rowCells != null)
+                ArraySegment<Cell> rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                foreach (Cell cell in rowCells)
                 {
-                    foreach (ICell? cell in rowCells)
+                    // Because this returns upto the dimension of the sheet width
+                    if (!string.IsNullOrEmpty(cell.CellValue.ToString()))
                     {
-                        // Because this returns upto the dimension of the sheet width
-                        if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
-                        {
-                            cells++;
-                        }
+                        cells++;
                     }
                 }
 
@@ -166,11 +162,8 @@ public class AccessEveryCellBenchmarks
                     break;
                 }
 
-                IReadOnlyList<ICell?>? rowCells = row.GetAllCells();
-                if (rowCells != null)
-                {
-                    cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell?.CellValue?.ToString()));
-                }
+                ArraySegment<Cell> rowCells = row.GetAllCells();
+                cells += rowCells.Count(cell => !string.IsNullOrEmpty(cell.CellValue.ToString()));
                 row.Dispose();
             }
         }
@@ -208,16 +201,13 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
-                    if (rowCells != null)
+                    ArraySegment<Cell> rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    foreach (Cell cell in rowCells)
                     {
-                        foreach (ICell? cell in rowCells)
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell.CellValue.ToString()))
                         {
-                            // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
-                            {
-                                Interlocked.Increment(ref cells);
-                            }
+                            Interlocked.Increment(ref cells);
                         }
                     }
 
@@ -239,16 +229,13 @@ public class AccessEveryCellBenchmarks
                         break;
                     }
 
-                    IReadOnlyList<ICell?>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
-                    if (rowCells != null)
+                    ArraySegment<Cell> rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
+                    foreach (Cell cell in rowCells)
                     {
-                        foreach (ICell? cell in rowCells)
+                        // Because this returns upto the dimension of the sheet width
+                        if (!string.IsNullOrEmpty(cell.CellValue.ToString()))
                         {
-                            // Because this returns upto the dimension of the sheet width
-                            if (!string.IsNullOrEmpty(cell?.CellValue?.ToString()))
-                            {
-                                Interlocked.Increment(ref cells);
-                            }
+                            Interlocked.Increment(ref cells);
                         }
                     }
 

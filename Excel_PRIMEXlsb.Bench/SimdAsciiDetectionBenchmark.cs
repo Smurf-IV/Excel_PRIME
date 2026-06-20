@@ -59,7 +59,7 @@ public class SimdAsciiDetectionBenchmark
         latinStrings = new byte[StringCount][];
         for (int i = 0; i < StringCount; i++)
         {
-            string text = (i % 10 == 0) 
+            string text = i % 10 == 0 
                 ? GenerateLatin1String(10 + (i % 40))
                 : GenerateAsciiString(10 + (i % 40));
             latinStrings[i] = EncodeUtf16String(text);

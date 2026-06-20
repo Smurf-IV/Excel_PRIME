@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,17 +27,17 @@ public interface IRow : IRowBase
     /// <remarks>
     /// Cell 0 will be null, as this is indexing is Excel Based (1 Based)
     /// </remarks>
-    IReadOnlyList<ICell?>? GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
+    ArraySegment<Cell> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
     /// </summary>
-    ICell? GetCell(int excelColumnIndex, CancellationToken ct = default);
+    Cell GetCell(int excelColumnIndex, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves (If exists) the cell data
     /// </summary>
-    ICell? GetCell(string columnLetters, CancellationToken ct = default);
+    Cell GetCell(string columnLetters, CancellationToken ct = default);
 
     /// <summary>
     /// Copies the boxed values of all cells in the row to the specified array.
@@ -61,17 +59,17 @@ public interface IRowAsync : IRow
     /// <summary>
     /// Retrieves _All_ cells within the row, `0` indexed
     /// </summary>
-    ValueTask<IReadOnlyList<ICell?>?> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
+    ValueTask<ArraySegment<Cell>> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data
     /// </summary>
-    ValueTask<ICell?> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
+    ValueTask<Cell> GetCellAsync(int excelColumnIndex, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves (If exists) the cell data
     /// </summary>
-    ValueTask<ICell?> GetCellAsync(string columnLetters, CancellationToken ct = default);
+    ValueTask<Cell> GetCellAsync(string columnLetters, CancellationToken ct = default);
 }
 
 

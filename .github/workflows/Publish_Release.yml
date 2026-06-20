@@ -47,12 +47,12 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
+
     # - name: Test
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release
+      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
