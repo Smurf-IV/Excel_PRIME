@@ -1366,3 +1366,12 @@ And then slightly different versions of the following dependent on date:
 | Excel_PrimeXlsb              | sampl(...).xlsb [30] | 1.69x slower |  64000.0000 |          - |         - |  773.56 MB |  2.95x more |
 | PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [30] | 5.07x slower | 347000.0000 |  1000.0000 |         - | 4157.76 MB | 15.86x more |
 ```
+```
+| Method      | ranger           | Mean     | Error    | StdDev   | Gen0        | Gen1        | Gen2      | Allocated  |
+|------------ |----------------- |---------:|---------:|---------:|------------:|------------:|----------:|-----------:|
+| Access100mb | AsposeCells [35] |  4.494 s | 0.0980 s | 0.0054 s |  99000.0000 |  99000.0000 | 8000.0000 | 1283.88 MB |
+| Access100mb | ClosededXML [33] | 22.260 s | 1.8657 s | 0.1023 s | 795000.0000 | 258000.0000 | 6000.0000 | 9977.29 MB |
+| Access100mb | Free EPPlus [30] |       NA |       NA |       NA |          NA |          NA |        NA |         NA |
+| Access100mb | Excel_Prime [34] |  3.311 s | 0.3071 s | 0.0168 s |  82000.0000 |  33000.0000 | 4000.0000 |  942.79 MB |
+| Access100mb |  FreeSpire [33]  | 11.927 s | 0.3848 s | 0.0211 s | 717000.0000 | 276000.0000 | 6000.0000 | 9341.58 MB |
+```

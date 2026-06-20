@@ -23,7 +23,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Aspose.Cells" Version="26.5.1" />
+		<PackageReference Include="Aspose.Cells" Version="26.6.0" />
 		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
 		<PackageReference Include="ClosedXML" Version="0.105.0" />
 		<PackageReference Include="EPPlus-LGPL" Version="4.5.3.13" />
