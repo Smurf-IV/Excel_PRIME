@@ -29,7 +29,7 @@
 		<PackageReference Include="EPPlus-LGPL" Version="4.5.3.13" />
 		<PackageReference Include="FreeSpire.XLS" Version="16.4.0" />
 		<PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
-		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.8" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
 	</ItemGroup>
 
 	<ItemGroup>
