@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;

@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace ExcelPRIME.Implementation;
 
 /// <summary>
@@ -37,7 +39,7 @@ internal static class Ecma376StandardProvider
     /// - No per-lookup allocations
     /// - 30-40% faster than Dictionary for read-only workloads
     /// </summary>
-    private static readonly Dictionary<short, CellStyle> s_BuiltInNumberFormats = new()
+    private static readonly FrozenDictionary<short, CellStyle> s_BuiltInNumberFormats = new Dictionary<short, CellStyle>
     {
         // https://www.google.com/search?client=firefox-b-d&q=ECMA-376+standard+definitions+for+cell+styling+and+formatting&udm=50&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKpaEWjvZ2Py1XXV8d8KvlI3p-ML-906rRL_m6h4jR-tdCH-vUIlZq9RzugLEcfjf51b4dfDKizXS4hTwRCZW2TydVcnv1RUVx0SX0axPgL6aA1y5lH4oIQTHc9n3as9K40uq1ucVlSq7hphXixGrVbAHaxl4xbaQRNq-TBoJwkyHSzWgD1m8zRB8KZ0lvZ8gcgw8mFAQ&aep=10&ntc=1&mstk=AUtExfBrrkIu44uA6v1hpUOfIwA1FLcvSwyztg956PFLmym9H3HLadWU4G_XIO0rT-u62dR5h7RXY_GkFuv7v4I4OZL5QNkTRjQIXv8xu4exjOSxpJaFSHsEdcY6V6KqLol4CdAUjOhjs-LNQpumrnSedMNhM1mj9sXpJacczzMVh3ZxNTbk__HZhQVW1jVUwXXSfgFt5TUtMyLOsgEf33rkyP7eUtEyi5g40Yfoo1aEvTyKiVIF3s4mBIm3sCoYqbg64SPXSkl352KtPBXhamjqL4TrYg7-q21oAqMtRvEDpf_3SSIdiZmhrftahdzX-GspJSSxZsuBwT-J4g&aioh=3&csuir=1&mtid=MTQZasfZPInBhbIPiu6M0Q4
         // Six implicit/default cell styles (IDs 0-5) that are always present in an ECMA-376 workbook.
@@ -172,7 +174,7 @@ internal static class Ecma376StandardProvider
             new CellStyle { ExcelFormatId = 49, Formatting = string.Empty, FormattingType = FormattingType.General } },
 
         // Extended formats (50-164) - These vary by region and cannot be pre-defined!!
-    };
+    }.ToFrozenDictionary();
 
     /// <summary>
     /// Gets the formatting type for the specified format ID.
@@ -321,5 +323,5 @@ internal static class Ecma376StandardProvider
     }
 
     public static Dictionary<short, CellStyle> GetDefaultStyles()
-        => new(s_BuiltInNumberFormats);
+        => s_BuiltInNumberFormats.ToDictionary();
 }

@@ -57,15 +57,15 @@ internal static class ExcelColumns
     public static int ParseColumnOffset(ReadOnlySpan<char> buffer)
     {
         int colExcel = -1;
-        int i = buffer.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1)
+        int len = buffer.Length;
+        for (int i = 0; i < len; i++)
         {
-            i = buffer.Length;
-        }
-
-        for (int j = 0; j < i; j++)
-        {
-            colExcel = ((colExcel + 1) * 26) + (buffer[j] - 'A');
+            char c = buffer[i];
+            if (c is < 'A' or > 'Z')
+            {
+                break;
+            }
+            colExcel = ((colExcel + 1) * 26) + (c - 'A');
         }
         return colExcel + 1; // Make it into the Excel 1 offset #
     }
@@ -77,20 +77,21 @@ internal static class ExcelColumns
     public static (int rowExcel, int colExcel, ReadOnlyMemory<char> colName) GetRowColNumbers(this string columnRef)
         => string.IsNullOrEmpty(columnRef) ? (0, 0, ReadOnlyMemory<char>.Empty) : GetRowColNumbersFromString(columnRef);
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static (int rowExcel, int colExcel, ReadOnlyMemory<char> colName) GetRowColNumbersFromString(string columnRowRef)
     {
         ReadOnlySpan<char> span = columnRowRef.AsSpan();
         int colExcel = -1;
-        int i = span.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1)
+        int i = 0;
+        int len = span.Length;
+        for (; i < len; i++)
         {
-            i = span.Length;
-        }
-
-        for (int j = 0; j < i; j++)
-        {
-            colExcel = ((colExcel + 1) * 26) + (span[j] - 'A');
+            char c = span[i];
+            if (c is < 'A' or > 'Z')
+            {
+                break;
+            }
+            colExcel = ((colExcel + 1) * 26) + (c - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -99,19 +100,20 @@ internal static class ExcelColumns
         return (rowExcel, colExcel, colName);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static (int rowExcel, int colExcel, char[] colName) GetRowColNumbers(this ReadOnlySpan<char> columnRowRefSpan)
     {
         int colExcel = -1;
-        int i = columnRowRefSpan.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1)
+        int i = 0;
+        int len = columnRowRefSpan.Length;
+        for (; i < len; i++)
         {
-            i = columnRowRefSpan.Length;
-        }
-
-        for (int j = 0; j < i; j++)
-        {
-            colExcel = ((colExcel + 1) * 26) + (columnRowRefSpan[j] - 'A');
+            char c = columnRowRefSpan[i];
+            if (c is < 'A' or > 'Z')
+            {
+                break;
+            }
+            colExcel = ((colExcel + 1) * 26) + (c - 'A');
         }
 
         colExcel++; // Make it into the Excel 1 offset #
@@ -120,33 +122,38 @@ internal static class ExcelColumns
         return (rowExcel, colExcel, colName);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetColNumber(this ReadOnlySpan<char> columnRefSpan)
     {
         int colExcel = -1;
-        int i = columnRefSpan.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1)
+        int len = columnRefSpan.Length;
+        for (int i = 0; i < len; i++)
         {
-            i = columnRefSpan.Length;
-        }
-
-        for (int j = 0; j < i; j++)
-        {
-            colExcel = ((colExcel + 1) * 26) + (columnRefSpan[j] - 'A');
+            char c = columnRefSpan[i];
+            if (c is < 'A' or > 'Z')
+            {
+                break;
+            }
+            colExcel = ((colExcel + 1) * 26) + (c - 'A');
         }
 
         return ++colExcel; // Make it into the Excel 1 offset #
     }
 
-    /// <summary>
-    /// Extract the row number from a cell reference like "A1" by finding the first digit.
-    /// Uses span to avoid allocations.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetRowNumberFromRef(this ReadOnlySpan<char> cellRefSpan)
     {
-        int i = cellRefSpan.IndexOfAnyExcept(s_asciiLetters);
-        if (i == -1 || i >= cellRefSpan.Length)
+        int i = 0;
+        int len = cellRefSpan.Length;
+        for (; i < len; i++)
+        {
+            char c = cellRefSpan[i];
+            if (c is < 'A' or > 'Z')
+            {
+                break;
+            }
+        }
+        if (i >= len)
         {
             return 0;
         }

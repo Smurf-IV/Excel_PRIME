@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
-using System.Runtime.Intrinsics.X86;
 
 namespace ExcelPRIME.Implementation;
 
@@ -12,10 +12,11 @@ namespace ExcelPRIME.Implementation;
 internal static class SIMDHelper
 {
     /// <summary>
-    /// Checks if the CPU supports AVX2 instructions for vectorized double operations.
+    /// Checks if the CPU supports vectorized operations.
     /// Used to enable/disable SIMD fast paths at runtime.
     /// </summary>
-    private static readonly bool s_supportsAvx2 = Avx2.IsSupported;
+    private static readonly bool s_supportsVector512 = Vector512.IsHardwareAccelerated;
+    private static readonly bool s_supportsVector256 = Vector256.IsHardwareAccelerated;
 
     /// <summary>
     /// SIMD-accelerated check if any value in the input exceeds a threshold.
@@ -32,33 +33,42 @@ internal static class SIMDHelper
             return false;
         }
 
-        if (!s_supportsAvx2)
+        int i = 0;
+        Vector256<double> thresholdVec256 = Vector256.Create(threshold);
+        ref double valuesRef = ref MemoryMarshal.GetReference(values);
+
+        if (s_supportsVector512 && values.Length >= Vector512<double>.Count)
         {
-            return AnyGreaterThan_Scalar(values, threshold);
+            int vectorCount = Vector512<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector512<double> thresholdVec = Vector512.Create(threshold);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                Vector512<double> current = Vector512.LoadUnsafe(ref valuesRef, (uint)i);
+#if NET9_0_OR_GREATER
+                if (Vector512.GreaterThanAny(current, thresholdVec))
+#else
+                if (Vector512.GreaterThan(current, thresholdVec) != Vector512<double>.Zero)
+#endif
+                {
+                    return true;
+                }
+            }
         }
 
-        int i = 0;
-        int vectorCount = Vector256<double>.Count;
-        int simdEnd = values.Length - (values.Length % vectorCount);
-
-        Vector256<double> thresholdVec = Vector256.Create(threshold);
-
-        for (; i < simdEnd; i += vectorCount)
+        if (s_supportsVector256 && values.Length - i >= Vector256<double>.Count)
         {
-            Vector256<double> current = Vector256.Create(
-                values[i],
-                values[i + 1],
-                values[i + 2],
-                values[i + 3]
-            );
+            int vectorCount = Vector256<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
 
-            // Check if any element is greater than threshold
-            Vector256<double> gtThreshold = Avx.CompareGreaterThan(current, thresholdVec);
-
-            // If any comparison result is true (all 1 bits), we found a match
-            if (Avx.MoveMask(gtThreshold) != 0)
+            for (; i < simdEnd; i += vectorCount)
             {
-                return true;
+                Vector256<double> current = Vector256.LoadUnsafe(ref valuesRef, (uint)i);
+                if (Vector256.GreaterThanAny(current, thresholdVec256))
+                {
+                    return true;
+                }
             }
         }
 
@@ -105,32 +115,38 @@ internal static class SIMDHelper
             return 0;
         }
 
-        if (!s_supportsAvx2)
-        {
-            return CountGreaterThan_Scalar(values, threshold);
-        }
-
         int count = 0;
         int i = 0;
-        int vectorCount = Vector256<double>.Count;
-        int simdEnd = values.Length - (values.Length % vectorCount);
+        ref double valuesRef = ref MemoryMarshal.GetReference(values);
 
-        Vector256<double> thresholdVec = Vector256.Create(threshold);
-
-        for (; i < simdEnd; i += vectorCount)
+        if (s_supportsVector512 && values.Length >= Vector512<double>.Count)
         {
-            Vector256<double> current = Vector256.Create(
-                values[i],
-                values[i + 1],
-                values[i + 2],
-                values[i + 3]
-            );
+            int vectorCount = Vector512<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector512<double> thresholdVec = Vector512.Create(threshold);
 
-            Vector256<double> gtThreshold = Avx.CompareGreaterThan(current, thresholdVec);
-            int mask = Avx.MoveMask(gtThreshold);
+            for (; i < simdEnd; i += vectorCount)
+            {
+                Vector512<double> current = Vector512.LoadUnsafe(ref valuesRef, (uint)i);
+                Vector512<double> gtThreshold = Vector512.GreaterThan(current, thresholdVec);
+                ulong mask = gtThreshold.ExtractMostSignificantBits();
+                count += System.Numerics.BitOperations.PopCount(mask);
+            }
+        }
 
-            // Count number of set bits in mask (each bit represents one element > threshold)
-            count += PopCount(mask);
+        if (s_supportsVector256 && values.Length - i >= Vector256<double>.Count)
+        {
+            int vectorCount = Vector256<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector256<double> thresholdVec = Vector256.Create(threshold);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                Vector256<double> current = Vector256.LoadUnsafe(ref valuesRef, (uint)i);
+                Vector256<double> gtThreshold = Vector256.GreaterThan(current, thresholdVec);
+                uint mask = gtThreshold.ExtractMostSignificantBits();
+                count += System.Numerics.BitOperations.PopCount(mask);
+            }
         }
 
         // Scalar fallback for remaining elements
@@ -185,32 +201,35 @@ internal static class SIMDHelper
             return 0.0;
         }
 
-        if (!s_supportsAvx2)
-        {
-            return Sum_Scalar(values);
-        }
-
-        // Initialize accumulator vector with zeros
-        Vector256<double> accumulator = Vector256<double>.Zero;
         int i = 0;
-        int vectorCount = Vector256<double>.Count;
-        int simdEnd = values.Length - (values.Length % vectorCount);
+        double sum = 0.0;
+        ref double valuesRef = ref MemoryMarshal.GetReference(values);
 
-        // Process 4 doubles at a time
-        for (; i < simdEnd; i += vectorCount)
+        if (s_supportsVector512 && values.Length >= Vector512<double>.Count)
         {
-            Vector256<double> current = Vector256.Create(
-                values[i],
-                values[i + 1],
-                values[i + 2],
-                values[i + 3]
-            );
-            accumulator = Avx.Add(accumulator, current);
+            int vectorCount = Vector512<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector512<double> accumulator = Vector512<double>.Zero;
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                accumulator += Vector512.LoadUnsafe(ref valuesRef, (uint)i);
+            }
+            sum = HorizontalSum(accumulator);
         }
 
-        // Horizontal sum: add all elements in the accumulator
-        // AVX2 doesn't have a direct horizontal add for doubles, so we extract and sum
-        double sum = accumulator[0] + accumulator[1] + accumulator[2] + accumulator[3];
+        if (s_supportsVector256 && values.Length - i >= Vector256<double>.Count)
+        {
+            int vectorCount = Vector256<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector256<double> accumulator = Vector256<double>.Zero;
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                accumulator += Vector256.LoadUnsafe(ref valuesRef, (uint)i);
+            }
+            sum += HorizontalSum(accumulator);
+        }
 
         // Scalar fallback for remaining elements
         for (; i < values.Length; i++)
@@ -248,31 +267,34 @@ internal static class SIMDHelper
             return double.MaxValue;
         }
 
-        if (!s_supportsAvx2)
-        {
-            return Min_Scalar(values);
-        }
-
-        Vector256<double> minVec = Vector256.Create(double.MaxValue);
         int i = 0;
-        int vectorCount = Vector256<double>.Count;
-        int simdEnd = values.Length - (values.Length % vectorCount);
+        double min = double.MaxValue;
+        ref double valuesRef = ref MemoryMarshal.GetReference(values);
 
-        for (; i < simdEnd; i += vectorCount)
+        if (s_supportsVector512 && values.Length >= Vector512<double>.Count)
         {
-            Vector256<double> current = Vector256.Create(
-                values[i],
-                values[i + 1],
-                values[i + 2],
-                values[i + 3]
-            );
-            minVec = Avx.Min(minVec, current);
+            int vectorCount = Vector512<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector512<double> minVec = Vector512.Create(double.MaxValue);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                minVec = Vector512.Min(minVec, Vector512.LoadUnsafe(ref valuesRef, (uint)i));
+            }
+            min = HorizontalMin(minVec);
         }
 
-        double min = double.MaxValue;
-        for (int j = 0; j < vectorCount; j++)
+        if (s_supportsVector256 && values.Length - i >= Vector256<double>.Count)
         {
-            min = Math.Min(min, minVec[j]);
+            int vectorCount = Vector256<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector256<double> minVec = Vector256.Create(double.MaxValue);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                minVec = Vector256.Min(minVec, Vector256.LoadUnsafe(ref valuesRef, (uint)i));
+            }
+            min = Math.Min(min, HorizontalMin(minVec));
         }
 
         // Scalar fallback for remaining elements
@@ -311,31 +333,34 @@ internal static class SIMDHelper
             return double.MinValue;
         }
 
-        if (!s_supportsAvx2)
-        {
-            return Max_Scalar(values);
-        }
-
-        Vector256<double> maxVec = Vector256.Create(double.MinValue);
         int i = 0;
-        int vectorCount = Vector256<double>.Count;
-        int simdEnd = values.Length - (values.Length % vectorCount);
+        double max = double.MinValue;
+        ref double valuesRef = ref MemoryMarshal.GetReference(values);
 
-        for (; i < simdEnd; i += vectorCount)
+        if (s_supportsVector512 && values.Length >= Vector512<double>.Count)
         {
-            Vector256<double> current = Vector256.Create(
-                values[i],
-                values[i + 1],
-                values[i + 2],
-                values[i + 3]
-            );
-            maxVec = Avx.Max(maxVec, current);
+            int vectorCount = Vector512<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector512<double> maxVec = Vector512.Create(double.MinValue);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                maxVec = Vector512.Max(maxVec, Vector512.LoadUnsafe(ref valuesRef, (uint)i));
+            }
+            max = HorizontalMax(maxVec);
         }
 
-        double max = double.MinValue;
-        for (int j = 0; j < vectorCount; j++)
+        if (s_supportsVector256 && values.Length - i >= Vector256<double>.Count)
         {
-            max = Math.Max(max, maxVec[j]);
+            int vectorCount = Vector256<double>.Count;
+            int simdEnd = values.Length - (values.Length % vectorCount);
+            Vector256<double> maxVec = Vector256.Create(double.MinValue);
+
+            for (; i < simdEnd; i += vectorCount)
+            {
+                maxVec = Vector256.Max(maxVec, Vector256.LoadUnsafe(ref valuesRef, (uint)i));
+            }
+            max = Math.Max(max, HorizontalMax(maxVec));
         }
 
         // Scalar fallback for remaining elements
@@ -359,5 +384,52 @@ internal static class SIMDHelper
             max = Math.Max(max, value);
         }
         return max;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalSum(Vector512<double> v)
+    {
+#if NET9_0_OR_GREATER
+        return Vector512.Sum(v);
+#else
+        return HorizontalSum(v.GetLower() + v.GetUpper());
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalSum(Vector256<double> v)
+    {
+#if NET9_0_OR_GREATER
+        return Vector256.Sum(v);
+#else
+        Vector128<double> sum128 = v.GetLower() + v.GetUpper();
+        return sum128.GetElement(0) + sum128.GetElement(1);
+#endif
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalMin(Vector512<double> v)
+    {
+        return HorizontalMin(Vector256.Min(v.GetLower(), v.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalMin(Vector256<double> v)
+    {
+        Vector128<double> min128 = Vector128.Min(v.GetLower(), v.GetUpper());
+        return Math.Min(min128.GetElement(0), min128.GetElement(1));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalMax(Vector512<double> v)
+    {
+        return HorizontalMax(Vector256.Max(v.GetLower(), v.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double HorizontalMax(Vector256<double> v)
+    {
+        Vector128<double> max128 = Vector128.Max(v.GetLower(), v.GetUpper());
+        return Math.Max(max128.GetElement(0), max128.GetElement(1));
     }
 }

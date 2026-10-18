@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Buffers;
 using System.Threading;
-using System.Threading.Tasks;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;

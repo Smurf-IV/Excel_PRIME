@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Buffers;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.Implementation;
@@ -67,11 +68,9 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     // Micro-optimization: Cache frequently allocated strings
     private static readonly CultureInfo s_invariantCultureCache = CultureInfo.InvariantCulture;
 
-    // Small concurrent cache for strings created from ReadOnlySpan<char> during numeric fallback.
-    // This avoids repeated identical allocations for common numeric text representations.
-    private static readonly ConcurrentDictionary<string, string> s_spanStringCache = new();
-
     private static readonly ConcurrentDictionary<short, CellValue> s_DBNullCache = new();
+
+    private static readonly SearchValues<char> s_decimalIndicators = SearchValues.Create(".E");
 
     /// <summary>
     /// Returns a cached <see cref="CellValue"/> instance representing a DBNull value with the specified style.
@@ -105,12 +104,12 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     private static CellValue Create(DBNull _, short iStyleRef)
         => new(CellValueType.IsDBNull, iStyleRef);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static CellValue TryParseOrder(ReadOnlySpan<char> asSpan, CellStyle? style)
     {
         // Determine if the provided style corresponds to a date/time related formatting type.
         bool isDateStyle = style?.IsDateStyle ?? false;
-        bool containsDecimal = asSpan.ContainsAny('.', 'E');
+        bool containsDecimal = asSpan.ContainsAny(s_decimalIndicators);
         short styleStyleXmlRef = style?.ExcelFormatId ?? -1;
         if (containsDecimal)
         {
@@ -225,14 +224,8 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
             return CellValue.Create(resultD, style);
         }
 
-        // Create a string from the span and cache small commonly repeated strings to reduce allocations.
-        string s = new string(asSpan);
-        // Cache short strings as a heuristic to limit memory growth.
-        if (s.Length <= 64)
-        {
-            s = s_spanStringCache.GetOrAdd(s, s);
-        }
-        return CellValue.Create(s, style);
+        // Create a string from the span
+        return CellValue.Create(new string(asSpan), style);
     }
 
     /// <summary>

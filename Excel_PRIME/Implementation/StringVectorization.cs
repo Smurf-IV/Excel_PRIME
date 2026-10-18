@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+
 
 namespace ExcelPRIME.Implementation;
 
@@ -45,62 +45,8 @@ internal static class StringVectorization
     /// <param name="text">The text to search in.</param>
     /// <param name="pattern">The pattern to find.</param>
     /// <returns>Index of the first occurrence, or -1 if not found.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static int IndexOfOrdinal(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (pattern.IsEmpty)
-        {
-            return 0;
-        }
-
-        if (text.Length < pattern.Length)
-        {
-            return -1;
-        }
-
-        // For very short patterns, use direct span search
-        if (pattern.Length <= 4)
-        {
-            return text.IndexOf(pattern);
-        }
-
-        // For longer patterns, use optimized scalar search
-        return IndexOfOrdinal_Scalar(text, pattern);
-    }
-
-    /// <summary>
-    /// Scalar search implementation for longer patterns.
-    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int IndexOfOrdinal_Scalar(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        int patternLength = pattern.Length;
-        int searchEnd = text.Length - patternLength + 1;
-
-        for (int i = 0; i < searchEnd; i++)
-        {
-            if (text[i] == pattern[0])
-            {
-                // Check if full pattern matches
-                bool match = true;
-                for (int j = 1; j < patternLength; j++)
-                {
-                    if (text[i + j] != pattern[j])
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
-                {
-                    return i;
-                }
-            }
-        }
-
-        return -1;
-    }
+    public static int IndexOfOrdinal(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern) => text.IndexOf(pattern);
 
     /// <summary>
     /// Case-insensitive ordinal search for a pattern in text.
@@ -109,83 +55,9 @@ internal static class StringVectorization
     /// <param name="text">The text to search in.</param>
     /// <param name="pattern">The pattern to find (case-insensitive).</param>
     /// <returns>Index of the first occurrence, or -1 if not found.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static int IndexOfOrdinalIgnoreCase(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (pattern.IsEmpty)
-        {
-            return 0;
-        }
-
-        if (text.Length < pattern.Length)
-        {
-            return -1;
-        }
-
-        // For very short patterns, use direct comparison
-        if (pattern.Length <= 4)
-        {
-            int searchEnd = text.Length - pattern.Length + 1;
-            for (int i = 0; i < searchEnd; i++)
-            {
-                if (char.ToUpperInvariant(text[i]) == char.ToUpperInvariant(pattern[0]))
-                {
-                    bool match = true;
-                    for (int j = 1; j < pattern.Length; j++)
-                    {
-                        if (char.ToUpperInvariant(text[i + j]) != char.ToUpperInvariant(pattern[j]))
-                        {
-                            match = false;
-                            break;
-                        }
-                    }
-
-                    if (match)
-                    {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
-
-        return IndexOfOrdinalIgnoreCase_Scalar(text, pattern);
-    }
-
-    /// <summary>
-    /// Scalar case-insensitive search implementation.
-    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int IndexOfOrdinalIgnoreCase_Scalar(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        int patternLength = pattern.Length;
-        int searchEnd = text.Length - patternLength + 1;
-        char firstPatternCharUpper = char.ToUpperInvariant(pattern[0]);
-
-        for (int i = 0; i < searchEnd; i++)
-        {
-            if (char.ToUpperInvariant(text[i]) == firstPatternCharUpper)
-            {
-                // Check if full pattern matches (case-insensitive)
-                bool match = true;
-                for (int j = 1; j < patternLength; j++)
-                {
-                    if (char.ToUpperInvariant(text[i + j]) != char.ToUpperInvariant(pattern[j]))
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
-                {
-                    return i;
-                }
-            }
-        }
-
-        return -1;
-    }
+    public static int IndexOfOrdinalIgnoreCase(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
+        => text.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Checks if text starts with pattern (case-sensitive).
@@ -196,14 +68,7 @@ internal static class StringVectorization
     /// <returns>True if text starts with pattern, false otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool StartsWithOrdinal(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (text.Length < pattern.Length)
-        {
-            return false;
-        }
-
-        return text.Slice(0, pattern.Length).SequenceEqual(pattern);
-    }
+        => text.StartsWith(pattern);
 
     /// <summary>
     /// Checks if text starts with pattern (case-insensitive).
@@ -211,24 +76,9 @@ internal static class StringVectorization
     /// <param name="text">The text to check.</param>
     /// <param name="pattern">The pattern to match at the start (case-insensitive).</param>
     /// <returns>True if text starts with pattern, false otherwise.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool StartsWithOrdinalIgnoreCase(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (text.Length < pattern.Length)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < pattern.Length; i++)
-        {
-            if (char.ToUpperInvariant(text[i]) != char.ToUpperInvariant(pattern[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+        => text.StartsWith(pattern, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Checks if text ends with pattern (case-sensitive).
@@ -239,14 +89,7 @@ internal static class StringVectorization
     /// <returns>True if text ends with pattern, false otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithOrdinal(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (text.Length < pattern.Length)
-        {
-            return false;
-        }
-
-        return text.Slice(text.Length - pattern.Length).SequenceEqual(pattern);
-    }
+        => text.EndsWith(pattern);
 
     /// <summary>
     /// Checks if text ends with pattern (case-insensitive).
@@ -254,25 +97,9 @@ internal static class StringVectorization
     /// <param name="text">The text to check.</param>
     /// <param name="pattern">The pattern to match at the end (case-insensitive).</param>
     /// <returns>True if text ends with pattern, false otherwise.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithOrdinalIgnoreCase(ReadOnlySpan<char> text, ReadOnlySpan<char> pattern)
-    {
-        if (text.Length < pattern.Length)
-        {
-            return false;
-        }
-
-        int startIndex = text.Length - pattern.Length;
-        for (int i = 0; i < pattern.Length; i++)
-        {
-            if (char.ToUpperInvariant(text[startIndex + i]) != char.ToUpperInvariant(pattern[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+        => text.EndsWith(pattern, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Count occurrences of a single character in the text.
@@ -281,50 +108,8 @@ internal static class StringVectorization
     /// <param name="text">The text to search in.</param>
     /// <param name="character">The character to count.</param>
     /// <returns>Number of occurrences of the character.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static int CountOccurrences(ReadOnlySpan<char> text, char character)
-    {
-        if (text.IsEmpty)
-        {
-            return 0;
-        }
-
-        int count = 0;
-
-        // Vectorized comparison for common case: single character
-        // Process 8 characters at a time where possible (using ulong operations)
-        int i = 0;
-        int vectorEnd = text.Length - (text.Length % 8);
-
-        // Convert to bytes for vectorized comparison if character is ASCII
-        if (character < 128)
-        {
-            byte charByte = (byte)character;
-            ReadOnlySpan<byte> byteSpan = MemoryMarshal.AsBytes(text);
-
-            // Count every other byte (since each char is 2 bytes in UTF-16 LE)
-            for (; i < byteSpan.Length; i += 2)
-            {
-                if (byteSpan[i] == charByte && byteSpan[i + 1] == 0)
-                {
-                    count++;
-                }
-            }
-        }
-        else
-        {
-            // Fallback for non-ASCII characters
-            for (; i < text.Length; i++)
-            {
-                if (text[i] == character)
-                {
-                    count++;
-                }
-            }
-        }
-
-        return count;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CountOccurrences(ReadOnlySpan<char> text, char character) => text.Count(character);
 
     /// <summary>
     /// Trim whitespace from both ends of a span using optimized loop unrolling.

@@ -3,12 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-
 namespace ExcelPRIME.XlsbImp;
 
 /// <summary>
 /// SIMD-optimized variant of PooledRecordBuffer for Unicode string decoding.
-/// This version uses Vector<ushort/> for parallel ASCII detection.
+/// This version uses Vector256{ushort} for parallel ASCII detection.
 /// </summary>
 internal static class SimdStringDecoder
 {
@@ -44,25 +43,19 @@ internal static class SimdStringDecoder
         int i = 0;
         int unitsLength = units.Length;
 
-        // SIMD fast path: process whole vectors
-        int vectorSize = Vector<ushort>.Count;
-        int simdEnd = unitsLength - (unitsLength % vectorSize);
-
-        // Create mask for high byte: 0xFF00
-        Vector<ushort> highByteMask = new(0xFF00);
-
-        for (; i < simdEnd; i += vectorSize)
+        if (Vector.IsHardwareAccelerated && unitsLength >= Vector<ushort>.Count)
         {
-            // Load vector of code units
-            Vector<ushort> vector = new(units.Slice(i, vectorSize));
+            int vectorSize = Vector<ushort>.Count;
+            int simdEnd = unitsLength - (unitsLength % vectorSize);
+            Vector<ushort> highByteMask = new((ushort)0xFF00);
 
-            // Mask out high bytes
-            Vector<ushort> highBytes = vector & highByteMask;
-
-            // If any high byte is non-zero, we have non-ASCII
-            if (!Vector.EqualsAll(highBytes, Vector<ushort>.Zero))
+            for (; i < simdEnd; i += vectorSize)
             {
-                goto NonAsciiDetected;
+                Vector<ushort> vector = new(units.Slice(i, vectorSize));
+                if (!Vector.EqualsAll(vector & highByteMask, Vector<ushort>.Zero))
+                {
+                    goto NonAsciiDetected;
+                }
             }
         }
 
@@ -92,57 +85,5 @@ internal static class SimdStringDecoder
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static string DecodeUtf16WithHybridFastPath(byte[] buffer, int offset, int byteCount, int charCount)
-    {
-        ReadOnlySpan<byte> span = new(buffer, offset, byteCount);
-        ReadOnlySpan<ushort> units = MemoryMarshal.Cast<byte, ushort>(span);
-
-        int i = 0;
-        int unitsLength = units.Length;
-
-        // For very short strings, use scalar approach
-        if (unitsLength < 8)
-        {
-            for (; i < unitsLength; i++)
-            {
-                if ((units[i] & 0xFF00) != 0)
-                {
-                    goto NonAsciiDetected;
-                }
-            }
-        }
-        else
-        {
-            // For longer strings, use SIMD
-            int vectorSize = Vector<ushort>.Count;
-            int simdEnd = unitsLength - (unitsLength % vectorSize);
-            Vector<ushort> highByteMask = new(0xFF00);
-
-            for (; i < simdEnd; i += vectorSize)
-            {
-                Vector<ushort> vector = new(units.Slice(i, vectorSize));
-                Vector<ushort> highBytes = vector & highByteMask;
-
-                if (!Vector.EqualsAll(highBytes, Vector<ushort>.Zero))
-                {
-                    goto NonAsciiDetected;
-                }
-            }
-
-            // Scalar cleanup
-            for (; i < unitsLength; i++)
-            {
-                if ((units[i] & 0xFF00) != 0)
-                {
-                    goto NonAsciiDetected;
-                }
-            }
-        }
-
-        // All ASCII
-        ReadOnlySpan<char> chars = MemoryMarshal.Cast<byte, char>(span);
-        return new string(chars.Slice(0, charCount));
-
-    NonAsciiDetected:
-        return Encoding.Unicode.GetString(buffer, offset, byteCount);
-    }
+        => DecodeUtf16WithSimdFastPath(buffer, offset, byteCount, charCount);
 }

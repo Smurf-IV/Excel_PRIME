@@ -60,3 +60,4 @@ nunit-*.xml
 ~$*.xlsx
 /.junie
 BenchmarkDotNet.Artifacts/
+/.localpilot/map.txt
