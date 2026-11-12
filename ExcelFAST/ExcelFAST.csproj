@@ -1,0 +1,101 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<IsTrimmable>True</IsTrimmable>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<WarningLevel>11</WarningLevel>
+		<NeutralLanguage>en</NeutralLanguage>
+		<LangVersion>preview</LangVersion>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>preview</AnalysisLevel>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+		<IsPublishable>True</IsPublishable>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<RootNamespace>ExcelFAST</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ApplicationIcon>../Excel.ico</ApplicationIcon>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+
+		<!-- .NET 8+ Performance Optimizations -->
+		<TieredCompilation>true</TieredCompilation>
+		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
+		<TieredPGO>true</TieredPGO>
+		<!-- NEW in .NET 9: Dynamic PGO gets better -->
+		<TieredCompilationDynamicPgo>true</TieredCompilationDynamicPgo>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include="../Excel.ico" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.402" PrivateAssets="all" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.402" PrivateAssets="all" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100">
+			<!-- Used for source code linking in NuGet packages.
+				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
+				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
+				  ├── Microsoft.Build.Tasks.Git/11.0.100-preview.2.26159.112
+				  │   └── System.IO.Hashing/11.0.0-preview.2.26159.112
+				  └── Microsoft.SourceLink.Common/11.0.100-preview.2.26159.112
+				  -->
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<Title>ExcelFAST</Title>
+		<PackageId>ExcelFAST</PackageId>
+		<RepositoryType>git</RepositoryType>
+		<Copyright>© Smurf-IV</Copyright>
+		<PackageProjectUrl>https://github.com/Smurf-IV/Excel_PRIME</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Smurf-IV/Excel_PRIME</RepositoryUrl>
+		<PackageTags>csharp;xml;zip;excel;netcore;reader</PackageTags>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Description>E.xcel F.oward A.rraySegment S.peedy T.ransfer</Description>
+		<Authors>Smurf-IV</Authors>
+		<Deterministic>False</Deterministic>
+		<VersionPrefix>5.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
+		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
+		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>Excel.png</PackageIcon>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\Excel.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Package_ReadMe.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Excel_PRIME\Excel_PRIME.csproj" />
+	</ItemGroup>
+
+	<Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec">
+		<PropertyGroup>
+			<PackageDescription>$([System.IO.File]::ReadAllText("../Release_Notes.md"))</PackageDescription>
+		</PropertyGroup>
+	</Target>
+</Project>

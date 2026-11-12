@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ExcelPRIME.Implementation;
 
@@ -52,7 +55,7 @@ internal sealed class XlsbStylesExtractor : IDisposable
 
         try
         {
-            using Stream? styleStream = _zipReader.GetEntry("xl/styles.bin");
+            using Stream? styleStream = _zipReader.GetEntry("xl/styles.bin", ct);
             if (styleStream == null)
             {
                 return _cellStyles;

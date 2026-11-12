@@ -1,0 +1,2243 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Excel_PRIME</name>
+    </assembly>
+    <members>
+        <member name="T:ExcelPRIME.Cell">
+            <summary>
+            Represents a single cell in a worksheet, including its parsed value, the original Excel cell type,
+            and the one-based column offset. Immutable value-type used by the XLSX/XLSB readers.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Cell.CellValue">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Cell.RawExcelType">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Cell.ExcelColumnOffset">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Cell.ColumnLetters">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Cell.Equals(ExcelPRIME.Cell)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExcelPRIME.Cell.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExcelPRIME.Cell.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:ExcelPRIME.Cell.op_Equality(ExcelPRIME.Cell,ExcelPRIME.Cell)">
+            <summary>
+            Compares two <see cref="T:ExcelPRIME.Cell"/> instances for equality.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Cell.op_Inequality(ExcelPRIME.Cell,ExcelPRIME.Cell)">
+            <summary>
+            Compares two <see cref="T:ExcelPRIME.Cell"/> instances for inequality.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Cell.ToString">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.CellValueType">
+            <summary>
+            Represents the type of value stored in a cell.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.CellValue">
+            <summary>
+            Represents a strongly-typed cell value with custom ToString conversion.
+            Supports zero-allocation formatting on .NET 8+ via ISpanFormattable.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellValue._type">
+            <summary>
+            The type of the cell value.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellValue._iStyleRef">
+            <summary>
+            The style reference index.
+            Specifies the identifier of the "cell Formatting", i.e. number of decimals etc.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsUnknown">
+            <summary>
+            Returns true if the cell value type is Unknown (the default for a new CellValue struct).
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.GetDBNull(System.Int16)">
+            <summary>
+            Returns a cached <see cref="T:ExcelPRIME.CellValue"/> instance representing a DBNull value with the specified style.
+            </summary>
+            <param name="iStyleRef">The style reference index.</param>
+            <returns>A <see cref="T:ExcelPRIME.CellValue"/> instance.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.IsExactlyDouble(System.Decimal@)">
+            <summary>
+            Memory Overlay Method: The fastest possible scalar implementation.
+            It compiles down to highly optimised sequential register instructions with zero branching or division bottlenecks.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.#ctor(ExcelPRIME.CellValueType,System.Int16)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExcelPRIME.CellValue"/> class.
+            </summary>
+            <param name="type">The type of the cell value.</param>
+            <param name="iStyleRef">The style reference index.</param>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.BoxedValue">
+            <summary>
+            Gets the raw "Boxed" value of the cell.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.ToString">
+            <summary>
+            Converts the cell value to its string representation.
+            </summary>
+            <returns>
+            A string representation of the cell value, or <c>null</c> if the value is <c>null</c>.
+            If the value is a string, it is returned as-is. If the value implements <see cref="T:System.IFormattable"/>,
+            it is formatted using the invariant culture. Otherwise, the default <see cref="M:System.Object.ToString"/> 
+            implementation is used.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.AppendTo(System.Text.StringBuilder)">
+            <summary>
+            Appends the cell value to the provided StringBuilder without allocating an intermediate string.
+            This is more efficient than calling ToString() when building formatted output.
+            </summary>
+            <param name="builder">The StringBuilder to append to.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="builder"/> is null.</exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsDateTime">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.DateTime"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.DateTime"/>.
+            </exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsDateOnly">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.DateOnly"/> object, if possible.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsTimeOnly">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.TimeOnly"/> object, if possible.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsBoolean">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.Boolean"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.Boolean"/>.
+            </exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsInt32">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.Int32"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.Int32"/>.
+            </exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsInt64">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.Int64"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.Int64"/>.
+            </exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsDouble">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.Double"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.Double"/>.
+            </exception>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.AsDecimal">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.Decimal"/> object, if possible.
+            </summary>
+            <exception cref="T:System.FormatException">
+            Thrown if the cell value cannot be parsed as a valid <see cref="T:System.Decimal"/>.
+            </exception>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.ToStyledString">
+            <summary>
+            Returns the cell value as a string formatted according to the specified styles dictionary, if available.
+            </summary>
+            <returns>
+            A string representation of the cell value formatted according to the cell's style, 
+            or the default string representation if the style is not found.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatValueWithStyle(System.String,ExcelPRIME.Implementation.FormattingType)">
+            <summary>
+            Formats the cell value according to the provided style.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatNumericWithNumberFormat(System.Decimal,System.String,ExcelPRIME.Implementation.FormattingType)">
+            <summary>
+            Formats a numeric value according to an Excel number format code.
+            Handles all FormattingType.Number styles including:
+            - Regular numbers (0, 0.00, #,##0, #,##0.00)
+            - Scientific notation (0.00E+00, ##0.0E0, etc.)
+            - Percentages (0%, 0.0%, 0.00%)
+            - Fractions (# ?/?, # ??/??)
+            - International formats and variants
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatNumericWithNumberFormat(System.Double,System.String,ExcelPRIME.Implementation.FormattingType)">
+            <summary>
+            Formats a numeric value according to an Excel number format code.
+            Handles all FormattingType.Number styles including:
+            - Regular numbers (0, 0.00, #,##0, #,##0.00)
+            - Scientific notation (0.00E+00, ##0.0E0, etc.)
+            - Percentages (0%, 0.0%, 0.00%)
+            - Fractions (# ?/?, # ??/??)
+            - International formats and variants
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatNumberWithNegativeParentheses(System.Decimal,System.String)">
+            <summary>
+            Formats a number with negative values in parentheses.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatNumberWithNegativeParentheses(System.Double,System.String)">
+            <summary>
+            Formats a number with negative values in parentheses.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatAccountingNumber(System.Double,System.Int32)">
+            <summary>
+            Formats a number in accounting style with alignment spacing.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatFraction(System.Double,System.Int32)">
+            <summary>
+            Formats a decimal number as a fraction.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatPercentage(System.Decimal,System.String)">
+            <summary>
+            Formats a numeric value as a percentage with the specified decimal places.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatPercentage(System.Double,System.String)">
+            <summary>
+            Formats a numeric value as a percentage with the specified decimal places.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.GreatestCommonDivisor(System.Int32,System.Int32)">
+            <summary>
+            Calculates the greatest common divisor using Euclidean algorithm.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatCustomNumber(System.Double,System.String)">
+            <summary>
+            Formats a numeric value using a custom format code pattern.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatDateTimeWithNumberFormat(System.DateTime,System.String,ExcelPRIME.Implementation.FormattingType)">
+            <summary>
+            Formats a DateTime value according to an Excel number format code.
+            Handles all FormattingType.TimeOnly, DateTime, and DateOnly styles including:
+            - Time-only formats (h:mm, h:mm:ss, mm:ss, [h]:mm:ss)
+            - Date-only formats (mm/dd/yyyy, d-mmm-yy, yyyy-mm-dd, etc.)
+            - Combined date/time formats (m/d/yy h:mm, dd/mm/yyyy h:mm:ss, etc.)
+            - International variants (German, Chinese, etc.)
+            - Millisecond precision formats (hh:mm:ss.000)
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatElapsedTime(System.DateTime)">
+            <summary>
+            Formats elapsed time in [h]:mm:ss format (hours can exceed 24).
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FormatCustomDateTime(System.DateTime,System.String,ExcelPRIME.Implementation.FormattingType)">
+            <summary>
+            Formats a DateTime value using a custom format code pattern.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.ConvertExcelDateTimeFormatToNet(System.String)">
+            <summary>
+            Converts Excel date/time format codes to .NET DateTime format strings.
+            Intelligently handles "mm" which can be either months or minutes depending on context.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.Equals(System.Object)">
+            <summary>
+            Determines whether the specified object is equal to the current<see cref="T:ExcelPRIME.CellValue"/> instance.
+            </summary>
+            <param name = "obj" > The object to compare with the current <see cref = "T:ExcelPRIME.CellValue" /> instance.</param >
+            <returns>
+            <c> true </c> if the specified object is a<see cref = "T:ExcelPRIME.CellValue" /> and has the same type and value as the current instance; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.GetHashCode">
+            <summary>
+            Returns the hash code for the current<see cref="T:ExcelPRIME.CellValue"/> instance.
+            </summary>
+            <returns>
+            A 32-bit signed integer hash code that represents the current<see cref = "T:ExcelPRIME.CellValue" />.
+            </returns >
+            <remarks>
+            The hash code is computed based on the type of the cell value and its associated data,
+            ensuring that equal<see cref = "T:ExcelPRIME.CellValue" /> instances produce the same hash code.
+            </remarks>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.Equals(ExcelPRIME.CellValue)">
+            <summary>
+            Determines whether the current<see cref="T:ExcelPRIME.CellValue"/> instance is equal to another<see cref = "T:ExcelPRIME.CellValue" /> instance.
+            </summary >
+            <param name= "other" > The <see cref= "T:ExcelPRIME.CellValue" /> instance to compare with the current instance.</param>
+            <returns>
+            <c>true</c> if the current instance and the<paramref name = "other" /> instance are equal; otherwise, <c>false</c>.
+            </returns>
+            <remarks>
+            Equality is determined based on the<see cref="T:ExcelPRIME.CellType"/> and the value associated with it.
+            For example, numeric values are compared numerically, strings are compared using string equality,
+            and dates are compared using date-time equality.
+            </remarks>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Equality(ExcelPRIME.CellValue,ExcelPRIME.CellValue)">
+            <summary>
+            Determines whether two<see cref = "T:ExcelPRIME.CellValue" /> instances are equal.
+            </summary>
+            <param name = "left" > The first<see cref = "T:ExcelPRIME.CellValue" /> to compare.</param>
+            <param name = "right" > The second<see cref = "T:ExcelPRIME.CellValue" /> to compare.</param>
+            <returns>
+            <c>true</c> if the specified <see cref = "T:ExcelPRIME.CellValue" /> instances are equal; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Inequality(ExcelPRIME.CellValue,ExcelPRIME.CellValue)">
+            <summary>
+            Determines whether two<see cref = "T:ExcelPRIME.CellValue" /> instances are not equal.
+            </summary>
+            <param name = "left" > The first<see cref = "T:ExcelPRIME.CellValue" /> to compare.</param>
+            <param name = "right" > The second<see cref = "T:ExcelPRIME.CellValue" /> to compare.</param>
+            <returns>
+            <c>true</c> if the specified<see cref="T:ExcelPRIME.CellValue"/> instances are not equal; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetDateTime(System.DateTime@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.DateTime"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.DateTime"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.DateTime"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryDateOnly(System.DateOnly@)">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.DateOnly"/> object, if possible.
+            </summary>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.DateOnly"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryTimeOnly(System.TimeOnly@)">
+            <summary>
+            Gets the value of the cell as a <see cref="T:System.TimeOnly"/> object, if possible.
+            </summary>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.TimeOnly"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetBoolean(System.Boolean@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.Boolean"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.Boolean"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.Boolean"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetInt32(System.Int32@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.Int32"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.Int32"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.Int32"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetInt64(System.Int64@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.Int64"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.Int64"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.Int64"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetDouble(System.Double@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.Double"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.Double"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.Double"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryGetDecimal(System.Decimal@)">
+            <summary>
+            Attempts to get the value of the cell as a <see cref="T:System.Decimal"/> object.
+            </summary>
+            <param name="value">
+            When this method returns, contains the <see cref="T:System.Decimal"/> value of the cell if the conversion succeeded, 
+            or the default value if the conversion failed.
+            </param>
+            <returns>
+            <c>true</c> if the cell value was successfully converted to a <see cref="T:System.Decimal"/>; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.String">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.String"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A string representation of the cell value, or <c>null</c> if the value is <c>null</c>.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.Boolean">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.Boolean"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A boolean representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.Int32">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.Int32"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A 32-bit integer representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.Int64">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.Int64"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A 64-bit integer representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.Double">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.Double"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A double representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.Decimal">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.Decimal"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A decimal representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.DateTime">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.DateTime"/>.
+            </summary>
+            <param name="value">The <see cref="T:ExcelPRIME.CellValue"/> to convert.</param>
+            <returns>A DateTime representation of the cell value.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.DateOnly">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.DateOnly"/>.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.op_Implicit(ExcelPRIME.CellValue)~System.TimeOnly">
+            <summary>
+            Implicitly converts a <see cref="T:ExcelPRIME.CellValue"/> to a <see cref="T:System.TimeOnly"/>.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.TryFormat(System.Span{System.Char},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)">
+            <summary>
+            Tries to format the cell value into the provided character span without allocations.
+            This zero-allocation method is available on .NET 8+.
+            </summary>
+            <param name="destination">The span where the formatted value should be written.</param>
+            <param name="charsWritten">The number of characters written.</param>
+            <param name="format">Unused; invariant culture is always applied.</param>
+            <param name="provider">Unused; invariant culture is always applied.</param>
+            <returns>true if successful; false if destination is too small.</returns>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.System#IFormattable#ToString(System.String,System.IFormatProvider)">
+            <summary>
+            Implements IFormattable.ToString for compatibility.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.CellValue.FilterByCellType(System.ReadOnlySpan{ExcelPRIME.CellValue},System.Span{ExcelPRIME.CellValue},ExcelPRIME.CellValueType)">
+            <summary>
+            Filters a batch of cell values by type using zero-allocation operations.
+            </summary>
+            <param name="cells">Input array of cell values to filter.</param>
+            <param name="output">Pre-allocated output array for matching cells.</param>
+            <param name="targetType">The cell value type to filter by.</param>
+            <returns>Count of cells written to output array.</returns>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsDecimal">
+            <summary>
+            Checks if this cell value is numeric (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsDouble">
+            <summary>
+            Checks if this cell value is numeric (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsLong">
+            <summary>
+            Checks if this cell value is numeric (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsInt">
+            <summary>
+            Checks if this cell value is numeric (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsString">
+            <summary>
+            Checks if this cell value is a string (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsBoolean">
+            <summary>
+            Checks if this cell value is a boolean (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsDateTime">
+            <summary>
+            Checks if this cell value is a datetime (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsError">
+            <summary>
+            Checks if this cell value is an error (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.CellValue.IsDBNull">
+            <summary>
+            Checks if this cell value is DBNull (optimized for filtering operations).
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.DefinedRange">
+            <summary>
+            Defines a range of cells using a reference string
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.DefinedRange.#ctor(System.String)">
+            <summary>
+            Defines a range of cells using a reference string
+            </summary>
+            <param name="reference">Reference string i.e. Sheet1!$A$1:$A$4</param>
+            <exception cref="T:System.ArgumentException">Thrown when reference is invalid or not supported</exception>
+        </member>
+        <member name="M:ExcelPRIME.DefinedRange.#ctor(System.String,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Int32,System.Int32)">
+            <summary>
+            Defines a cell range using variables
+            </summary>
+            <param name="columnStart">Column Letter start</param>
+            <param name="columnEnd">Column Letter end</param>
+            <param name="rowStart">First row number</param>
+            <param name="rowEnd">last row number [Excel 2010 specifies 1_048_576, but Power Query can go upto  1_999_999_997]</param>
+            <param name="sheetName">The Sheet this will be applied to.</param>
+        </member>
+        <member name="M:ExcelPRIME.DefinedRange.#ctor(System.String,System.String)">
+            <summary>
+            User defined range (With or Without `$`'s, e.g., `A1:B2`)
+            </summary>
+            <param name="userRange"></param>
+            <param name="sheetName"></param>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.Name">
+            <summary>
+            Xml.Attribute("name"); 
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.SheetName">
+            <summary>
+            What SheetName (If Any) does this belong to
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.ExcelColumnStart">
+            <summary>
+            Column Range Start
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.ExcelColumnEnd">
+            <summary>
+            Column Range End
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.ExcelRowStart">
+            <summary>
+            Row Range Start
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.ExcelRowEnd">
+            <summary>
+            Row Range End
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.DefinedRange.ConstValue">
+            <summary>
+            Xml;
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.ExcelErrorCode">
+            <summary>
+            Indicates the kind of error a formula produced.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.Null">
+            <summary>A null reference error.</summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.DivideByZero">
+            <summary>A division by zero error.</summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.Value">
+            <summary>
+            A value error indicating a function requires a numeric but was given a string.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.Reference">
+            <summary>
+            A reference error indicating a function references a location that doesn't exist.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.Name">
+            <summary>
+            A name error indicating the function references an unknown operation.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.Number">
+            <summary>
+            A number error indicating the function expected a number in a certain range.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.ExcelErrorCode.NotAvailable">
+            <summary>
+            An error indicating the function attempted to lookup a value that isn't available.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.Excel_PRIME">
+            <summary>
+            Main entry point into the `Excel_PRIME` XLSX handler API's
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.#ctor(ExcelPRIME.IOpenXmlReaderHelpers,ExcelPRIME.IZipReader)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.Open(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.Open(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.SheetNames">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.GetDefinedRange(System.String,System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.GetUserRange(System.String,System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.GetSheet(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.Dispose(System.Boolean)">
+            <summary>
+            Releases the resources used by the <see cref="T:ExcelPRIME.Excel_PRIME"/> class.
+            </summary>
+            <param name="isDisposing">
+            A value indicating whether the method is being called explicitly 
+            to release both managed and unmanaged resources (<c>true</c>), 
+            or by the finalizer to release only unmanaged resources (<c>false</c>).
+            </param>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.Finalize">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIME.Dispose">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.Excel_PRIMEAsync">
+            <summary>
+            Main entry point into the `Excel_PRIME` XLSX Async handler API's
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.#ctor(ExcelPRIME.IOpenXmlReaderHelpersAsync,ExcelPRIME.IZipReaderAsync)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.OpenAsync(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously opens an Excel file for processing.
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.OpenAsync(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.GetDefinedRangeAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.GetUserRangeAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEAsync.GetSheetAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.Excel_PRIMEXlsb">
+            <summary>
+            Main entry point into the `Excel_PRIMEXlsb` API's
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEXlsb.#ctor(ExcelPRIME.IOpenXmlReaderHelpers,ExcelPRIME.IZipReaderAsync)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.Excel_PRIMEXlsbAsync">
+            <summary>
+            Main entry point into the `Excel_PRIMEXlsb` Async API's
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Excel_PRIMEXlsbAsync.#ctor(ExcelPRIME.IOpenXmlReaderHelpersAsync,ExcelPRIME.IZipReaderAsync)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.FromExternal.ExcelColumns">
+            <summary>
+            Stolen from here
+            https://stackoverflow.com/a/2652855
+            Then some small modifications for language usage
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.ExcelColumns.GetRowColNumbers(System.String)">
+            <summary>
+            Convert ColumnNameRef - Character(s) into a Row - Column Excel Number eg A->1, B->2, AA -> 27
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.ExcelColumns.GetColumnLettersFromRef(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Extract just the column letters from a cell reference like "A1".
+            Uses span to avoid allocations when possible.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.Extensions.BoolParse(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Optimized boolean parsing from span without allocation.
+            Returns true if span represents '1' or 'true', false for '0' or 'false'.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.Extensions.TryDoubleParse(System.ReadOnlySpan{System.Char},System.Double@)">
+            <summary>
+            Optimized double parsing from span.
+            Wrapper around double.TryParse with ReadOnlySpan for performance.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.Extensions.IntParse(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Performance improvement in .NET 8: Custom parsing remains faster than int.Parse(ReadOnlySpan)
+            due to bounds-check optimization and inline-friendly control flow.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.Extensions.ReadToFollowingAsync(System.Xml.XmlReader,System.String)">
+            <summary>
+            Reads until the element with the specified local name is found.
+            </summary>
+            <param name="reader"></param>
+            <param name="localName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.Extensions.TryDecimalParse(System.ReadOnlySpan{System.Char},System.Decimal@)">
+            <summary>
+            Optimized decimal parsing from span.
+            Wrapper around decimal.TryParse with ReadOnlySpan for performance.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.FromExternal.NonClosingStream">
+            <summary>
+            A wrapper for a <see cref="T:System.IO.Stream"/> that prevents the inner stream from being closed or disposed when the wrapper is disposed.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.#ctor(System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.InnerStream">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.CanRead">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.CanSeek">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.CanWrite">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.Length">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.FromExternal.NonClosingStream.Position">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.Flush">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.FlushAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.Read(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.ReadAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.Seek(System.Int64,System.IO.SeekOrigin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.SetLength(System.Int64)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.Write(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.WriteAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.BeginRead(System.Byte[],System.Int32,System.Int32,System.AsyncCallback,System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.EndRead(System.IAsyncResult)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.BeginWrite(System.Byte[],System.Int32,System.Int32,System.AsyncCallback,System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.EndWrite(System.IAsyncResult)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.Dispose(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.CloseInnerStream">
+            If you want to allow explicit close of the inner stream:
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.ReadAsync(System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.NonClosingStream.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ExcelPRIME.FromExternal.SemaphoreLocker">
+            <summary>
+            Borrowed from here https://stackoverflow.com/a/50139704
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.FromExternal.TempFile">
+            <summary>
+            Windows does not automatically delete temp files unless the user schedules a cleanup job.
+            However, you can set the file to be automatically deleted once your FileStream object goes out of scope.
+            You can do this by using the FileOptions.DeleteOnClose flag
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.TempFile.#ctor(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="extension">Optional extension of the temp file (Include the dot)</param>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.TempFile.OpenForAsyncWrite">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.TempFile.OpenForAsyncRead(System.Boolean)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.TempFile.Finalize">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.TempFile.Dispose">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.FromExternal.ValueHelpers">
+            <summary>
+            Provides utility methods for evaluating and handling raw values of various types.
+            </summary>
+            <remarks>The ValueHelpers class contains static methods that assist in determining the presence or state of
+            values, particularly when working with loosely-typed or boxed data. These helpers are useful when processing input
+            that may be represented as strings, character arrays, or other primitive types, and can help standardize checks for
+            non-empty or meaningful values across different scenarios.</remarks>
+        </member>
+        <member name="M:ExcelPRIME.FromExternal.ValueHelpers.HasNonEmptyRawValue(System.Object)">
+            <summary>
+            Determines whether the specified raw value is non-null and not empty, based on its type.
+            </summary>
+            <remarks>For strings, character arrays, and ReadOnlyMemory/<char/>, the method returns true only if the
+            value contains at least one character. For other types, any non-null value is considered non-empty.</remarks>
+            <param name="raw">The value to check for non-emptiness. Can be a string, character array, ReadOnlyMemory/<char/>, or any other
+            object.</param>
+            <returns>true if the value is non-null and, for supported types, not empty; otherwise, false.</returns>
+        </member>
+        <member name="T:ExcelPRIME.CellType">
+            <summary>
+            The type of cell as indicated by the Excel schema (Not interpreted)
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.ICell">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ICell.CellValue">
+            <summary>
+            Gets the value as read from the file, wrapped in a CellValue.
+            </summary>
+            <remarks>
+            Could be the actual value type if specified, otherwise `string?`
+            </remarks>
+        </member>
+        <member name="P:ExcelPRIME.ICell.RawExcelType">
+            <summary>
+            Returns the type as specified in the Excel file attribute
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ICell.ColumnLetters">
+            <summary>
+            The Excel column identifier, e.g. `ABY`
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ICell.ExcelColumnOffset">
+            <summary>
+            Excel 1 Based
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.ICell.ToString">
+            <summary>
+            Converts the cell to the internal value string representation.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IExcelImp">
+            <summary>
+            Internal implementation for handling the specific file types (XLSX / XLSB)
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImp.SheetNames">
+            <summary>
+            What names exist in this file
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImp.GetSheet(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Switch functionality to a new sheet
+            </summary>
+            <remarks>
+            `overrideOptionsAndUseSheetOnlyOnce` indicates that:
+            - `null`:  use the Options value (Default)
+            - `false`: override and use the OS Temp File (Useful if going to open this again, and it's big)
+            - `true`:  override and use internal zip rented buffer
+            </remarks>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImp.GetDefinedRange(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            From the `definedName`s in the xlsx, use the name to return the range data
+            </summary>
+            <param name="rangeName"></param>
+            <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImp.GetUserRange(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            User defined range (With or Without `$`'s, e.g., `A1:B2`)
+            </summary>
+            <param name="range"></param>
+            <param name="sheetName"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ExcelPRIME.IExcelImpAsync">
+            <summary>
+            Internal implementation Async for handling the specific file types (XLSX / XLSB)
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImpAsync.GetSheetAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Switch functionality to a new sheet
+            </summary>
+            <remarks>
+            `overrideOptionsAndUseSheetOnlyOnce` indicates that:
+            - `null`:  use the Options value (Default)
+            - `false`: override and use the OS Temp File (Useful if going to open this again, and it's big)
+            - `true`:  override and use internal zip rented buffer
+            </remarks>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImpAsync.GetDefinedRangeAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            From the `definedName`s in the xlsx, use the name to return the range data
+            </summary>
+            <param name="rangeName"></param>
+            <param name="useThisSheetName">If passed in, then check that the range exists in that first, before switching to the global name</param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IExcelImpAsync.GetUserRangeAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            User defined range (With or Without `$`'s, e.g., `A1:B2`)
+            </summary>
+            <param name="range"></param>
+            <param name="sheetName"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ExcelPRIME.IExcel_PRIME">
+            <summary>
+            This Libraries main Contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIME.Open(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Opens the file, read-only, and will hold the stream open until disposed
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIME.Open(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            _Owns_ the fileStream, until disposed. Must be Seekable.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IExcel_PRIMEAsync">
+            <summary>
+            This Libraries main Contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEAsync.OpenAsync(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Opens the file, read-only, and will hold the stream open until disposed
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEAsync.OpenAsync(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            _Owns_ the fileStream, until disposed. Must be Seekable.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IExcel_PRIMEXlsb">
+            <summary>
+            This Libraries main Contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEXlsb.Open(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Opens the file, read-only, and will hold the stream open until disposed
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEXlsb.Open(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            _Owns_ the fileStream, until disposed. Must be Seekable.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IExcel_PRIMEXlsbAsync">
+            <summary>
+            This Libraries main Contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEXlsbAsync.OpenAsync(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Opens the file, read-only, and will hold the stream open until disposed
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelPRIME.IExcel_PRIMEXlsbAsync.OpenAsync(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            _Owns_ the fileStream, until disposed. Must be Seekable.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.Implementation.CellStyle">
+            <summary>
+            Represents the formatting style of a cell in an Excel workbook.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.CellStyle.ExcelFormatId">
+            <summary>
+            Gets the number format ID (refers to the numFmt element or built-in format).
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.CellStyle.Formatting">
+            <summary>
+            Gets the number format code (e.g., "0.00", "mm/dd/yyyy", "General").
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.CellStyle.FormattingType">
+            <summary>
+            Gets a value indicating whether the style applies a number format.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.CellStyle.ToString">
+            <summary>
+            Gets a string representation of this style.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.CellStyle.IsDateStyle">
+            <summary>
+            Gets a value indicating whether FormattingType represents a date or time style.
+            </summary>
+            <remarks>
+            Returns true when FormattingType is one of FormattingType.DateTime, FormattingType.DateOnly,
+            or FormattingType.TimeOnly.
+            </remarks>
+        </member>
+        <member name="T:ExcelPRIME.Implementation.Ecma376StandardProvider">
+            <summary>
+            Provides ECMA-376 standard definitions for cell styling and formatting.
+            
+            ECMA-376 is the Office Open XML (OOXML) standard that defines:
+            - Built-in number format codes
+            - Default cell styles
+            - Style properties and their default values
+            
+            References:
+            - ECMA-376-1:2016 - Part 1: Fundamentals and Markup Language Reference
+            - ECMA-376-2:2015 - Part 2: Open Packaging Conventions
+            
+            See Also:
+            - Section 18.8.30 (numFmt - Number Format)
+            - Section 18.8.45 (numFmts - Number Formats)
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.Implementation.Ecma376StandardProvider.s_BuiltInNumberFormats">
+            <summary>
+            Built-in number format codes and their formatting types as defined in ECMA-376 and Excel extensions.
+            Each entry maps a format ID to a tuple containing the format code string and its corresponding FormattingType.
+            
+            These include the standard format IDs 0-49 that are always available in Excel,
+            plus commonly used extended formats (50-164).
+            
+            Format ID Ranges:
+            - 0-49: Standard ECMA-376 built-in formats
+            - 50-164: Extended formats and locale-dependent variants
+            - 165+: User-defined custom formats
+            
+            Reference: ECMA-376-1:2016 Section 18.8.30
+            
+            Implemented as FrozenDictionary for optimal .NET 8 performance:
+            - O(1) lookup with superior memory locality
+            - No per-lookup allocations
+            - 30-40% faster than Dictionary for read-only workloads
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.TryGetFormattingType(System.Int16,ExcelPRIME.Implementation.FormattingType@)">
+            <summary>
+            Gets the formatting type for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <param name="formattingType">The formatting type, or General if not found.</param>
+            <returns>True if the format ID is found; otherwise false.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.GetFormattingType(System.Int16)">
+            <summary>
+            Gets the formatting type for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <returns>The formatting type, or General if the format ID is not found.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.TryGetBuiltInNumberFormat(System.Int16,System.String@)">
+            <summary>
+            Gets the built-in number format code for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <param name="formatCode">The format code, or null if not found.</param>
+            <returns>True if the format ID is found; otherwise false.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.GetBuiltInNumberFormat(System.Int16)">
+            <summary>
+            Gets the built-in number format code for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <returns>The format code, or "General" if the format ID is not found.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.TryGetFormat(System.Int16,System.String@,ExcelPRIME.Implementation.FormattingType@)">
+            <summary>
+            Gets both the format code and formatting type for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <param name="formatCode">The format code, or null if not found.</param>
+            <param name="formattingType">The formatting type, or General if not found.</param>
+            <returns>True if the format ID is found; otherwise false.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.GetFormat(System.Int16)">
+            <summary>
+            Gets both the format code and formatting type for the specified format ID.
+            </summary>
+            <param name="formatId">The format ID to look up.</param>
+            <returns>A tuple containing the format code and formatting type, or defaults if not found.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.IsBuiltInFormat(System.Int16)">
+            <summary>
+            Determines whether the specified format ID is a built-in format.
+            </summary>
+            <param name="formatId">The format ID to check.</param>
+            <returns>True if the format ID is a built-in format; otherwise false.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Ecma376StandardProvider.IsValidFormatCode(System.String)">
+            <summary>
+            Validates whether a format code follows ECMA-376 conventions.
+            This is a basic validation that checks for common pattern issues.
+            </summary>
+            <param name="formatCode">The format code to validate.</param>
+            <returns>True if the format code appears valid; otherwise false.</returns>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.Row.RowOffset">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetCellsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Ensure cells are read once. Cells are stored in a small array indexed by excel 1-based column offset.
+            Using an array avoids Dictionary overhead and reduces per-row allocations for typical sheet widths.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetAllCells(System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetCellAsync(System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetCell(System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetCellAsync(System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Row.GetCell(System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Implementation.Sheet.Name">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Implementation.Sheet.SheetDimensions">
+            <inheritdoc/>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.Sheet.CurrentRow">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Sheet.GetRowData(System.Int32,ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Sheet.GetRowData(System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Sheet.GetRowData(System.Int32,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.Sheet.GetDefinedRange(ExcelPRIME.DefinedRange,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SheetAsync.GetSheetDimensionsAsync(System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SheetAsync.GetRowDataAsync(System.Int32,ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SheetAsync.GetRowDataAsync(System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SheetAsync.GetRowDataAsync(System.Int32,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SheetAsync.GetDefinedRangeAsync(ExcelPRIME.DefinedRange,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.Implementation.SIMDHelper">
+            <summary>
+            SIMD-accelerated numeric operations for bulk cell processing.
+            Provides vectorized implementations of common filtering and parsing operations
+            with automatic fallback to scalar paths on unsupported architectures.
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.Implementation.SIMDHelper.s_supportsVector512">
+            <summary>
+            Checks if the CPU supports vectorized operations.
+            Used to enable/disable SIMD fast paths at runtime.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.AnyGreaterThan(System.ReadOnlySpan{System.Double},System.Double)">
+            <summary>
+            SIMD-accelerated check if any value in the input exceeds a threshold.
+            Processes multiple doubles in parallel using AVX2.
+            </summary>
+            <param name="values">Input array of numeric values.</param>
+            <param name="threshold">The threshold value.</param>
+            <returns>True if any value is greater than threshold, false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.AnyGreaterThan_Scalar(System.ReadOnlySpan{System.Double},System.Double)">
+            <summary>
+            Scalar fallback for AnyGreaterThan.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.CountGreaterThan(System.ReadOnlySpan{System.Double},System.Double)">
+            <summary>
+            SIMD-accelerated count of values meeting a numeric comparison condition.
+            Counts elements greater than the threshold using vectorized operations.
+            </summary>
+            <param name="values">Input array of numeric values.</param>
+            <param name="threshold">The threshold value.</param>
+            <returns>Count of values greater than threshold.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.CountGreaterThan_Scalar(System.ReadOnlySpan{System.Double},System.Double)">
+            <summary>
+            Scalar fallback for CountGreaterThan.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.PopCount(System.Int32)">
+            <summary>
+            Count the number of set bits in an integer (population count).
+            Used to quickly count comparison results from SIMD operations.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Sum(System.ReadOnlySpan{System.Double})">
+            <summary>
+            SIMD-accelerated sum of all values in the input array.
+            Processes multiple doubles in parallel using AVX2.
+            </summary>
+            <param name="values">Input array of numeric values.</param>
+            <returns>Sum of all values.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Sum_Scalar(System.ReadOnlySpan{System.Double})">
+            <summary>
+            Scalar fallback for Sum.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Min(System.ReadOnlySpan{System.Double})">
+            <summary>
+            SIMD-accelerated minimum value finder.
+            </summary>
+            <param name="values">Input array of numeric values.</param>
+            <returns>Minimum value in the array, or double.MaxValue if empty.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Min_Scalar(System.ReadOnlySpan{System.Double})">
+            <summary>
+            Scalar fallback for Min.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Max(System.ReadOnlySpan{System.Double})">
+            <summary>
+            SIMD-accelerated maximum value finder.
+            </summary>
+            <param name="values">Input array of numeric values.</param>
+            <returns>Maximum value in the array, or double.MinValue if empty.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.SIMDHelper.Max_Scalar(System.ReadOnlySpan{System.Double})">
+            <summary>
+            Scalar fallback for Max.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.Implementation.StringVectorization">
+            <summary>
+            Optimized string comparison and matching operations for cell references and column lookups.
+            Uses vectorized operations where possible and scalar fallback for small patterns.
+            Designed for high-throughput filtering of cell ranges by name or reference.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.EqualsOrdinalIgnoreCase(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Case-insensitive ordinal comparison of two span{char}.
+            Optimized for fast column reference matching in cell lookups.
+            </summary>
+            <param name="left">First string to compare.</param>
+            <param name="right">Second string to compare.</param>
+            <returns>True if strings are equal (case-insensitive, ordinal), false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.EqualsOrdinal(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Case-sensitive ordinal comparison of two span{char}.
+            </summary>
+            <param name="left">First string to compare.</param>
+            <param name="right">Second string to compare.</param>
+            <returns>True if strings are equal (case-sensitive, ordinal), false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.IndexOfOrdinal(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Fast vectorized search for a pattern in text using byte-level operations.
+            For patterns &lt;= 4 characters, uses direct comparison.
+            For longer patterns, uses scalar search with early termination.
+            </summary>
+            <param name="text">The text to search in.</param>
+            <param name="pattern">The pattern to find.</param>
+            <returns>Index of the first occurrence, or -1 if not found.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.IndexOfOrdinalIgnoreCase(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Case-insensitive ordinal search for a pattern in text.
+            Optimized for column name lookups where case variations are common.
+            </summary>
+            <param name="text">The text to search in.</param>
+            <param name="pattern">The pattern to find (case-insensitive).</param>
+            <returns>Index of the first occurrence, or -1 if not found.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.StartsWithOrdinal(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Checks if text starts with pattern (case-sensitive).
+            Optimized for cell reference prefix matching.
+            </summary>
+            <param name="text">The text to check.</param>
+            <param name="pattern">The pattern to match at the start.</param>
+            <returns>True if text starts with pattern, false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.StartsWithOrdinalIgnoreCase(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Checks if text starts with pattern (case-insensitive).
+            </summary>
+            <param name="text">The text to check.</param>
+            <param name="pattern">The pattern to match at the start (case-insensitive).</param>
+            <returns>True if text starts with pattern, false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.EndsWithOrdinal(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Checks if text ends with pattern (case-sensitive).
+            Optimized for file extension matching.
+            </summary>
+            <param name="text">The text to check.</param>
+            <param name="pattern">The pattern to match at the end.</param>
+            <returns>True if text ends with pattern, false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.EndsWithOrdinalIgnoreCase(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Checks if text ends with pattern (case-insensitive).
+            </summary>
+            <param name="text">The text to check.</param>
+            <param name="pattern">The pattern to match at the end (case-insensitive).</param>
+            <returns>True if text ends with pattern, false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.CountOccurrences(System.ReadOnlySpan{System.Char},System.Char)">
+            <summary>
+            Count occurrences of a single character in the text.
+            Uses vectorized comparison where available.
+            </summary>
+            <param name="text">The text to search in.</param>
+            <param name="character">The character to count.</param>
+            <returns>Number of occurrences of the character.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.Trim(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Trim whitespace from both ends of a span using optimized loop unrolling.
+            </summary>
+            <param name="text">The text to trim.</param>
+            <returns>Trimmed span.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.IsAsciiOnly(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Check if span contains only ASCII characters.
+            Used to optimize string processing for common case of ASCII-only text.
+            </summary>
+            <param name="text">The text to check.</param>
+            <returns>True if all characters are ASCII (0-127), false otherwise.</returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.Compare(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Compare two strings lexicographically using vectorized operations where possible.
+            </summary>
+            <param name="left">First string.</param>
+            <param name="right">Second string.</param>
+            <returns>
+            Negative if left &lt; right, zero if equal, positive if left &gt; right.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StringVectorization.CompareIgnoreCase(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+            <summary>
+            Lexicographic comparison (case-insensitive).
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.Implementation.StylesExtractor">
+            <summary>
+            Extracts cell styling information from an XLSX workbook's styles.xml file.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.StylesExtractor.ExtractStyles(System.Threading.CancellationToken)">
+            <summary>
+            Extracts all cell styles from the workbook's styles.xml file.
+            </summary>
+            <param name="ct"></param>
+            <remarks>
+            Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+            </remarks>
+            <returns>
+            A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+            Returns empty/default styles if styles.xml is not found.
+            </returns>
+        </member>
+        <member name="T:ExcelPRIME.Implementation.ThreadStringBuilderPool">
+            <summary>
+            Per-thread pooled StringBuilder using [ThreadStatic] to avoid locks.
+            - Single builder is kept per-thread; Rent hands it out and clears on return.
+            - Builders that grow beyond MaxPooledCapacity are discarded on Return to avoid retaining large buffers.
+            - This approach is lock-free and low-overhead for highly parallel workloads.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XmlReaderHelpers.GetSharedStrings(ExcelPRIME.IZipReader,System.Boolean,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XmlReaderHelpers.CreateWorkBookReader(ExcelPRIME.IZipReader,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XmlReaderHelpersAsync.GetSharedStringsAsync(ExcelPRIME.IZipReaderAsync,System.Boolean,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XmlReaderHelpersAsync.CreateWorkBookReaderAsync(ExcelPRIME.IZipReaderAsync,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Implementation.XmlSheetReader.CurrentRow">
+            <summary>
+            The Current row iterator offset (Starts at 1)
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Implementation.XlsbRow.RowOffset">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XlsbRow.GetAllCells(System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XlsbRow.GetCellAsync(System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XlsbRow.GetCell(System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XlsbRow.GetCellAsync(System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.Implementation.XlsbRow.GetCell(System.String,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelPRIME.Implementation.XlsbSheetReader.CurrentRow">
+            <summary>
+            The Current row iterator offset (Starts at 1)
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.InstanceContext">
+            <summary>
+            Pass settings etc. down to the classes that need them
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.InstanceContext.SharedStrings">
+            <summary>
+            Access the global shared string retrieval instance
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.InstanceContext.Options">
+            <summary>
+            How to open sheets / convert cells etc.
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.InstanceContext.DefinedRanges">
+            <summary>
+            What ranges have been defined
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.InstanceContext.CellStyles">
+            <summary>
+            Cell styles extracted from the workbook's styles.xml file.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IRowBase">
+            <summary>
+            Implementation contract for row instances
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.IRowBase.RowOffset">
+            <summary>
+            Excel 1 Based
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IRow">
+            <summary>
+            Implementation contract for row instances
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRow.GetAllCells(System.Threading.CancellationToken)">
+            <summary>
+            Retrieves _All_ cells from Column 1; through to the width dimension of the sheet
+            </summary>
+            <remarks>
+            Cell 0 will be null, as this is indexing is Excel Based (1 Based)
+            </remarks>
+        </member>
+        <member name="M:ExcelPRIME.IRow.GetCell(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves the cell data
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRow.GetCell(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves (If exists) the cell data
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRow.CopyBoxedToArray(System.Object[],System.Threading.CancellationToken)">
+            <summary>
+            Copies the boxed values of all cells in the row to the specified array.
+            </summary>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown if the <paramref name="values"/> array is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Thrown if the length of the <paramref name="values"/> array is less than the number of cells in the row.
+            </exception>
+        </member>
+        <member name="T:ExcelPRIME.IRowAsync">
+            <summary>
+            Implementation contract for row instances
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRowAsync.GetAllCellsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Retrieves _All_ cells within the row, `0` indexed
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRowAsync.GetCellAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves the cell data
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IRowAsync.GetCellAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves (If exists) the cell data
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.INullRow">
+            <summary>
+            Represents a marker interface for a row that contains only null values.
+            </summary>
+            <remarks>
+            Implementations of this interface indicate that all columns in the row are null. This can be used to
+            distinguish between rows with actual data and those that are intentionally empty or uninitialized.
+            </remarks>
+        </member>
+        <member name="T:ExcelPRIME.INullRowAsync">
+            <summary>
+            Represents a marker interface for a row that contains only null values.
+            </summary>
+            <remarks>
+            Implementations of this interface indicate that all columns in the row are null. This can be used to
+            distinguish between rows with actual data and those that are intentionally empty or uninitialized.
+            </remarks>
+        </member>
+        <member name="T:ExcelPRIME.ISharedString">
+            <summary>
+            Access the shared string retrieval instance
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ISharedString.Item(System.Int32)">
+            <summary>
+            Retrieve the 0 indexed reference from the shared strings
+            </summary>
+            <param name="xmlIndex"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ExcelPRIME.ISheet">
+            <summary>
+            Access contract for sheets
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ISheet.Name">
+            <summary>
+            This Sheets name
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ISheet.SheetDimensions">
+            <summary>
+            What are the Max dimension defined [Excel Rows, Excel Cells] (Many may be blank)
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.ISheet.CurrentRow">
+            <summary>
+            The Current row iterator offset (Starts at 1)
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.ISheet.GetRowData(System.Int32,ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="cellGetMode">How are the cells populated</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheet.GetRowData(System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref (start+width)</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheet.GetRowData(System.Int32,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheet.GetDefinedRange(ExcelPRIME.DefinedRange,System.Threading.CancellationToken)">
+            <summary>
+            Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.ISheetAsync">
+            <summary>
+            Access contract for sheets
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.ISheetAsync.GetRowDataAsync(System.Int32,ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="cellGetMode">How are the cells populated</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheetAsync.GetRowDataAsync(System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref (start+width)</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheetAsync.GetRowDataAsync(System.Int32,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <summary>
+            Returns the row data at the current iterated row
+            </summary>
+            <param name="startRow">Skip over the headers / blanks etc</param>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelPRIME.ISheetAsync.GetDefinedRangeAsync(ExcelPRIME.DefinedRange,System.Threading.CancellationToken)">
+            <summary>
+            Using $A$1:$A$1 style, to return data from: a single cell, a single column, a matrix / table 
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.ISheetAsync.GetSheetDimensionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously retrieves the dimensions of the sheet.
+            </summary>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlReaderHelpers">
+            <summary>
+            Allow other implementations of Xml readers
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpers.GetSharedStrings(ExcelPRIME.IZipReader,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            
+            </summary>
+            <param name="zipReader"></param>
+            <param name="optionsAccessExcelFileInForwardOnlyMode"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpers.CreateWorkBookReader(ExcelPRIME.IZipReader,System.Threading.CancellationToken)">
+            <summary>
+            Create the interface implementation to get details out of the WorkBook
+            Even tho this is not the Async, please create the Async class
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpers.CreateSheetReader(ExcelPRIME.FromExternal.NonClosingStream,ExcelPRIME.InstanceContext,System.Xml.XmlNameTable,System.Threading.CancellationToken)">
+            <summary>
+            Even tho this is not the Async, please create the Async class
+            </summary>
+            <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
+            <param name="instanceContext"></param>
+            <param name="sharedNameTable"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpers.GetExtractStyles(ExcelPRIME.IZipReader,System.Threading.CancellationToken)">
+            <summary>
+            Extracts all cell styles from the workbook's styles.#### file.
+            </summary>
+            <remarks>
+            Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+            </remarks>
+            <returns>
+            A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+            Returns empty/default styles if styles.#### is not found.
+            </returns>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlReaderHelpersAsync">
+            <summary>
+            Allow other implementations of Xml readers
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpersAsync.GetSharedStringsAsync(ExcelPRIME.IZipReaderAsync,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            
+            </summary>
+            <param name="zipReader"></param>
+            <param name="optionsAccessExcelFileInForwardOnlyMode"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpersAsync.CreateWorkBookReaderAsync(ExcelPRIME.IZipReaderAsync,System.Threading.CancellationToken)">
+            <summary>
+            Create the interface implementation to get details out of the WorkBook
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpersAsync.CreateSheetReaderAsync(ExcelPRIME.FromExternal.NonClosingStream,ExcelPRIME.InstanceContext,System.Xml.XmlNameTable,System.Threading.CancellationToken)">
+            <summary>
+            
+            </summary>
+            <param name="stream">This is _not_ owned by the `IXmlWorkBookReader`</param>
+            <param name="instanceContext"></param>
+            <param name="sharedNameTable"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlReaderHelpersAsync.GetExtractStylesAsync(ExcelPRIME.IZipReaderAsync,System.Threading.CancellationToken)">
+            <summary>
+            Extracts all cell styles from the workbook's styles.#### file.
+            </summary>
+            <remarks>
+            Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+            </remarks>
+            <returns>
+            A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+            Returns empty/default styles if styles.#### is not found.
+            </returns>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlWorkBookReader">
+            <summary>
+            Excel file access contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlWorkBookReader.GetSheetNames(System.Threading.CancellationToken)">
+            <summary>
+            What it says on the tin
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlWorkBookReader.GetDefinedRanges(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            What it says on the tin
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlWorkBookReaderAsync">
+            <summary>
+            Excel file access contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlWorkBookReaderAsync.GetSheetNamesAsync(System.Threading.CancellationToken)">
+            <summary>
+            What it says on the tin
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlWorkBookReaderAsync.GetDefinedRangesAsync(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            What it says on the tin
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.RowCellGet">
+            <summary>
+            How are the cells retrieved
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.RowCellGet.None">
+            <summary>
+            Default: Does not pre get the cells
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.RowCellGet.PreGet">
+            <summary>
+            If being used in a `ToList` scenario ,then ensure All Cells are got for each iteration
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.RowCellGet.Background">
+            <summary>
+            TODO: will be used to get the next rows cells after yield this return
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlSheetReader">
+            <summary>
+            Sheet internal access contract
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.IOpenXmlSheetReader.SheetDimensions">
+            <summary>
+            What are the Max dimension defined [Excel Rows, Excel Cells] (Many may be blank)
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.IOpenXmlSheetReader.CurrentRow">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlSheetReader.GetNextRow(ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <summary>
+            Get the row(s), and populate the cells via `cellGetMode`
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IOpenXmlSheetReaderAsync">
+            <summary>
+            Sheet internal access contract
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IOpenXmlSheetReaderAsync.GetNextRowAsync(ExcelPRIME.RowCellGet,System.Threading.CancellationToken)">
+            <summary>
+            Get the row(s), and populate the cells via `cellGetMode`
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IZipReader">
+            <summary>
+            How to extract the data from the Excel file
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IZipReader.OpenArchive(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Initializes an instance of the internal ZipReader on the given stream.
+            </summary>
+            <remarks>Seekable stream is _not_ owned by the zip Archive</remarks>
+        </member>
+        <member name="M:ExcelPRIME.IZipReader.CopyTo(System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Opens the entry (If exists), And copies to the supplied stream
+            </summary>
+            <returns>true if exists</returns>
+        </member>
+        <member name="M:ExcelPRIME.IZipReader.GetEntry(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Helper function to get the actual internal Zip stream of an entry
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.IZipReaderAsync">
+            <summary>
+            How to extract the data from the Excel file
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.IZipReaderAsync.OpenArchiveAsync(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Initializes an instance of the internal ZipReader on the given stream.
+            </summary>
+            <remarks>Seekable stream is _not_ owned by the zip Archive</remarks>
+        </member>
+        <member name="M:ExcelPRIME.IZipReaderAsync.CopyToAsync(System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Opens the entry (If exists), And copies (Async) to the supplied stream
+            </summary>
+            <returns>true if exists</returns>
+        </member>
+        <member name="M:ExcelPRIME.IZipReaderAsync.GetEntryAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Helper function to get the actual internal Zip stream of an entry
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.CellConversion">
+            <summary>
+            Specify how the internals will deal and expose the Cell type value
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellConversion.Unknown">
+            <summary>
+            Do not use
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellConversion.None">
+            <summary>
+            default  - Normally the Fastest option, Will leave the value as the read type (i.e. as string from XLSX).
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellConversion.ExcelCellType">
+            <summary>
+            Will convert to the CLR type specified by the celltype.
+            </summary>  
+        </member>
+        <member name="F:ExcelPRIME.CellConversion.ExcelCellStyle">
+            <summary>
+            Will read the "Excel style" and convert the Date / Time / Numbers accordingly
+            </summary>
+        </member>
+        <member name="F:ExcelPRIME.CellConversion.ForceStyles">
+            <summary>
+            As ExcelCellStyle, and also takes into account the number of decimal places etc. from the style when converting / formatting
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.Options">
+            <summary>
+            Specify how the internals deal with conversion and sheet access
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Options.CellConversionType">
+            <summary>
+            In the future this may be set, to allow the Open Xml cell type to be used in the return object
+            </summary>
+        </member>
+        <member name="P:ExcelPRIME.Options.AccessExcelFileInForwardOnlyMode">
+            <summary>
+            If you are only reading the sheets once, then _do_not_ use the OS TempFile
+            </summary>
+            <remarks>
+            `false`: Useful if going to use this again, and sheets are big, Or Multiple sheets are opening, Or multithreaded
+            `true`: Default, Use the internal rented buffer from the zipArchive; Therefore single threaded access to Excel file.
+            </remarks>
+        </member>
+        <member name="P:ExcelPRIME.Options.ReturnDBNull">
+            <summary>
+            Gets a value indicating whether <see langword="System.DBNull" /> should be returned 
+            for empty or null cells during data conversion.
+            Null Rows are (_probably_) still null rows, not rows with DBNull.Value in all cells
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetInt32(System.Int32)">
+            <summary>
+            Get 32-bit integer from buffer at offset.
+            Heavily inlined for performance.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetDouble(System.Int32)">
+            <summary>
+            Get 64-bit floating-point value from buffer at offset.
+            Heavily inlined for performance.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetInt16(System.Int32)">
+            <summary>
+            Get 16-bit integer from buffer at offset.
+            Heavily inlined for performance.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetByte(System.Int32)">
+            <summary>
+            Get single byte from buffer at offset.
+            Heavily inlined for performance - single array access.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetString(System.Int32)">
+            <summary>
+            Get string from buffer with UTF-16 LE encoding.
+            Uses SIMD-optimized fast path for ASCII-only strings.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.PooledRecordBuffer.GetString(System.Int32,System.Int32@)">
+            <summary>
+            Get string from buffer with UTF-16 LE encoding and return the end offset.
+            Uses SIMD-optimized fast path for ASCII-only strings.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.XlsbImp.RecordTypeIdentifier">
+            <summary>
+            Creating an exhaustive list of all possible record type identifiers for .xlsb files would require referencing the official
+            Microsoft Excel Binary File Format (.xlsb) specification. Below is an expanded version of the RecordTypeIdentifier enum,
+            including more known record types. However, this list may still not be fully exhaustive, as the complete specification is extensive and proprietary.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.XlsbImp.SimdStringDecoder">
+            <summary>
+            SIMD-optimized variant of PooledRecordBuffer for Unicode string decoding.
+            This version uses Vector256{ushort} for parallel ASCII detection.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.SimdStringDecoder.DecodeUtf16WithSimdFastPath(System.Byte[],System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Decode UTF-16 LE string with SIMD-optimized fast path for ASCII-only strings.
+            
+            Uses SIMD vectorization to check multiple UTF-16 code units in parallel.
+            For ASCII-only strings (all characters in range 0x00-0x7F), the high byte
+            of each UTF-16 LE code unit is zero. We detect this using Vector<ushort/>
+            operations which can check 8-16 code units simultaneously on modern CPUs.
+            
+            Performance characteristics:
+            - ASCII detection: 8-16x faster than scalar (processes 8-16 units per iteration)
+            - SIMD overhead amortized over vector width
+            - Early exit on non-ASCII for fast failure case
+            - Graceful fallback to standard decoder for non-ASCII
+            
+            Typical XLSB profile:
+            - ~90% of strings are ASCII (column names, sheet names, shared strings)
+            - Average string length: 5-50 characters
+            - Expected speedup: 2-4x overall on XLSB string extraction
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.SimdStringDecoder.DecodeUtf16WithHybridFastPath(System.Byte[],System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Hybrid scalar approach: Process in larger batches for CPU pipelining benefit
+            while avoiding SIMD overhead on very short strings.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpers.GetSharedStrings(ExcelPRIME.IZipReader,System.Boolean,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpers.CreateWorkBookReader(ExcelPRIME.IZipReader,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpers.CreateSheetReader(ExcelPRIME.FromExternal.NonClosingStream,ExcelPRIME.InstanceContext,System.Xml.XmlNameTable,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpersAsync.GetSharedStringsAsync(ExcelPRIME.IZipReaderAsync,System.Boolean,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpersAsync.CreateWorkBookReaderAsync(ExcelPRIME.IZipReaderAsync,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbReaderHelpersAsync.CreateSheetReaderAsync(ExcelPRIME.FromExternal.NonClosingStream,ExcelPRIME.InstanceContext,System.Xml.XmlNameTable,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelPRIME.XlsbImp.XlsbStreamReader">
+            <summary>
+            Provides functionality for reading binary data from a stream in a structured manner.
+            </summary>
+            <remarks>
+            This class supports both synchronous and asynchronous methods for reading various data types,
+            including integers, floating-point numbers, and strings. The stream used by this class is not
+            owned by it and must be managed and disposed of by the caller.
+            </remarks>
+            <exception cref="T:System.ArgumentOutOfRangeException"></exception>
+            <exception cref="T:System.IO.EndOfStreamException"></exception>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStreamReader.#ctor">
+            <summary>
+            Empty stream for unknown files
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStreamReader.#ctor(System.IO.BufferedStream)">
+            <summary>
+            Stream is NOT owned by this class and should be disposed by the caller.
+            </summary>
+            <param name="stream"></param>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStreamReader.RollBackLastRecord(ExcelPRIME.XlsbImp.PooledRecordBuffer)">
+            <summary>
+            Enable the return of the next RowHdr etc., without the need to re-read from the stream.
+            </summary>
+            <param name="record"></param>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStreamReader.CarefulFieldRead(System.UInt32@)">
+            <summary>
+            Reads a variable-length encoded unsigned integer from the stream.
+            Uses 7 bits per byte encoding with the MSB as a continuation flag.
+            Optimized with reusable buffer to reduce allocations and improve cache locality.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.XlsbImp.XlsbStylesExtractor">
+            <summary>
+            Extracts cell styling information from an XLSB workbook's styles.bin file.
+            </summary>
+        </member>
+        <member name="T:ExcelPRIME.XlsbImp.XlsbStylesExtractor.XlsbRecordTypes">
+            <summary>
+            XLSB Record Type IDs for styles-related records.
+            These are based on the ECMA-376 Part 2 specification for XLSB format.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.ExtractStyles(System.Threading.CancellationToken)">
+            <summary>
+            Extracts all cell styles from the workbook's styles.bin file.
+            </summary>
+            <remarks>
+            Per ECMA-376 specification, default/implicit styles are pre-populated with standard IDs.
+            </remarks>
+            <returns>
+            A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
+            Returns empty/default styles if styles.bin is not found.
+            </returns>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.AddDefaultStyles">
+            <summary>
+            Adds the XLSB default/implicit styles per ECMA-376 Part 2.
+            These are always present in an XLSB file, even if not explicitly defined in styles.bin.
+            Reference: ECMA-376-1:2016 Section 18.8.10 (Cell Formats - cellXfs)
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.ParseNumFmt(ExcelPRIME.XlsbImp.PooledRecordBuffer,System.Int16)">
+            <summary>
+            Parses a NUMFMT record to extract custom number format codes.
+            NUMFMT record structure:
+            - numFmtId (4 bytes): Format ID
+            - formatCode (variable): Format code string
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.ParseCellXf(ExcelPRIME.XlsbImp.PooledRecordBuffer,System.Int16)">
+            <summary>
+            Parses a CELLXF (Cell Format) record.
+            CELLXF record structure (simplified):
+            - fontId (2 bytes): Font reference
+            - numFmtId (2 bytes): Number format reference
+            - fillId (2 bytes): Fill reference
+            - borderId (2 bytes): Border reference
+            - xfFormatId (2 bytes): Style XF reference
+            - alignment info: Various alignment flags
+            - protection info: Various protection flags
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.TryGetInt16(ExcelPRIME.XlsbImp.PooledRecordBuffer,System.Int32,System.Int16@)">
+            <summary>
+            Tries to get a 16-bit integer from the record at the specified offset.
+            </summary>
+        </member>
+        <member name="M:ExcelPRIME.XlsbImp.XlsbStylesExtractor.ParseStringFromRecord(ExcelPRIME.XlsbImp.PooledRecordBuffer,System.Int32)">
+            <summary>
+            Parses a UTF-16 LE string from the record at the specified offset.
+            String format: 4-byte length (in characters) + character data
+            </summary>
+        </member>
+    </members>
+</doc>

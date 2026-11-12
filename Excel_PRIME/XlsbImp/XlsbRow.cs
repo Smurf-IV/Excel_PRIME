@@ -1,6 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Buffers;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.XlsbImp;
@@ -242,7 +244,7 @@ internal sealed class XlsbRow : IRowAsync
 
     /// <InheritDoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public ArraySegment<Cell> GetAllCells(CancellationToken ct = default)
+    public ReadOnlySpan<Cell> GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);
         return _cells == null ? default : new ArraySegment<Cell>(_cells, 0, _maxExcelColumnDimension);
@@ -316,8 +318,8 @@ internal sealed class XlsbRow : IRowAsync
             throw new InvalidOperationException("Cells are not initialized.");
         }
 
-        int minLength = Math.Min(values.Length, _cells?.Length ?? 0);
-        for (int ordinal = 0; ordinal < minLength; ++ordinal)
+        int minLength = Math.Min(values.Length, _cells.Length);
+        for (var ordinal = 0; ordinal < minLength; ++ordinal)
         {
             values[ordinal] = _cells![ordinal].CellValue.BoxedValue;
         }

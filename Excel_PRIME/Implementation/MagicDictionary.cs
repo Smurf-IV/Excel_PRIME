@@ -1,4 +1,8 @@
-﻿namespace ExcelPRIME.Implementation;
+﻿using System;
+using System.Collections.Generic;
+
+
+namespace ExcelPRIME.Implementation;
 
 internal class MagicDictionary<TKey, TValue> : SortedList<TKey, TValue> where TKey : notnull
 {

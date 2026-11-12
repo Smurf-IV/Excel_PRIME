@@ -1,4 +1,17 @@
-﻿# 2026-10-18 - V5 nuget update
+﻿## 2026-11-12 - V6 - Excel_FAST - Alpha
+- ⛓️‍💥 **Breaking Change(s)**
+    - If you want to use `Async` then create a `new Excel_PRIMEAsync()`
+    - Same applies to `Xlsb`
+    - Use `ReadOnlySpan<Cell>` instead of `ArraySegment<Cell>`
+      - Using foreach over ReadOnlySpan<T> is guaranteed to be allocation-free and boxing-free. If you need LINQ-style processing on a span without allocations, iterate using for or foreach directly over the span
+- **ExcelFAST High-Throughput Subsystem**:
+    - Dedicated zero-allocation sequential reader pipeline (`IExcelFast`, `ISheetFast`, `IRowFast`).
+    - Format-specific implementations: `ExcelFastXlsx` for OpenXML (.xlsx) and `ExcelFastXlsb` for binary OpenXML (.xlsb).
+    - Array pooling integration (`ArrayPool<Cell>.Shared`) with `PooledCellView` and thread-static buffers for zero GC allocation during hot iteration loops.
+    - Full support across .NET 8.0, .NET 9.0, and .NET 10.0.
+    - Integrated test suite and benchmarking coverage in `ExcelFAST.Tests`.
+
+# 2026-10-18 - V5 nuget update
 - Update nugets
 - Made benchmarks run .net**9** and .net**10** as well
 - **Memory & Allocation Optimizations**

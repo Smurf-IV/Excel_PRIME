@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -7,10 +9,66 @@ using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME.Implementation;
 
-internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
+internal class XmlReaderHelpers : IOpenXmlReaderHelpers
 {
-    private TempFile? _shareStrings;
+    protected internal TempFile? _shareStrings;
 
+    /// <InheritDoc />
+    public ISharedString GetSharedStrings(IZipReader zipReader, bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
+    {
+        Stream? sharedStringsStream = null;
+        if (optionsAccessExcelFileInForwardOnlyMode)
+        {
+            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.xml", ct);
+        }
+        else
+        {
+            _shareStrings = new TempFile("sharedStrings.xml");
+            bool exists;
+            using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
+            {
+                exists = zipReader.CopyTo("xl/sharedStrings.xml", targetStream, ct);
+            }
+
+            if (exists)
+            {
+                sharedStringsStream = _shareStrings.OpenForAsyncRead();
+            }
+        }
+
+        // Check that the shared string actually exists
+        if (sharedStringsStream == null)
+        {
+            return new XmlLazyLoadSharedStrings();
+        }
+
+        XmlLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        sharedStrings.Initialize(ct);
+        return sharedStrings;
+    }
+
+    /// <InheritDoc />
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XmlWorkBookReader(zipReader, ct);
+
+    public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
+        XmlNameTable sharedNameTable, CancellationToken ct)
+    {
+        XmlSheetReader reader = new(stream, instanceContext, sharedNameTable);
+        reader.Initialize(ct);
+        return reader;
+    }
+
+    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReader zipReader, CancellationToken ct)
+    {
+        using StylesExtractor extractor = new(zipReader);
+        return extractor.ExtractStyles(ct);
+    }
+
+    public void Dispose() => _shareStrings?.Dispose();
+}
+
+internal sealed class XmlReaderHelpersAsync : XmlReaderHelpers, IOpenXmlReaderHelpersAsync
+{
     /// <InheritDoc />
     public async Task<ISharedString> GetSharedStringsAsync(IZipReaderAsync zipReader,
         bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
@@ -49,51 +107,12 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     }
 
     /// <InheritDoc />
-    public ISharedString GetSharedStrings(IZipReader zipReader, bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
-    {
-        Stream? sharedStringsStream = null;
-        if (optionsAccessExcelFileInForwardOnlyMode)
-        {
-            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.xml");
-        }
-        else
-        {
-            _shareStrings = new TempFile("sharedStrings.xml");
-            bool exists;
-            using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
-            {
-                exists = zipReader.CopyTo("xl/sharedStrings.xml", targetStream, ct);
-            }
-
-            if (exists)
-            {
-                sharedStringsStream = _shareStrings.OpenForAsyncRead();
-            }
-        }
-
-        // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new XmlLazyLoadSharedStrings();
-        }
-
-        XmlLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
-        sharedStrings.Initialize(ct);
-        return sharedStrings;
-    }
-
-
-    /// <InheritDoc />
     public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
         XmlWorkBookReaderAsync xmlWorkBookReaderAsync = new XmlWorkBookReaderAsync(zipReader);
         await xmlWorkBookReaderAsync.InitializeAsync(ct).ConfigureAwait(false);
         return xmlWorkBookReaderAsync;
     }
-
-    /// <InheritDoc />
-    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XmlWorkBookReader(zipReader, ct);
-
 
     public async Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
         InstanceContext instanceContext,
@@ -112,19 +131,4 @@ internal sealed class XmlReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         return extractStylesAsync;
     }
 
-    public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
-        XmlNameTable sharedNameTable, CancellationToken ct)
-    {
-        XmlSheetReader reader = new(stream, instanceContext, sharedNameTable);
-        reader.Initialize(ct);
-        return reader;
-    }
-
-    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
-    {
-        using StylesExtractor extractor = new(zipReader);
-        return extractor.ExtractStyles(ct);
-    }
-
-    public void Dispose() => _shareStrings?.Dispose();
 }

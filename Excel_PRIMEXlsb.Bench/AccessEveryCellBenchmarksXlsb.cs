@@ -13,7 +13,11 @@ using BenchmarkDotNet.Attributes;
 
 using ExcelDataReader;
 
+using ExcelFAST;
+
 using ExcelPRIME;
+
+using Cell = ExcelPRIME.Cell;
 
 namespace ExcelPRIMEXlsb.Bench;
 
@@ -107,7 +111,7 @@ public class AccessEveryCellBenchmarksXlsb
     public int Aspose()
     {
         int cells = 0;
-        using Workbook wb = new Workbook(RootFolder + FileName);
+        using var wb = new Workbook(RootFolder + FileName);
         foreach (Worksheet? ws in wb.Worksheets)
         {
             Cells? wsCells = ws.Cells;
@@ -153,7 +157,7 @@ public class AccessEveryCellBenchmarksXlsb
     public async Task<int> AsyncExcel_PrimeXlsb()
     {
         int cells = 0;
-        using Excel_PRIMEXlsb workbook = new();
+        using var workbook = new Excel_PRIMEXlsbAsync();
         await workbook.OpenAsync(RootFolder + FileName).ConfigureAwait(true);
         foreach (string sheetName in workbook.SheetNames())
         {
@@ -161,7 +165,7 @@ public class AccessEveryCellBenchmarksXlsb
             await foreach (IRowAsync? row in worksheet!.GetRowDataAsync())
             {
                 if (row == null)
-                {   // Because this returns upto the dimension of the sheet Height
+                {   // Because this returns up to the dimension of the sheet Height
                     break;
                 }
                 if (row is INullRowAsync)
@@ -174,7 +178,7 @@ public class AccessEveryCellBenchmarksXlsb
                 {
                     foreach (ExcelPRIME.Cell cell in rowCells)
                     {
-                        // Because this returns upto the dimension of the sheet width
+                        // Because this returns up to the dimension of the sheet width
                         string? value = cell.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
@@ -202,7 +206,7 @@ public class AccessEveryCellBenchmarksXlsb
             foreach (IRow? row in worksheet!.GetRowData())
             {
                 if (row == null)
-                {   // Because this returns upto the dimension of the sheet Height
+                {   // Because this returns up to the dimension of the sheet Height
                     break;
                 }
 
@@ -210,12 +214,12 @@ public class AccessEveryCellBenchmarksXlsb
                 {
                     continue;
                 }
-                IReadOnlyList<ExcelPRIME.Cell>? rowCells = row.GetAllCells();
-                if (rowCells != null)
+                ReadOnlySpan<Cell> rowCells = row.GetAllCells();
+                if (!rowCells.IsEmpty)
                 {
-                    foreach (ExcelPRIME.Cell cell in rowCells)
+                    foreach (ref readonly Cell cell in rowCells)
                     {
-                        // Because this returns upto the dimension of the sheet width
+                        // Because this returns up to the dimension of the sheet width
                         string? value = cell.CellValue.ToString();
                         if (!string.IsNullOrEmpty(value))
                         {
@@ -232,6 +236,42 @@ public class AccessEveryCellBenchmarksXlsb
     }
 
     [Benchmark]
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public int ExcelFastXlsb()
+    {
+        int cells = 0;
+
+        using var workbook = new ExcelFastXlsb();
+        workbook.Open(RootFolder + FileName);
+        foreach (string sheetName in workbook.SheetNames())
+        {
+            CancellationToken ct = CancellationToken.None;
+            workbook.SelectSheet(sheetName, 0, ct);
+            while (workbook.GetNextRowData(ct))
+            {
+                var rowCells = workbook.GetAllCells(ct);
+                if (rowCells.IsEmpty)
+                {   // Because this returns up to the dimension of the sheet Height
+                    continue;
+                }
+
+                foreach (ref readonly Cell cell in rowCells)
+                {
+                    // Because this returns up to the dimension of the sheet width
+                    string? value = cell.CellValue.ToString();
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        cells++;
+                    }
+                }
+            }
+        }
+
+        return cells;
+    }
+
+
+    [Benchmark]
     // Between 5 -> 10% slower than running through in ForwardOnlyMode*2.
     // Not bad considering it is using the HDD for the passes ;-)
     // BUT:  100mb.xlsx = `2.65x slower`;  Compared to `1.60x slower` for ForwardOnlyMode*1
@@ -239,7 +279,7 @@ public class AccessEveryCellBenchmarksXlsb
     [MethodImpl(MethodImplOptions.NoOptimization)]
     public async Task<int> PrlAsyncExcel_PrimeXlsbTwice()
     {
-        using Excel_PRIMEXlsb workbook = new();
+        using Excel_PRIMEXlsbAsync workbook = new();
         await workbook.OpenAsync(RootFolder + FileName, options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 
         ParallelOptions parallelOptions = new()
@@ -257,7 +297,7 @@ public class AccessEveryCellBenchmarksXlsb
                 {
                     if (row == null)
                     {
-                        // Because this returns upto the dimension of the sheet Height
+                        // Because this returns up to the dimension of the sheet Height
                         break;
                     }
 
@@ -265,12 +305,12 @@ public class AccessEveryCellBenchmarksXlsb
                     {
                         continue;
                     }
-                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
                     if (rowCells != null)
                     {
                         foreach (ExcelPRIME.Cell cell in rowCells)
                         {
-                            // Because this returns upto the dimension of the sheet width
+                            // Because this returns up to the dimension of the sheet width
                             string? value = cell.CellValue.ToString();
                             if (!string.IsNullOrEmpty(value))
                             {
@@ -293,7 +333,7 @@ public class AccessEveryCellBenchmarksXlsb
                 {
                     if (row == null)
                     {
-                        // Because this returns upto the dimension of the sheet Height
+                        // Because this returns up to the dimension of the sheet Height
                         break;
                     }
 
@@ -301,12 +341,12 @@ public class AccessEveryCellBenchmarksXlsb
                     {
                         continue;
                     }
-                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync().ConfigureAwait(true);
+                    IReadOnlyList<ExcelPRIME.Cell>? rowCells = await row.GetAllCellsAsync(ct).ConfigureAwait(true);
                     if (rowCells != null)
                     {
                         foreach (ExcelPRIME.Cell cell in rowCells)
                         {
-                            // Because this returns upto the dimension of the sheet width
+                            // Because this returns up to the dimension of the sheet width
                             string? value = cell.CellValue.ToString();
                             if (!string.IsNullOrEmpty(value))
                             {

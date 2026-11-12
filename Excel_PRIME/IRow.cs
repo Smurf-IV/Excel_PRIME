@@ -1,5 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace ExcelPRIME;
@@ -27,7 +29,7 @@ public interface IRow : IRowBase
     /// <remarks>
     /// Cell 0 will be null, as this is indexing is Excel Based (1 Based)
     /// </remarks>
-    ArraySegment<Cell> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
+    ReadOnlySpan<Cell> GetAllCells([EnumeratorCancellation] CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the cell data

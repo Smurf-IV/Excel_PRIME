@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExcelFAST</name>
+    </assembly>
+    <members>
+        <member name="T:ExcelFAST.ExcelFastXlsb">
+            <summary>
+            Main entry point into the `Excel_PRIMEXlsb` API's
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.ExcelFastXlsb.#ctor(ExcelPRIME.IOpenXmlReaderHelpers,ExcelPRIME.IZipReader)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelFAST.ExcelFastXlsx">
+            <summary>
+            Main entry point into the `Excel_PRIME` XLSX handler API's
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.ExcelFastXlsx.#ctor(ExcelPRIME.IOpenXmlReaderHelpers,ExcelPRIME.IZipReader)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelFAST.IExcelFast">
+            <summary>
+            This Libraries main Contract
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IExcelFast.Open(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            Opens the file, read-only, and will hold the stream open until disposed
+            </summary>
+            <param name="fileName">The full path to the Excel file to be opened.</param>
+            <param name="options">Optional parameters for configuring the file opening process.</param>
+            <param name="ct">A <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="fileName"/> is <c>null</c>.</exception>
+            <exception cref="T:System.IO.IOException">Thrown when the file cannot be accessed or opened.</exception>
+            <exception cref="T:System.IO.InvalidDataException">Thrown when the file is not a valid Excel file.</exception>
+        </member>
+        <member name="M:ExcelFAST.IExcelFast.Open(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <summary>
+            _Owns_ the fileStream, until disposed. Must be Seekable.
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IExcelFast.SheetNames">
+            <summary>
+            What names exist in this file
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IExcelFast.SelectSheet(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Switch functionality to a new sheet
+            </summary>
+        </member>
+        <member name="T:ExcelFAST.Implementation.ExcelFastBase">
+            <summary>
+            Main entry point into the `Excel_PRIME` XLSX handler API's
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.#ctor(ExcelPRIME.IOpenXmlReaderHelpers,ExcelPRIME.IZipReader,ExcelFAST.IRowFast)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.Open(System.String,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.Open(System.IO.Stream,ExcelPRIME.Options,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.SheetNames">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.SelectSheet(System.String,System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.Dispose(System.Boolean)">
+            <InheritDoc />
+            <summary>
+            Releases the resources used by this class.
+            </summary>
+            <param name="isDisposing">
+            A value indicating whether the method is being called explicitly 
+            to release both managed and unmanaged resources (<c>true</c>), 
+            or by the finalizer to release only unmanaged resources (<c>false</c>).
+            </param>
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.Finalize">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.ExcelFastBase.Dispose">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelFAST.Implementation.PooledCellView">
+            <summary>
+            A view into a pooled Cell. Do not store; copy data if retention is needed.
+            </summary>
+        </member>
+        <member name="P:ExcelFAST.Implementation.RowFastBase.CurrentRow">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelFAST.Implementation.SheetFastBase">
+            <summary>
+            Magic that makes the sequential recycled memory reader work
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.Dispose">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.Dispose(System.Boolean)">
+            <summary>
+            Releases the resources used by this class.
+            </summary>
+            <param name="isDisposing">
+            A value indicating whether the method is being called explicitly 
+            to release both managed and unmanaged resources (<c>true</c>), 
+            or by the finalizer to release only unmanaged resources (<c>false</c>).
+            </param>
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.UseThisSheet(System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelFAST.Implementation.SheetFastBase.IsValid">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelFAST.Implementation.SheetFastBase.Name">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelFAST.Implementation.SheetFastBase.SheetDimensions">
+            <InheritDoc />
+        </member>
+        <member name="P:ExcelFAST.Implementation.SheetFastBase.CurrentRow">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetNextRowData(System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetCellAt(System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetCellAt(System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetAllCells(System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetCells(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="M:ExcelFAST.Implementation.SheetFastBase.GetCells(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <InheritDoc />
+        </member>
+        <member name="T:ExcelFAST.IRowFast">
+            <summary>
+            Declaration of the Methods to allow access to rows and cells
+            </summary>
+        </member>
+        <member name="P:ExcelFAST.IRowFast.CurrentRow">
+            <summary>
+            The Current row offset (Starts at 1, if valid)
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetNextRowData(System.Threading.CancellationToken)">
+            <summary>
+            Reads the row data at the next iterated row.
+            Increments currentRow
+            true for data, false for end of sheet
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetCellAt(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns a cell of this row. The underlying Cell is pooled and 
+            will be reused on subsequent calls - copy data if you need to retain it.
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetCellAt(System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <summary>
+            Returns a cell of this row. The underlying Cell is pooled and 
+            will be reused on subsequent calls - copy data if you need to retain it.
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetAllCells(System.Threading.CancellationToken)">
+            <summary>
+            Returns a segment of cells for this row. The underlying array is pooled and 
+            will be reused on subsequent calls - copy data if you need to retain it.
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetCells(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns a segment of cells for this row. The underlying array is pooled and 
+            will be reused on subsequent calls - copy data if you need to retain it.
+            </summary>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref (start+width)</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:ExcelFAST.IRowFast.GetCells(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Threading.CancellationToken)">
+            <summary>
+            Returns a segment of cells for this row. The underlying array is pooled and 
+            will be reused on subsequent calls - copy data if you need to retain it.
+            </summary>
+            <param name="startExcelColumn">start at a certain matrix / table topleft data cell</param>
+            <param name="endExcelColumn">last col ref</param>
+            <param name="ct"></param>
+        </member>
+        <member name="T:ExcelFAST.ISheetFast">
+            <summary>
+            Access contract for sheets
+            </summary>
+        </member>
+        <member name="P:ExcelFAST.ISheetFast.IsValid">
+            <summary>
+            Is there a usable sheet name Loaded
+            </summary>
+        </member>
+        <member name="P:ExcelFAST.ISheetFast.Name">
+            <summary>
+            This Sheets name
+            </summary>
+        </member>
+        <member name="M:ExcelFAST.ISheetFast.UseThisSheet(System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            Attempts to switch the usable sheet to the named entry.
+            </summary>
+        </member>
+        <member name="P:ExcelFAST.ISheetFast.SheetDimensions">
+            <summary>
+            What are the Max dimension defined [Excel Rows, Excel Cells] (Many may be blank)
+            </summary>
+        </member>
+    </members>
+</doc>

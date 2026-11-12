@@ -1,5 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace ExcelPRIME.Implementation;
@@ -14,7 +16,7 @@ internal sealed class NullRow(int rowOffset) : INullRowAsync
 
     public ValueTask<ArraySegment<Cell>> GetAllCellsAsync([EnumeratorCancellation] CancellationToken ct = default) => ValueTask.FromResult<ArraySegment<Cell>>(default);
 
-    public ArraySegment<Cell> GetAllCells(CancellationToken ct = default) => default;
+    public ReadOnlySpan<Cell> GetAllCells(CancellationToken ct = default) => default;
 
     public ValueTask<Cell> GetCellAsync(int excelColumnIndex, CancellationToken ct = default) => ValueTask.FromResult<Cell>(default);
 

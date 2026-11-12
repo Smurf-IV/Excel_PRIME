@@ -37,7 +37,7 @@
 	<ItemGroup>
 		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.402" PrivateAssets="all" />
 		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="Microsoft.SourceLink.GitHub" Version="10.0.402" PrivateAssets="all" />
-		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100-rc.2.26504.105">
+		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="Microsoft.SourceLink.GitHub" Version="11.0.100">
 			<!-- Used for source code linking in NuGet packages.
 				Microsoft.SourceLink.GitHub/11.0.100-preview.2.26159.112
 				  ├── System.IO.Hashing/11.0.0-preview.2.26159.112  ← Pulled in here
@@ -63,7 +63,7 @@
 		<Description>E.xcel P.erformant R.eader via I.nterfaces for M.emory E.fficiency. Without using any external libraries. Optimised for Range extraction </Description>
 		<Authors>Smurf-IV</Authors>
 		<Deterministic>False</Deterministic>
-		<VersionPrefix>5.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
+		<VersionPrefix>6.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
 		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
 		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>

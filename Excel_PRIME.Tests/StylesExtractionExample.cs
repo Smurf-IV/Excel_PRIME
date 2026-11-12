@@ -38,13 +38,13 @@ public class StylesExtractionExample
                 continue;
             }
 
-            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
-            if (cells == null)
+            ReadOnlySpan<Cell> cells = row.GetAllCells(ct);
+            if (cells.IsEmpty)
             {
                 continue;
             }
 
-            foreach (ICell? cell in cells)
+            foreach (ref readonly Cell cell in cells)
             {
                 if (cell.CellValue.IsUnknown)
                 {
@@ -90,13 +90,13 @@ public class StylesExtractionExample
                 continue;
             }
 
-            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
-            if (cells == null)
+            ReadOnlySpan<Cell> cells = row.GetAllCells(ct);
+            if (cells.IsEmpty)
             {
                 continue;
             }
 
-            foreach (ICell? cell in cells)
+            foreach (ref readonly Cell cell in cells)
             {
                 if (cell.CellValue.IsUnknown)
                 {
@@ -137,13 +137,13 @@ public class NumberFormatExample
                 continue;
             }
 
-            IReadOnlyList<Cell>? cells = row.GetAllCells(ct);
-            if (cells == null)
+            ReadOnlySpan<Cell> cells = row.GetAllCells(ct);
+            if (cells.IsEmpty)
             {
                 continue;
             }
 
-            foreach (ICell? cell in cells)
+            foreach (ref readonly Cell cell in cells)
             {
                 if (cell.CellValue.IsUnknown)
                 {

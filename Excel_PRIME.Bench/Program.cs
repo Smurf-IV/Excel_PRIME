@@ -17,9 +17,9 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        string[] frameworks = ["net8.0", "net9.0", "net10.0"];
+        string[] frameworks = [/*"net8.0", "net9.0",*/ "net10.0"];
 
-        foreach (var framework in frameworks)
+        foreach (string framework in frameworks)
         {
             BenchmarkRunner.Run(typeof(Program).Assembly, new Config(framework));
         }

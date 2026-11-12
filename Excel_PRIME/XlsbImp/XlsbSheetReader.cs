@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ExcelPRIME.XlsbImp;
 
@@ -183,6 +184,10 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     }
 
     public (int Height, int Width) SheetDimensions { get; private set; }
+
+    internal XlsbStreamReader Reader => _reader;
+    internal InstanceContext InstanceContext => _instanceContext;
+    internal int StartRow => _startRow;
 
     /// <summary>
     /// The Current row iterator offset (Starts at 1)

@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <Reference Include="Azure.Core">
+      <HintPath>C:\Users\coghl\.nuget\packages\azure.core\1.53.0\lib\net10.0\Azure.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Identity">
+      <HintPath>C:\Users\coghl\.nuget\packages\azure.identity\1.21.0\lib\net10.0\Azure.Identity.dll</HintPath>
+    </Reference>
+    <Reference Include="BenchmarkDotNet.Annotations">
+      <HintPath>C:\Users\coghl\.nuget\packages\benchmarkdotnet.annotations\0.16.0-preview.2\lib\netstandard2.0\BenchmarkDotNet.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="BenchmarkDotNet">
+      <HintPath>C:\Users\coghl\.nuget\packages\benchmarkdotnet\0.16.0-preview.2\lib\net10.0\BenchmarkDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="CommandLine">
+      <HintPath>C:\Users\coghl\.nuget\packages\commandlineparser\2.9.1\lib\netstandard2.0\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="deniszykov.WebSocketListener">
+      <HintPath>C:\Users\coghl\.nuget\packages\deniszykov.websocketlistener\4.2.19\lib\netstandard2.0\deniszykov.WebSocketListener.dll</HintPath>
+    </Reference>
+    <Reference Include="Dia2Lib">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Dia2Lib.dll</HintPath>
+    </Reference>
+    <Reference Include="DiagnosticsHub.StandardCollector.Host.Interop">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\DiagnosticsHub.StandardCollector.Host.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelFAST">
+      <HintPath>Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\ExcelFAST\release_net10.0\ExcelFAST.dll</HintPath>
+    </Reference>
+    <Reference Include="Excel_PRIME.Bench">
+      <HintPath>Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME.Bench\release_net10.0\Excel_PRIME.Bench.dll</HintPath>
+    </Reference>
+    <Reference Include="Excel_PRIME">
+      <HintPath>Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME\release_net10.0\Excel_PRIME.dll</HintPath>
+    </Reference>
+    <Reference Include="FastExcel">
+      <HintPath>C:\Users\coghl\.nuget\packages\fastexcel\3.0.13\lib\netstandard2.0\FastExcel.dll</HintPath>
+    </Reference>
+    <Reference Include="Gee.External.Capstone">
+      <HintPath>C:\Users\coghl\.nuget\packages\gee.external.capstone\2.3.0\lib\net7.0\Gee.External.Capstone.dll</HintPath>
+    </Reference>
+    <Reference Include="Iced">
+      <HintPath>C:\Users\coghl\.nuget\packages\iced\1.21.0\lib\netstandard2.1\Iced.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.bcl.asyncinterfaces\10.0.11\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.codeanalysis.csharp\5.6.0\lib\net10.0\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.codeanalysis.common\5.6.0\lib\net10.0\Microsoft.CodeAnalysis.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.FastSerialization">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Microsoft.Diagnostics.FastSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.NETCore.Client">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.netcore.client\0.2.661903\lib\net8.0\Microsoft.Diagnostics.NETCore.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Runtime">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.runtime\4.1.745802\lib\net10.0\Microsoft.Diagnostics.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.configuration.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.diagnostics.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.fileproviders.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Hosting.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.hosting.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.logging.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.options\10.0.3\lib\net10.0\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.extensions.primitives\10.0.3\lib\net10.0\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.identity.client\4.83.1\lib\net8.0\Microsoft.Identity.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client.Extensions.Msal">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.identity.client.extensions.msal\4.83.1\lib\net8.0\Microsoft.Identity.Client.Extensions.Msal.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Abstractions">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.identitymodel.abstractions\8.14.0\lib\net9.0\Microsoft.IdentityModel.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Interop">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\Microsoft.VisualStudio.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Perfolizer">
+      <HintPath>C:\Users\coghl\.nuget\packages\perfolizer\0.7.5\lib\net6.0\Perfolizer.dll</HintPath>
+    </Reference>
+    <Reference Include="Pragmastat">
+      <HintPath>C:\Users\coghl\.nuget\packages\pragmastat\14.0.1\lib\net10.0\Pragmastat.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvan.Data.Excel">
+      <HintPath>C:\Users\coghl\.nuget\packages\sylvan.data.excel\0.5.8\lib\net8.0\Sylvan.Data.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ClientModel">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.clientmodel\1.10.0\lib\net10.0\System.ClientModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Formats.Asn1">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.formats.asn1\11.0.0\lib\net10.0\System.Formats.Asn1.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory.Data">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.memory.data\10.0.3\lib\net10.0\System.Memory.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Pkcs">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.security.cryptography.pkcs\11.0.0\lib\net10.0\System.Security.Cryptography.Pkcs.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.ProtectedData">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.security.cryptography.protecteddata\4.5.0\ref\netstandard2.0\System.Security.Cryptography.ProtectedData.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Xml">
+      <HintPath>C:\Users\coghl\.nuget\packages\system.security.cryptography.xml\11.0.0\lib\net10.0\System.Security.Cryptography.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="TraceReloggerLib">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\TraceReloggerLib.dll</HintPath>
+    </Reference>
+    <Reference Include="VSDiagnostics.BenchmarkDotNet">
+      <HintPath>C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\VSDiagnostics.BenchmarkDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="XlsxHelper">
+      <HintPath>C:\Users\coghl\.nuget\packages\xlsxhelper\2.1.0\lib\net6.0\XlsxHelper.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

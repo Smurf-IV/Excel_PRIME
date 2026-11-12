@@ -346,7 +346,22 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 6 - Third Party Nugets 📦
+## Phase 6 - ExcelFAST
+- ⛓️‍💥 **Breaking Change(s)**
+    - If you want to use `Async` then create a `new Excel_PRIMEAsync()`
+    - Same applies to `Xlsb`
+    - Use `ReadOnlySpan<Cell>` instead of `ArraySegment<Cell>`
+      - Using `foreach` over `ReadOnlySpan<Cell>` is guaranteed to be allocation-free and boxing-free.
+      - If you need LINQ-style processing on a span without allocations, iterate using `for` or `foreach` directly over the span
+- ExcelFAST is a **new** interface implementation, that allows for the fastest possible reading of Excel files, with minimal memory usage and maximum performance.
+- Does not currently have implementations for Range extraction (as that requires a little thought on the memory rental!)
+- [ ] Investigate separate nuget for Excel_FAST
+
+
+-----
+
+
+## Phase 7 - Third Party Nugets 📦
 - ⛓️‍💥 **Breaking Change(s)**
     - None yet.
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
@@ -357,7 +372,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 7 - ideas 💡
+## Phase 8 - ideas 💡
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
   - [ ] e.g. Search for `Class FileBufferingWriter`
 - [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?

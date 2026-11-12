@@ -1,7 +1,9 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -313,7 +315,7 @@ internal sealed class Row : IRowAsync
 
     /// <InheritDoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public ArraySegment<Cell> GetAllCells(CancellationToken ct = default)
+    public ReadOnlySpan<Cell> GetAllCells(CancellationToken ct = default)
     {
         GetCells(ct);
         return _cells == null ? default : new ArraySegment<Cell>(_cells, 0, _maxExcelColumnDimension);
@@ -400,7 +402,7 @@ internal sealed class Row : IRowAsync
         }
 
         int minLength = Math.Min(values.Length, _maxExcelColumnDimension);
-        for (int ordinal = 0; ordinal < minLength; ++ordinal)
+        for (var ordinal = 0; ordinal < minLength; ++ordinal)
         {
             values[ordinal] = _cells[ordinal].CellValue.BoxedValue;
         }

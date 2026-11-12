@@ -1,9 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Buffers;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Buffers;
 
 using ExcelPRIME.FromExternal;
 using ExcelPRIME.Implementation;
@@ -172,9 +173,9 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
 
         // Compare the 4 underlying 32-bit integers directly.
         // The JIT transforms this into ultra-fast SIMD/vector or 64-bit register comparisons.
-        return (Unsafe.Add(ref left, 0) == Unsafe.Add(ref right, 0) 
-                && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) 
-                && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) 
+        return (Unsafe.Add(ref left, 0) == Unsafe.Add(ref right, 0)
+                && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1)
+                && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2)
                 && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3),
             db);
     }

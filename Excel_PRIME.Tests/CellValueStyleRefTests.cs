@@ -30,7 +30,7 @@ public class CellValueStyleRefTests
     public async Task ToStyledString_WithNumberFormattingStyles_ShouldFormatCorrectly(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act
@@ -66,7 +66,7 @@ public class CellValueStyleRefTests
     public async Task ToStyledString_WithDateTimeFormattingStyles_ShouldFormatDateTimeCorrectly(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -126,7 +126,7 @@ public class CellValueStyleRefTests
     public async Task CellValue_NumericConversions_ShouldConvertCorrectlyRegardlessOfStyle(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -185,7 +185,7 @@ public class CellValueStyleRefTests
     public async Task CellValue_DateTimeConversions_ShouldConvertCorrectlyRegardlessOfStyle(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -247,7 +247,7 @@ public class CellValueStyleRefTests
     public async Task TryGetDateTime_WithStyledDateValues_ShouldSucceedOrFailGracefully(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -306,7 +306,7 @@ public class CellValueStyleRefTests
     public async Task TryGetDouble_WithStyledNumericValues_ShouldSucceedOrFailGracefully(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -357,7 +357,7 @@ public class CellValueStyleRefTests
     public async Task TryGetInt32_WithStyledNumericValues_ShouldSucceedOrFailGracefully(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -412,7 +412,7 @@ public class CellValueStyleRefTests
     public async Task BoxedValue_WithStyledCells_ShouldReturnCorrectType(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -478,7 +478,7 @@ public class CellValueStyleRefTests
     public async Task ImplicitOperators_WithStyledNumericValues_ShouldConvertCorrectly(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -536,7 +536,7 @@ public class CellValueStyleRefTests
     public async Task ImplicitOperators_WithStyledDateTimeValues_ShouldConvertCorrectly(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -599,7 +599,7 @@ public class CellValueStyleRefTests
     public async Task CellValue_RawAndStyledValue_ShouldBeConsistent(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -659,7 +659,7 @@ public class CellValueStyleRefTests
     public async Task ToString_WithStyledCells_ShouldReturnNonEmptyString(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert
@@ -724,7 +724,7 @@ public class CellValueStyleRefTests
     public async Task Equality_StyledCells_ShouldCompareByValue(string fileName)
     {
         // Arrange
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         // Act & Assert

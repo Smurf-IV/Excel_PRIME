@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -220,6 +222,11 @@ internal sealed class XmlSheetReader : IOpenXmlSheetReaderAsync
     }
 
     public (int Height, int Width) SheetDimensions { get; private set; }
+
+    internal XmlReader Reader => _reader;
+    internal ReaderAtoms ReaderAtoms => _readerAtoms;
+    internal InstanceContext InstanceContext => _instanceContext;
+    internal int StartRow => _startRow;
 
     /// <summary>
     /// The Current row iterator offset (Starts at 1)

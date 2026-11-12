@@ -1,4 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -49,7 +52,7 @@ public interface IOpenXmlReaderHelpers : IDisposable
     /// A dictionary mapping style IDs to CellStyle objects. Always includes built-in default styles.
     /// Returns empty/default styles if styles.#### is not found.
     /// </returns>
-    IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct);
+    IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReader zipReader, CancellationToken ct);
 }
 
 /// <summary>

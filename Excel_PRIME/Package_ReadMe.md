@@ -82,17 +82,17 @@ Lets take each of the above elements and explain:
 -----
 
 # Caveats ⛔:
-## _Not_ Be: Same sheet Thread safe 📊
+## Will _Not_ Be: Same sheet Thread safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## _Not_ Do: Dynamic Ranges ⚠️
+## Will _Not_ Do: Dynamic Ranges ⚠️
 - i.e. Ones that contain formulas:
     - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
-## _Not_ Do: Poco 🤖
+## Will _Not_ Do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## _Not_ Be a: Writer / Modifier 📚
+## Will _Not_ Be a: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----

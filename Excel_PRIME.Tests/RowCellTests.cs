@@ -21,7 +21,7 @@ public class RowCellTests
     [TestCase("Data/SameKey.xlsx")]
     public async Task A010_ReadCells(string fileName)
     {
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         foreach (string sheetName in workbook.SheetNames())
         {
@@ -53,7 +53,7 @@ public class RowCellTests
     [TestCase("Data/styledworkbook.xlsx")]
     public async Task A020_StyleAndFormattedFile(string fileName)
     {
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
 
         string[][] workSheet1Content =
@@ -171,7 +171,7 @@ public class RowCellTests
     [TestCase("Data/styledworkbook.xlsx")]
     public async Task A021_ParallelStyleAndFormattedFile(string fileName)
     {
-        using Excel_PRIME workbook1 = new();
+        using Excel_PRIMEAsync workbook1 = new();
         await workbook1.OpenAsync(fileName).ConfigureAwait(false);
 
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
@@ -294,7 +294,7 @@ public class RowCellTests
     [TestCase("Data/styledworkbook.xlsx")]
     public async Task A022_ParallelStyleAndFormattedFile_DBNull(string fileName)
     {
-        using Excel_PRIME workbook1 = new();
+        using Excel_PRIMEAsync workbook1 = new();
         await workbook1.OpenAsync(fileName, new Options { CellConversionType = CellConversion.ExcelCellType, ReturnDBNull = true }).ConfigureAwait(false);
 
         Task.WaitAll(DoSheet1(workbook1), DoSheet2(workbook1));
@@ -398,7 +398,7 @@ public class RowCellTests
     public async Task A030_SkippedRows()
     {
         const string fileName = "Data/solver.xlsx";
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         object?[][] workSheet2Content =
@@ -458,7 +458,7 @@ public class RowCellTests
     public async Task A031_SkippedRows_DBNull()
     {
         const string fileName = "Data/solver.xlsx";
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName, new Options { ReturnDBNull = true }).ConfigureAwait(true);
 
         object?[][] workSheet2Content =
@@ -518,7 +518,7 @@ public class RowCellTests
     [TestCase("Data/ValueTest.xlsx")]
     public async Task A040_ValuesTypesOfCells(string fileName)
     {
-        using Excel_PRIME workbook = new();
+        using Excel_PRIMEAsync workbook = new();
         await workbook.OpenAsync(fileName, new Options{ CellConversionType = CellConversion.ForceStyles}).ConfigureAwait(false);
         ISheetAsync? valSheet = await workbook.GetSheetAsync("Values").ConfigureAwait(false);
         IRowAsync? row = await valSheet.GetRowDataAsync(0, RowCellGet.PreGet).FirstAsync();

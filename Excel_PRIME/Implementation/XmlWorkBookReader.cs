@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -17,10 +21,10 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
 
     protected XmlWorkBookReader(IZipReader zipReader) => _zipReader = zipReader;
 
-    public XmlWorkBookReader(IZipReader zipReader, CancellationToken _)
+    public XmlWorkBookReader(IZipReader zipReader, CancellationToken ct)
     : this(zipReader)
     {
-        _streamWb = _zipReader.GetEntry("xl/workbook.xml")!;
+        _streamWb = _zipReader.GetEntry("xl/workbook.xml", ct)!;
         OpenWorkbookStream();
     }
 
@@ -77,7 +81,7 @@ internal class XmlWorkBookReader : IOpenXmlWorkBookReader
 
     private Dictionary<string, string> PopulateWorkSheetRels(CancellationToken ct)
     {
-        using Stream streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.xml.rels")!;
+        using Stream streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.xml.rels", ct)!;
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources

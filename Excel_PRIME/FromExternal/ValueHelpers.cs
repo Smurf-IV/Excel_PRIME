@@ -1,3 +1,6 @@
+using System;
+
+
 namespace ExcelPRIME.FromExternal;
 
 /// <summary>

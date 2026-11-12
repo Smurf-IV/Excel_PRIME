@@ -1,4 +1,6 @@
-﻿namespace ExcelPRIME;
+﻿using System;
+
+namespace ExcelPRIME;
 
 /// <summary>
 /// Access the shared string retrieval instance
