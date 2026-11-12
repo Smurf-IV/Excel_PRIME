@@ -108,4 +108,10 @@ public class SheetFastBase : ISheetFast, IRowFast, IDisposable
     /// <InheritDoc />
     public ReadOnlySpan<Cell> GetCells(ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn,
         CancellationToken ct = default) => _rowFast.GetCells(startExcelColumn, endExcelColumn, ct);
+
+    /// <InheritDoc />
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default) => _rowFast.CopyBoxedToArray(values, ct);
+
+    /// <InheritDoc />
+    public void CopyBoxedToArray(Span<object?> values, CancellationToken ct = default) => _rowFast.CopyBoxedToArray(values, ct);
 }

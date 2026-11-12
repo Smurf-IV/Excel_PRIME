@@ -262,6 +262,10 @@ dotnet_diagnostic.CA1860.severity = none
 dotnet_diagnostic.CS8424.severity = none
 
 
+# warning IDE0301: Collection initialization can be simplified
+dotnet_diagnostic.IDE0301.severity = none
+
+
 [*Test*.cs]
 
 

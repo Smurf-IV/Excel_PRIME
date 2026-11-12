@@ -9,7 +9,7 @@ using ExcelPRIME.Implementation;
 
 namespace ExcelFAST.Implementation;
 
-internal class RowFastBase : IRowFast
+internal sealed class RowFastBase : IRowFast
 {
     private readonly IRowFast _rowFast;
     private Sheet? _activeSheet;
@@ -63,4 +63,27 @@ internal class RowFastBase : IRowFast
 
     public ReadOnlySpan<Cell> GetCells(ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn,
         CancellationToken ct = default) => _rowFast.GetCells(startExcelColumn, endExcelColumn, ct);
+
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        if (_activeSheet == null || _isDisposed)
+        {
+            values.AsSpan().Clear();
+            return;
+        }
+
+        _rowFast.CopyBoxedToArray(values, ct);
+    }
+
+    public void CopyBoxedToArray(Span<object?> values, CancellationToken ct = default)
+    {
+        if (_activeSheet == null || _isDisposed)
+        {
+            values.Clear();
+            return;
+        }
+
+        _rowFast.CopyBoxedToArray(values, ct);
+    }
 }

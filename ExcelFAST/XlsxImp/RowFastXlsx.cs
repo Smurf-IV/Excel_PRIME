@@ -299,4 +299,41 @@ internal sealed class RowFastXlsx : IRowFast
         int end = ExcelColumns.ParseColumnOffset(endExcelColumn);
         return GetCells(start, end, ct);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        CopyBoxedToArray(values.AsSpan(), ct);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyBoxedToArray(Span<object?> values, CancellationToken ct = default)
+    {
+        if (values.IsEmpty)
+        {
+            return;
+        }
+
+        int width = _dimensions.Width > 0 ? _dimensions.Width : _prevMaxCol;
+        if (width <= 0)
+        {
+            values.Clear();
+            return;
+        }
+
+        EnsureCapacity(width);
+        int minLength = Math.Min(values.Length, width);
+
+        ReadOnlySpan<Cell> cellSpan = _cells.AsSpan(0, minLength);
+        for (int ordinal = 0; ordinal < minLength; ++ordinal)
+        {
+            values[ordinal] = cellSpan[ordinal].CellValue.BoxedValue;
+        }
+
+        if (values.Length > minLength)
+        {
+            values.Slice(minLength).Clear();
+        }
+    }
 }

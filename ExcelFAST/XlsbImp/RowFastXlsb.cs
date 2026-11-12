@@ -243,7 +243,7 @@ internal sealed class RowFastXlsb : IRowFast
             return ReadOnlySpan<Cell>.Empty;
         }
         EnsureCapacity(width);
-        return new ArraySegment<Cell>(_cells, 0, width);
+        return _cells.AsSpan(0, width);
     }
 
     public ReadOnlySpan<Cell> GetCells(int startExcelColumn, int endExcelColumn, CancellationToken ct = default)
@@ -267,7 +267,7 @@ internal sealed class RowFastXlsb : IRowFast
         }
 
         EnsureCapacity(offset + count);
-        return new ArraySegment<Cell>(_cells, offset, count);
+        return _cells.AsSpan(offset, count);
     }
 
     public ReadOnlySpan<Cell> GetCells(ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn,
@@ -276,5 +276,42 @@ internal sealed class RowFastXlsb : IRowFast
         int start = ExcelColumns.ParseColumnOffset(startExcelColumn);
         int end = ExcelColumns.ParseColumnOffset(endExcelColumn);
         return GetCells(start, end, ct);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyBoxedToArray(object?[] values, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        CopyBoxedToArray(values.AsSpan(), ct);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyBoxedToArray(Span<object?> values, CancellationToken ct = default)
+    {
+        if (values.IsEmpty)
+        {
+            return;
+        }
+
+        int width = _dimensions.Width > 0 ? _dimensions.Width : _prevMaxCol;
+        if (width <= 0)
+        {
+            values.Clear();
+            return;
+        }
+
+        EnsureCapacity(width);
+        int minLength = Math.Min(values.Length, width);
+
+        ReadOnlySpan<Cell> cellSpan = _cells.AsSpan(0, minLength);
+        for (int ordinal = 0; ordinal < minLength; ++ordinal)
+        {
+            values[ordinal] = cellSpan[ordinal].CellValue.BoxedValue;
+        }
+
+        if (values.Length > minLength)
+        {
+            values.Slice(minLength).Clear();
+        }
     }
 }

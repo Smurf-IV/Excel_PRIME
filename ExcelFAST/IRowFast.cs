@@ -65,4 +65,11 @@ public interface IRowFast : IDisposable
     /// <param name="ct"></param>
     [return: PooledObject]
     ReadOnlySpan<Cell> GetCells(ReadOnlySpan<char> startExcelColumn, ReadOnlySpan<char> endExcelColumn, CancellationToken ct = default);
+
+    /// <summary>
+    /// Copies the boxed values of all cells in the row to the specified span.
+    /// </summary>
+    /// <param name="values">The destination span to copy boxed values into.</param>
+    /// <param name="ct">A cancellation token.</param>
+    void CopyBoxedToArray(Span<object?> values, CancellationToken ct = default);
 }
