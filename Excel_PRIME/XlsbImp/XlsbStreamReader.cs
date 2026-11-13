@@ -18,9 +18,10 @@ namespace ExcelPRIME.XlsbImp;
 /// </remarks>
 /// <exception cref="ArgumentOutOfRangeException"></exception>
 /// <exception cref="EndOfStreamException"></exception>
-internal sealed class XlsbStreamReader
+internal sealed class XlsbStreamReader : IDisposable
 {
     private readonly BufferedStream _stream;
+    private readonly ArrayPool<byte> _pool;
     private PooledRecordBuffer? _rollBackRecord;
 
     /// <summary>
@@ -29,37 +30,54 @@ internal sealed class XlsbStreamReader
     public XlsbStreamReader()
     {
         _stream = null!;
+        _pool = ArrayPool<byte>.Shared;
     }
 
     /// <summary>
     /// Stream is NOT owned by this class and should be disposed by the caller.
     /// </summary>
     /// <param name="stream"></param>
-    public XlsbStreamReader(BufferedStream stream)
+    public XlsbStreamReader(BufferedStream stream, ArrayPool<byte>? pool = null)
     {
         ArgumentNullException.ThrowIfNull(stream);
         _stream = stream;
+        _pool = pool ?? ArrayPool<byte>.Shared;
     }
 
     /// <summary>
     /// Enable the return of the next RowHdr etc., without the need to re-read from the stream.
     /// </summary>
     /// <param name="record"></param>
-    public void RollBackLastRecord(PooledRecordBuffer record) => _rollBackRecord = record;
+    public void RollBackLastRecord(PooledRecordBuffer record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        if (_rollBackRecord != null)
+        {
+            throw new InvalidOperationException("A record is already pending rollback.");
+        }
+
+        _rollBackRecord = record;
+    }
+
+    public void Dispose()
+    {
+        _rollBackRecord?.Dispose();
+        _rollBackRecord = null;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private byte[] RentAndRead(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
+        byte[] buffer = _pool.Rent(count);
         try
         {
             _stream.ReadExactly(buffer.AsSpan(0, count));
         }
-        catch (EndOfStreamException)
+        catch
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            _pool.Return(buffer);
             throw;
         }
 
@@ -70,19 +88,14 @@ internal sealed class XlsbStreamReader
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(count);
+        byte[] buffer = _pool.Rent(count);
         try
         {
             await _stream.ReadExactlyAsync(buffer.AsMemory(0, count), ct).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch
         {
-            ArrayPool<byte>.Shared.Return(buffer);
-            throw;
-        }
-        catch (EndOfStreamException)
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
+            _pool.Return(buffer);
             throw;
         }
 
@@ -108,7 +121,11 @@ internal sealed class XlsbStreamReader
         try
         {
             byte[] buffer = await RentAndReadAsync((int)recordLength, ct).ConfigureAwait(false);
-            return new PooledRecordBuffer(recordType, buffer, true);
+            return new PooledRecordBuffer(recordType, buffer, true, _pool);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch
         {
@@ -133,7 +150,7 @@ internal sealed class XlsbStreamReader
         }
 
         byte[] buffer = RentAndRead((int)recordLength);
-        return new PooledRecordBuffer(recordType, buffer, true);
+        return new PooledRecordBuffer(recordType, buffer, true, _pool);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

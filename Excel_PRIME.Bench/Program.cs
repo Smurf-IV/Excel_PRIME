@@ -41,7 +41,8 @@ internal class Program
                 "net8.0" => CoreRuntime.Core80,
                 "net9.0" => CoreRuntime.Core90,
                 "net10.0" => CoreRuntime.Core10_0,
-                _ => CoreRuntime.Core80
+                "net11.0" => CoreRuntime.Core11_0,
+                _ => CoreRuntime.Core11_0
             };
             AddJob(Job.ShortRun.WithRuntime(runtime).WithId(framework));     // ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
             //AddJob(Job.MediumRun);      // MediumRun(IterationCount=15, LaunchCount=2, WarmupCount=10)

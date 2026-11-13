@@ -97,61 +97,75 @@ internal sealed class XlsbRow : IRowAsync
         // Reuse pooled array if available, otherwise allocate new one
         Cell[] localCells = ArrayPool<Cell>.Shared.Rent(_maxExcelColumnDimension);
         localCells.AsSpan(0, _maxExcelColumnDimension).Clear();
-
-        PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        bool cellsPublished = false;
         try
         {
-            while (nextRecord.Succeeded
-                   && !ct.IsCancellationRequested
-                   && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
-                   && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
+            PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+            try
             {
-                // Fast path: skip non-cell records
-                RecordTypeIdentifier recordType = nextRecord.RecordType;
-                if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
+                while (nextRecord.Succeeded
+                       && !ct.IsCancellationRequested
+                       && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
+                       && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
                 {
-                    nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
-                    continue;
-                }
-
-                Cell cell = Cell.ConstructXlsbCell(nextRecord, _instanceContext);
-                if (!cell.CellValue.IsUnknown)
-                {
-                    int offset = cell.ExcelColumnOffset - 1;
-                    if (offset >= 0 && offset < _maxExcelColumnDimension)
+                    // Fast path: skip non-cell records
+                    RecordTypeIdentifier recordType = nextRecord.RecordType;
+                    if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
                     {
-                        localCells[offset] = cell;
+                        nextRecord.Dispose();
+                        nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                        continue;
                     }
-                    // Out-of-range cells are silently dropped (defensive programming)
+
+                    Cell cell = Cell.ConstructXlsbCell(nextRecord, _instanceContext);
+                    if (!cell.CellValue.IsUnknown)
+                    {
+                        int offset = cell.ExcelColumnOffset - 1;
+                        if (offset >= 0 && offset < _maxExcelColumnDimension)
+                        {
+                            localCells[offset] = cell;
+                        }
+                        // Out-of-range cells are silently dropped (defensive programming)
+                    }
+                    nextRecord.Dispose();
+                    nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
                 }
-                nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
             }
+            finally
+            {
+                if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+                {
+                    _reader.RollBackLastRecord(nextRecord);
+                }
+                else
+                {
+                    nextRecord.Dispose();
+                }
+            }
+
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < _maxExcelColumnDimension; index++)
+                {
+                    if (localCells[index].CellValue.IsUnknown)
+                    {
+                        localCells[index] = new Cell(CellValue.GetDBNull(0), index + 1, CellType.Unknown);
+                    }
+                }
+            }
+
+            // Publish parsed cells once fully read to avoid partial-visible state
+            _cells = localCells;
+            _cellsLoaded = true;
+            cellsPublished = true;
         }
         finally
         {
-            if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+            if (!cellsPublished)
             {
-                _reader.RollBackLastRecord(nextRecord);
-            }
-            else
-            {
-                nextRecord.Dispose();
+                ArrayPool<Cell>.Shared.Return(localCells, clearArray: true);
             }
         }
-
-        if (_instanceContext.Options.ReturnDBNull)
-        {
-            for (int index = 0; index < _maxExcelColumnDimension; index++)
-            {
-                if (localCells[index].CellValue.IsUnknown)
-                {
-                    localCells[index] = new Cell(CellValue.GetDBNull(0), index + 1, CellType.Unknown);
-                }
-            }
-        }
-        // Publish parsed cells once fully read to avoid partial-visible state
-        _cells = localCells;
-        _cellsLoaded = true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -166,60 +180,75 @@ internal sealed class XlsbRow : IRowAsync
         // Reuse pooled array if available, otherwise allocate new one
         Cell[] localCells = ArrayPool<Cell>.Shared.Rent(_maxExcelColumnDimension);
         localCells.AsSpan(0, _maxExcelColumnDimension).Clear();
-
-        PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        bool cellsPublished = false;
         try
         {
-            while (nextRecord.Succeeded
-                   && !ct.IsCancellationRequested
-                   && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
-                   && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
+            PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+            try
             {
-                // Fast path: skip non-cell records
-                RecordTypeIdentifier recordType = nextRecord.RecordType;
-                if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
+                while (nextRecord.Succeeded
+                       && !ct.IsCancellationRequested
+                       && nextRecord.RecordType != RecordTypeIdentifier.DATAEND
+                       && nextRecord.RecordType != RecordTypeIdentifier.ROWHDR)
                 {
-                    nextRecord = _reader.ReadNextRecord();
-                    continue;
-                }
-                Cell cell = Cell.ConstructXlsbCell(nextRecord, _instanceContext);
-                if (!cell.CellValue.IsUnknown)
-                {
-                    int offset = cell.ExcelColumnOffset - 1;
-                    if (offset >= 0 && offset < _maxExcelColumnDimension)
+                    // Fast path: skip non-cell records
+                    RecordTypeIdentifier recordType = nextRecord.RecordType;
+                    if (recordType is < RecordTypeIdentifier.CELLBLANK or > RecordTypeIdentifier.CELLFMLAERROR)
                     {
-                        localCells[offset] = cell;
+                        nextRecord.Dispose();
+                        nextRecord = _reader.ReadNextRecord();
+                        continue;
                     }
-                    // Out-of-range cells are silently dropped (defensive programming)
+
+                    Cell cell = Cell.ConstructXlsbCell(nextRecord, _instanceContext);
+                    if (!cell.CellValue.IsUnknown)
+                    {
+                        int offset = cell.ExcelColumnOffset - 1;
+                        if (offset >= 0 && offset < _maxExcelColumnDimension)
+                        {
+                            localCells[offset] = cell;
+                        }
+                        // Out-of-range cells are silently dropped (defensive programming)
+                    }
+                    nextRecord.Dispose();
+                    nextRecord = _reader.ReadNextRecord();
                 }
-                nextRecord = _reader.ReadNextRecord();
             }
+            finally
+            {
+                if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+                {
+                    _reader.RollBackLastRecord(nextRecord);
+                }
+                else
+                {
+                    nextRecord.Dispose();
+                }
+            }
+
+            if (_instanceContext.Options.ReturnDBNull)
+            {
+                for (int index = 0; index < _maxExcelColumnDimension; index++)
+                {
+                    if (localCells[index].CellValue.IsUnknown)
+                    {
+                        localCells[index] = new Cell(CellValue.GetDBNull(0), index + 1, CellType.Unknown);
+                    }
+                }
+            }
+
+            // Publish parsed cells once fully read to avoid partial-visible state
+            _cells = localCells;
+            _cellsLoaded = true;
+            cellsPublished = true;
         }
         finally
         {
-            if (nextRecord.RecordType == RecordTypeIdentifier.ROWHDR)
+            if (!cellsPublished)
             {
-                _reader.RollBackLastRecord(nextRecord);
-            }
-            else
-            {
-                nextRecord.Dispose();
+                ArrayPool<Cell>.Shared.Return(localCells, clearArray: true);
             }
         }
-
-        if (_instanceContext.Options.ReturnDBNull)
-        {
-            for (int index = 0; index < _maxExcelColumnDimension; index++)
-            {
-                if (localCells[index].CellValue.IsUnknown)
-                {
-                    localCells[index] = new Cell(CellValue.GetDBNull(0), index + 1, CellType.Unknown);
-                }
-            }
-        }
-        // Publish parsed cells once fully read to avoid partial-visible state
-        _cells = localCells;
-        _cellsLoaded = true;
     }
 
     public void Dispose()

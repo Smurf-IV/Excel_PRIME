@@ -11,13 +11,15 @@ namespace ExcelPRIME.XlsbImp;
 internal sealed class PooledRecordBuffer : IDisposable
 {
     private readonly byte[] _array;
+    private readonly ArrayPool<byte> _pool;
     private bool _isDisposed;
 
-    public PooledRecordBuffer(RecordTypeIdentifier recordType, byte[]? array = null, bool succeeded = false)
+    public PooledRecordBuffer(RecordTypeIdentifier recordType, byte[]? array = null, bool succeeded = false, ArrayPool<byte>? pool = null)
     {
         RecordType = recordType;
         _array = array!;
         Succeeded = succeeded;
+        _pool = pool ?? ArrayPool<byte>.Shared;
     }
 
     public ref readonly byte this[int index] => ref _array[index];
@@ -36,7 +38,7 @@ internal sealed class PooledRecordBuffer : IDisposable
             _isDisposed = true;
             if (_array != null!)
             {
-                ArrayPool<byte>.Shared.Return(_array);
+                _pool.Return(_array);
             }
         }
     }

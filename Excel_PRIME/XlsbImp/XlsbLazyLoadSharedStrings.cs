@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,11 +25,11 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
         _reader = new XlsbStreamReader();
     }
 
-    public XlsbLazyLoadSharedStrings(Stream stream)
+    public XlsbLazyLoadSharedStrings(Stream stream, ArrayPool<byte>? pool = null)
     {
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
         _stream = new BufferedStream(stream, 64 * 1024);
-        _reader = new XlsbStreamReader(_stream);
+        _reader = new XlsbStreamReader(_stream, pool);
         _currentlyLoaded = []; // Will be properly sized in Initialize
     }
 
@@ -99,22 +100,32 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
     {
         // Parse sequentially until we have loaded enough shared strings.
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
-        while (untilIndex >= _currentlyLoaded.Count
-               && nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
+        bool rolledBack = false;
+        try
         {
-            //var flags = nextRecord.GetByte(0);
-            string str = nextRecord.GetString(1);
+            while (untilIndex >= _currentlyLoaded.Count
+                   && nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
+            {
+                //var flags = nextRecord.GetByte(0);
+                string str = nextRecord.GetString(1);
 
-            _currentlyLoaded.Add(str);
-            nextRecord = _reader.ReadNextRecord();
+                _currentlyLoaded.Add(str);
+                nextRecord.Dispose();
+                nextRecord = _reader.ReadNextRecord();
+            }
+
+            if (nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
+            {
+                _reader.RollBackLastRecord(nextRecord);
+                rolledBack = true;
+            }
         }
-        if ( nextRecord.RecordType == RecordTypeIdentifier.STRINGITEM)
+        finally
         {
-            _reader.RollBackLastRecord(nextRecord);
-        }
-        else
-        {
-            nextRecord.Dispose();
+            if (!rolledBack)
+            {
+                nextRecord.Dispose();
+            }
         }
     }
 
@@ -124,6 +135,7 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
         {
             if (isDisposing)
             {
+                _reader.Dispose();
                 _stream?.Dispose();
             }
 

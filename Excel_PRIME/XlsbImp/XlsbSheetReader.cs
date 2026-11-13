@@ -14,10 +14,10 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private bool _isDisposed;
     private int _startRow;
 
-    public XlsbSheetReader(BufferedStream stream, InstanceContext instanceContext)
+    public XlsbSheetReader(BufferedStream stream, InstanceContext instanceContext, System.Buffers.ArrayPool<byte>? pool = null)
     {
         _instanceContext = instanceContext;
-        _reader = new XlsbStreamReader(stream);
+        _reader = new XlsbStreamReader(stream, pool);
     }
 
     internal async Task InitializeAsync(CancellationToken ct)
@@ -25,43 +25,50 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         bool foundSheetData = false;
         // Step into the worksheet
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
-        while (nextRecord.Succeeded
-               && !ct.IsCancellationRequested
-               && !foundSheetData)
+        try
         {
-            switch (nextRecord.RecordType)
+            while (nextRecord.Succeeded
+                   && !ct.IsCancellationRequested
+                   && !foundSheetData)
             {
-                case RecordTypeIdentifier.SHEETPR:
-                    {
-                        // Step over the preAmble
-                        string codeName = nextRecord.GetString(19);
-                    }
-                    break;
+                switch (nextRecord.RecordType)
+                {
+                    case RecordTypeIdentifier.SHEETPR:
+                        {
+                            // Step over the preAmble
+                            string codeName = nextRecord.GetString(19);
+                        }
+                        break;
 
-                case RecordTypeIdentifier.SHEETDATABEGIN:
-                    // All is good ;-)
-                    foundSheetData = true;
-                    break;
-                case RecordTypeIdentifier.DIMENSION:
-                    {
-                        // Read dimensions
-                        _startRow = nextRecord.GetInt32(0);
-                        int lastRow = nextRecord.GetInt32(4);
-                        int lastCol = nextRecord.GetInt32(12);
-                        SheetDimensions = (lastRow + 1, lastCol + 1); // Make them VBA Excel references
-                    }
-                    break;
-                case RecordTypeIdentifier.COLINFO:
-                    // We can ignore column info for now
-                    break;
-            }
+                    case RecordTypeIdentifier.SHEETDATABEGIN:
+                        // All is good ;-)
+                        foundSheetData = true;
+                        break;
+                    case RecordTypeIdentifier.DIMENSION:
+                        {
+                            // Read dimensions
+                            _startRow = nextRecord.GetInt32(0);
+                            int lastRow = nextRecord.GetInt32(4);
+                            int lastCol = nextRecord.GetInt32(12);
+                            SheetDimensions = (lastRow + 1, lastCol + 1); // Make them VBA Excel references
+                        }
+                        break;
+                    case RecordTypeIdentifier.COLINFO:
+                        // We can ignore column info for now
+                        break;
+                }
 
-            if (!foundSheetData)
-            {
-                nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                if (!foundSheetData)
+                {
+                    nextRecord.Dispose();
+                    nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+                }
             }
         }
-        nextRecord.Dispose();
+        finally
+        {
+            nextRecord.Dispose();
+        }
         CurrentRow = 0;
     }
 
@@ -70,43 +77,50 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         bool foundSheetData = false;
         // Step into the worksheet
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
-        while (nextRecord.Succeeded
-               && !ct.IsCancellationRequested
-               && !foundSheetData)
+        try
         {
-            switch (nextRecord.RecordType)
+            while (nextRecord.Succeeded
+                   && !ct.IsCancellationRequested
+                   && !foundSheetData)
             {
-                case RecordTypeIdentifier.SHEETPR:
-                    {
-                        // Step over the preAmble
-                        string codeName = nextRecord.GetString(19);
-                    }
-                    break;
+                switch (nextRecord.RecordType)
+                {
+                    case RecordTypeIdentifier.SHEETPR:
+                        {
+                            // Step over the preAmble
+                            string codeName = nextRecord.GetString(19);
+                        }
+                        break;
 
-                case RecordTypeIdentifier.SHEETDATABEGIN:
-                    // All is good ;-)
-                    foundSheetData = true;
-                    break;
-                case RecordTypeIdentifier.DIMENSION:
-                    {
-                        // Read dimensions
-                        _startRow = nextRecord.GetInt32(0);
-                        int lastRow = nextRecord.GetInt32(4);
-                        int lastCol = nextRecord.GetInt32(12);
-                        SheetDimensions = (lastRow + 1, lastCol + 1); // Make them VBA Excel references
-                    }
-                    break;
-                case RecordTypeIdentifier.COLINFO:
-                    // We can ignore column info for now
-                    break;
-            }
+                    case RecordTypeIdentifier.SHEETDATABEGIN:
+                        // All is good ;-)
+                        foundSheetData = true;
+                        break;
+                    case RecordTypeIdentifier.DIMENSION:
+                        {
+                            // Read dimensions
+                            _startRow = nextRecord.GetInt32(0);
+                            int lastRow = nextRecord.GetInt32(4);
+                            int lastCol = nextRecord.GetInt32(12);
+                            SheetDimensions = (lastRow + 1, lastCol + 1); // Make them VBA Excel references
+                        }
+                        break;
+                    case RecordTypeIdentifier.COLINFO:
+                        // We can ignore column info for now
+                        break;
+                }
 
-            if (!foundSheetData)
-            {
-                nextRecord = _reader.ReadNextRecord();
+                if (!foundSheetData)
+                {
+                    nextRecord.Dispose();
+                    nextRecord = _reader.ReadNextRecord();
+                }
             }
         }
-        nextRecord.Dispose();
+        finally
+        {
+            nextRecord.Dispose();
+        }
         CurrentRow = 0;
     }
 
@@ -116,6 +130,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private async Task<bool> ReadToNextStartRowAsync(CancellationToken ct)
     {
         PooledRecordBuffer nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
+        bool rolledBack = false;
         try
         {
             while (nextRecord.Succeeded
@@ -125,17 +140,22 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
                 {
                     case RecordTypeIdentifier.ROWHDR:
                         _reader.RollBackLastRecord(nextRecord);
+                        rolledBack = true;
                         return true;
                     case RecordTypeIdentifier.DATAEND:
                         return false;
                 }
+                nextRecord.Dispose();
                 nextRecord = await _reader.ReadNextRecordAsync(ct).ConfigureAwait(false);
             }
         }
         finally
         {
             // No rows to read, or the Dimension is lying
-            nextRecord.Dispose();
+            if (!rolledBack)
+            {
+                nextRecord.Dispose();
+            }
         }
 
         return false;
@@ -144,6 +164,7 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
     private bool ReadToNextStartRow(CancellationToken ct)
     {
         PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
+        bool rolledBack = false;
         try
         {
             while (nextRecord.Succeeded
@@ -153,17 +174,22 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
                 {
                     case RecordTypeIdentifier.ROWHDR:
                         _reader.RollBackLastRecord(nextRecord);
+                        rolledBack = true;
                         return true;
                     case RecordTypeIdentifier.DATAEND:
                         return false;
                 }
+                nextRecord.Dispose();
                 nextRecord = _reader.ReadNextRecord();
             }
         }
         finally
         {
             // No rows to read, or the Dimension is lying
-            nextRecord.Dispose();
+            if (!rolledBack)
+            {
+                nextRecord.Dispose();
+            }
         }
 
         return false;
@@ -175,8 +201,10 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         {
             if (isDisposing)
             {
+                _lastRow?.Dispose();
                 _lastNullRow = null;    // Do not call dispose, because they have been returned to the caller
-                _lastRow = null;    // Do not call dispose, because they have been returned to the caller
+                _lastRow = null;
+                _reader.Dispose();
             }
 
             _isDisposed = true;
@@ -228,11 +256,19 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         }
 
         XlsbRow nextRow = CreateRowFromPool();
-        nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width);
-
-        if (cellGetMode > RowCellGet.None)
+        try
         {
-            await nextRow.GetCellsAsync(ct).ConfigureAwait(false);
+            nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width);
+
+            if (cellGetMode > RowCellGet.None)
+            {
+                await nextRow.GetCellsAsync(ct).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            nextRow.Dispose();
+            throw;
         }
 
         if (nextRow.RowOffset > CurrentRow)
@@ -274,11 +310,19 @@ internal sealed class XlsbSheetReader : IOpenXmlSheetReaderAsync
         }
 
         XlsbRow nextRow = CreateRowFromPool();
-        nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width);
-
-        if (cellGetMode > RowCellGet.None)
+        try
         {
-            nextRow.GetCells(ct);
+            nextRow.Initialize(_reader, _instanceContext, SheetDimensions.Width);
+
+            if (cellGetMode > RowCellGet.None)
+            {
+                nextRow.GetCells(ct);
+            }
+        }
+        catch
+        {
+            nextRow.Dispose();
+            throw;
         }
 
         if (nextRow.RowOffset > CurrentRow)
