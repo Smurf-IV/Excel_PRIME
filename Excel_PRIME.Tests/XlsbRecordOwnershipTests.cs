@@ -117,6 +117,36 @@ internal sealed class XlsbRecordOwnershipTests
     }
 
     [Test]
+    public void DisposingSharedStringsReleasesPendingLookaheadRecord()
+    {
+        CountingArrayPool<byte> pool = new();
+        using MemoryStream data = new(CreateSharedStringRecords(20));
+        XlsbLazyLoadSharedStrings strings = new(data, pool);
+        strings.Initialize(CancellationToken.None);
+
+        Assert.That(strings[0], Is.EqualTo("S0"));
+        Assert.That(pool.ActiveCount, Is.EqualTo(1));
+        strings.Dispose();
+
+        Assert.That(pool.ActiveCount, Is.Zero);
+        Assert.That(pool.RentCount, Is.EqualTo(pool.ReturnCount));
+    }
+
+    [Test]
+    public void SharedStringReadFailureReturnsCurrentRecordBuffer()
+    {
+        CountingArrayPool<byte> pool = new();
+        using ThrowAtEndStream source = new(CreateSharedStringRecords(1, includeEndRecord: false));
+        XlsbLazyLoadSharedStrings strings = new(source, pool);
+        strings.Initialize(CancellationToken.None);
+
+        Assert.Throws<IOException>(() => _ = strings[0]);
+        Assert.That(pool.ActiveCount, Is.Zero);
+        strings.Dispose();
+        Assert.That(pool.RentCount, Is.EqualTo(pool.ReturnCount));
+    }
+
+    [Test]
     public void MalformedSharedStringReturnsCurrentRecordBuffer()
     {
         CountingArrayPool<byte> pool = new();
@@ -175,7 +205,7 @@ internal sealed class XlsbRecordOwnershipTests
         return stream.ToArray();
     }
 
-    private static byte[] CreateSharedStringRecords(int count)
+    private static byte[] CreateSharedStringRecords(int count, bool includeEndRecord = true)
     {
         using MemoryStream stream = new();
         byte[] header = new byte[8];
@@ -185,7 +215,10 @@ internal sealed class XlsbRecordOwnershipTests
         {
             WriteRecord(stream, RecordTypeIdentifier.STRINGITEM, StringItemPayload($"S{index}"));
         }
-        WriteRecord(stream, RecordTypeIdentifier.SSTEND, []);
+        if (includeEndRecord)
+        {
+            WriteRecord(stream, RecordTypeIdentifier.SSTEND, []);
+        }
         return stream.ToArray();
     }
 
@@ -308,6 +341,29 @@ internal sealed class XlsbRecordOwnershipTests
                 throw new OperationCanceledException();
             }
             throw new IOException("Synthetic XLSB payload read failure.");
+        }
+    }
+
+    private sealed class ThrowAtEndStream(byte[] content) : MemoryStream(content)
+    {
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            ThrowIfAtEnd();
+            return base.Read(buffer, offset, Math.Min(count, 1));
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            ThrowIfAtEnd();
+            return base.Read(buffer[..Math.Min(buffer.Length, 1)]);
+        }
+
+        private void ThrowIfAtEnd()
+        {
+            if (Position >= Length)
+            {
+                throw new IOException("Synthetic XLSB end-of-stream read failure.");
+            }
         }
     }
 }

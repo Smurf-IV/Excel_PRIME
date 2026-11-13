@@ -99,10 +99,10 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
     private void LoadUntil(int untilIndex)
     {
         // Parse sequentially until we have loaded enough shared strings.
-        PooledRecordBuffer nextRecord = _reader.ReadNextRecord();
-        bool rolledBack = false;
+        PooledRecordBuffer? nextRecord = null;
         try
         {
+            nextRecord = _reader.ReadNextRecord();
             while (untilIndex >= _currentlyLoaded.Count
                    && nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
             {
@@ -111,21 +111,19 @@ internal sealed class XlsbLazyLoadSharedStrings : ISharedString
 
                 _currentlyLoaded.Add(str);
                 nextRecord.Dispose();
+                nextRecord = null;
                 nextRecord = _reader.ReadNextRecord();
             }
 
             if (nextRecord is { Succeeded: true, RecordType: RecordTypeIdentifier.STRINGITEM })
             {
                 _reader.RollBackLastRecord(nextRecord);
-                rolledBack = true;
+                nextRecord = null;
             }
         }
         finally
         {
-            if (!rolledBack)
-            {
-                nextRecord.Dispose();
-            }
+            nextRecord?.Dispose();
         }
     }
 

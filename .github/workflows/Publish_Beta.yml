@@ -48,16 +48,16 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ github.token }}
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    # - name: Build
+    #   run: dotnet build --configuration Release --no-restore
 
     # - name: Test  is done in the "Build and Test" github workflow
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Pack
-      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release --version-suffix Beta
+      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --configuration Release --version-suffix Beta
     - name: Pack
-      run: dotnet pack "ExcelFAST/ExcelFAST.csproj" --no-build --configuration Release --version-suffix Beta
+      run: dotnet pack "ExcelFAST/ExcelFAST.csproj" --configuration Release --version-suffix Beta
 
     - name: PushGithub
       run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}

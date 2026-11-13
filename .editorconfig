@@ -256,6 +256,8 @@ dotnet_style_null_propagation = true:suggestion
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1062.severity = none        # Validate arguments of public methods
 dotnet_diagnostic.CA1307.severity = none
+# CA1707: Remove the underscores from assembly name Excel_PRIME (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1707)
+dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA1860.severity = none
 
 # The EnumeratorCancellationAttribute applied to parameter 'ct' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable

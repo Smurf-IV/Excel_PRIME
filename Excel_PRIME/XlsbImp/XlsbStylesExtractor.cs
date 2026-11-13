@@ -272,7 +272,7 @@ internal sealed class XlsbStylesExtractor : IDisposable
             }
 
             using BufferedStream bufferedStream = new(styleStream, 64 * 1024);
-            XlsbStreamReader reader = new(bufferedStream);
+            using XlsbStreamReader reader = new(bufferedStream);
             await ParseStylesXlsbAsync(reader, ct).ConfigureAwait(false);
             // XlsbStreamReader doesn't own the stream, so no dispose needed
         }
