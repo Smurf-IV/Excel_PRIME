@@ -152,32 +152,32 @@ public readonly struct CellValue : IEquatable<CellValue>, ISpanFormattable, IFor
     }
 
     /// <summary>
-    /// Memory Overlay Method: The fastest possible scalar implementation.
-    /// It compiles down to highly optimised sequential register instructions with zero branching or division bottlenecks.
+    /// Memory Overlay Method: Determines whether the decimal value can be accurately represented as an IEEE 754 64-bit double
+    /// within standard double precision (up to 15 significant decimal digits / 53-bit mantissa).
+    /// Compiles down to highly optimised sequential register instructions with zero allocations across .NET 8 through .NET 11+.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static (bool, double) IsExactlyDouble(ref decimal d)
     {
-        // 1. Hardware-accelerated cast to double (takes ~1-2 CPU cycles)
         double db = (double)d;
 
-        // 2. Perform the reverse cast. .NET 8/9 heavily optimizes this 
-        // down to highly efficient internal runtime vector/register loops.
-        decimal roundTripped = (decimal)db;
-
-        // 3. CRITICAL OPTIMIZATION: Do NOT use `d == roundTripped`.
-        // The decimal '==' operator calls a heavy internal runtime function 
-        // that normalises scales and signs. Instead, do a raw 128-bit memory comparison.
+        // Memory overlay of Decimal struct:
+        // offset 0: flags (scale & sign), offset 4: hi32, offset 8: lo32, offset 12: mid32 (lo64)
         ref int left = ref Unsafe.As<decimal, int>(ref d);
-        ref int right = ref Unsafe.As<decimal, int>(ref roundTripped);
 
-        // Compare the 4 underlying 32-bit integers directly.
-        // The JIT transforms this into ultra-fast SIMD/vector or 64-bit register comparisons.
-        return (Unsafe.Add(ref left, 0) == Unsafe.Add(ref right, 0)
-                && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1)
-                && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2)
-                && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3),
-            db);
+        // If hi32 != 0, mantissa is >= 2^64 (> 1.84 x 10^19, i.e. >= 20 digits), exceeding double precision.
+        if (Unsafe.Add(ref left, 1) != 0)
+        {
+            return (false, db);
+        }
+
+        // Fast 64-bit load of the lower 64 bits of mantissa (lo32 | (mid32 << 32)).
+        ulong lo64 = Unsafe.As<int, ulong>(ref Unsafe.Add(ref left, 2));
+
+        // An IEEE 754 double has 53 bits of significand (9,007,199,254,740,992), guaranteeing exact representation
+        // for any integer mantissa up to 15 decimal digits (<= 999,999,999,999,999).
+        // Numbers with >15 digits (e.g. 2.2999999999999998) exceed this threshold and are retained as decimal.
+        return (lo64 <= 999_999_999_999_999UL, db);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]

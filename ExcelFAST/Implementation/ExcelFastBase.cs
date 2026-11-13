@@ -1,10 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
+using ExcelFAST.XlsbImp;
+using ExcelFAST.XlsxImp;
+
 using ExcelPRIME;
+using ExcelPRIME.Implementation;
 
 
 namespace ExcelFAST.Implementation;
@@ -18,9 +23,26 @@ public class ExcelFastBase : SheetFastBase, IExcelFast
 {
     private bool _isDisposed;
     private Stream? _fs;
-    private IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>(StringComparer.Ordinal);
+    /// <summary>
+    /// Sheet names mapped to their entry path in the archive.
+    /// </summary>
+    protected internal IReadOnlyDictionary<string /*sheetName*/, string /*pathOffsetSheet*/> _sheetNamesToPathOffset = new Dictionary<string, string>(StringComparer.Ordinal);
 
-    //private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
+    private IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
+
+    /// <summary>
+    /// Loads defined ranges from the workbook.
+    /// </summary>
+    public virtual IReadOnlyDictionary<string, DefinedRange> LoadDefinedRanges(CancellationToken ct)
+    {
+        using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
+        return wbr.GetDefinedRanges(_sheetNamesToPathOffset, ct);
+    }
+
+    /// <summary>
+    /// Creates a new format-specific row reader for range enumeration.
+    /// </summary>
+    protected virtual IRowFast CreateRowFast() => new RowFastXlsx();
 
     /// <InheritDoc />
     protected internal ExcelFastBase(IOpenXmlReaderHelpers xmlReader, IZipReader zipReader, IRowFast rowFast)
@@ -100,75 +122,118 @@ public class ExcelFastBase : SheetFastBase, IExcelFast
         return false;
     }
 
-    ///// <InheritDoc />
-    //public IEnumerable<CellValue[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
-    //{
-    //    if (_definedRanges == null)
-    //    {
-    //        // Lazy load on first use
-    //        using IOpenXmlWorkBookReader wbr = _xmlReaderHelper.CreateWorkBookReader(_zipReader, ct);
-    //        _definedRanges = wbr.GetDefinedRanges(_sheetNamesToPathOffset, ct);
-    //    }
+    /// <InheritDoc />
+    public IEnumerable<PooledCellView[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        if (_definedRanges == null)
+        {
+            // Lazy load on first use
+            _definedRanges = LoadDefinedRanges(ct);
+        }
 
-    //    DefinedRange? definedRange = null;
-    //    // Perhaps Caller is trying to use a localSheetId reference via `useThisSheetName`
-    //    if (!string.IsNullOrEmpty(useThisSheetName))
-    //    {
-    //        _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
-    //    }
-    //    // Maybe it is not an override of the `localSheetId`, so try the expected reference
-    //    if (definedRange == null)
-    //    {
-    //        if (!_definedRanges.TryGetValue(rangeName, out definedRange))
-    //        {
-    //            throw new KeyNotFoundException(
-    //                $"rangeName: [{rangeName}] and useThisSheetName :[{useThisSheetName}] combo not found");
-    //        }
-    //    }
+        DefinedRange? definedRange = null;
+        // Perhaps Caller is trying to use a localSheetId reference via `useThisSheetName`
+        if (!string.IsNullOrEmpty(useThisSheetName))
+        {
+            _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
+        }
+        // Maybe it is not an override of the `localSheetId`, so try the expected reference
+        if (definedRange == null)
+        {
+            if (!_definedRanges.TryGetValue(rangeName, out definedRange))
+            {
+                throw new KeyNotFoundException(
+                    $"rangeName: [{rangeName}] and useThisSheetName :[{useThisSheetName}] combo not found");
+            }
+        }
 
-    //    if (definedRange.ConstValue != null)
-    //    {
-    //        yield return [CellValue.Create(definedRange.ConstValue, -1)];
-    //        yield break;
-    //    }
+        if (definedRange.ConstValue != null)
+        {
+            yield return [new PooledCellView(new Cell(CellValue.Create(definedRange.ConstValue, -1), 0, CellType.InlineString))];
+            yield break;
+        }
 
-    //    string? definedRangeSheetName = useThisSheetName ?? definedRange.SheetName;
-    //    if (string.IsNullOrEmpty(definedRangeSheetName))
-    //    {
-    //        // range might be the following definition
-    //        // <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
-    //        // Or user has made a mistake
-    //        yield break;
-    //    }
+        string? definedRangeSheetName = useThisSheetName ?? definedRange.SheetName;
+        if (string.IsNullOrEmpty(definedRangeSheetName)
+            || !_sheetNamesToPathOffset.ContainsKey(definedRangeSheetName))
+        {
+            // range might be the following definition
+            // <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
+            // Or user has made a mistake
+            yield break;
+        }
 
-    //    using ISheet? targetSheet = GetSheet( definedRangeSheetName, false, ct);
-    //    if (targetSheet == null)
-    //    {
-    //        throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
-    //    }
+        if (!_sheetNamesToPathOffset.TryGetValue(definedRangeSheetName, out string? pathOffsetSheet))
+        {
+            throw new KeyNotFoundException($"{definedRangeSheetName} does not exist");
+        }
 
-    //    foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
-    //    {
-    //        yield return rowCells.Select(cell => cell.CellValue).ToArray();
-    //    }
-    //}
+        foreach (PooledCellView[] rowCells in EnumerateRange(definedRange, pathOffsetSheet, definedRangeSheetName, ct))
+        {
+            yield return rowCells;
+        }
+    }
 
+    /// <InheritDoc />
+    public IEnumerable<PooledCellView[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        if (!_sheetNamesToPathOffset.TryGetValue(sheetName, out string? pathOffsetSheet))
+        {
+            throw new KeyNotFoundException($"{sheetName} does not exist");
+        }
 
-    ///// <InheritDoc />
-    //public IEnumerable<CellValue[]> GetUserRange(string range, string sheetName, [EnumeratorCancellation] CancellationToken ct = default)
-    //{
-    //    using ISheet? targetSheet = GetSheet(sheetName, ct: ct);
-    //    if (targetSheet == null)
-    //    {
-    //        throw new KeyNotFoundException($"{sheetName} does not exist");
-    //    }
-    //    DefinedRange definedRange = new(range, sheetName);
+        DefinedRange definedRange = new(range, sheetName);
+        foreach (PooledCellView[] rowCells in EnumerateRange(definedRange, pathOffsetSheet, sheetName, ct))
+        {
+            yield return rowCells;
+        }
+    }
 
-    //    foreach (Cell[] rowCells in targetSheet.GetDefinedRange(definedRange, ct))
-    //    {
-    //        yield return rowCells.Select(cell => cell.CellValue).ToArray();
-    //    }
-    //}
+    private IEnumerable<PooledCellView[]> EnumerateRange(DefinedRange definedRange, string pathOffsetSheet, string sheetName, [EnumeratorCancellation] CancellationToken ct)
+    {
+        Stream stream = _zipReader.GetEntry(pathOffsetSheet, ct)!;
+        using Sheet sheet = new(stream, _xmlReaderHelper, sheetName, _instanceContext);
+        _ = sheet.SheetDimensions;
+
+        using IRowFast rowFast = CreateRowFast();
+        if (rowFast is RowFastXlsx rowFastXlsx)
+        {
+            rowFastXlsx.Attach(sheet._sheetReader as XmlSheetReader);
+        }
+        else if (rowFast is RowFastXlsb rowFastXlsb)
+        {
+            rowFastXlsb.Attach(sheet._sheetReader as XlsbSheetReader);
+        }
+
+        int colStart = definedRange.ExcelColumnStart;
+        int colEnd = definedRange.ExcelColumnEnd;
+        int length = colEnd - colStart + 1;
+        if (length <= 0)
+        {
+            yield break;
+        }
+
+        while (rowFast.GetNextRowData(ct))
+        {
+            if (ct.IsCancellationRequested || rowFast.CurrentRow > definedRange.ExcelRowEnd)
+            {
+                yield break;
+            }
+
+            if (rowFast.CurrentRow < definedRange.ExcelRowStart)
+            {
+                continue;
+            }
+
+            PooledCellView[] rowViews = new PooledCellView[length];
+            for (int i = 0; i < length; i++)
+            {
+                rowViews[i] = rowFast.GetCellAt(colStart + i, ct);
+            }
+
+            yield return rowViews;
+        }
+    }
 
     /// <InheritDoc />
 

@@ -23,6 +23,8 @@ namespace ExcelPRIME;
 public class Excel_PRIME : IExcel_PRIME
 {
     private bool _isDisposed;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CA1051 // Do not declare visible instance fields
     protected internal readonly IOpenXmlReaderHelpers _xmlReaderHelper;
     protected internal readonly IZipReader _zipReader;
     protected internal Stream? _fs;
@@ -31,6 +33,8 @@ public class Excel_PRIME : IExcel_PRIME
     protected internal readonly InstanceContext _instanceContext = new();
     internal readonly SemaphoreLocker _locker = new();
     protected internal IReadOnlyDictionary<string, DefinedRange>? _definedRanges;
+#pragma warning restore CA1051 // Do not declare visible instance fields
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <InheritDoc />
     public Excel_PRIME(IOpenXmlReaderHelpers? xmlReader = null, IZipReader? zipReader = null)

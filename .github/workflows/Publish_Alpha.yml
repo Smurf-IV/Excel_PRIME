@@ -36,6 +36,7 @@ jobs:
           8.x
           9.x
           10.x
+          11.x
         # Authenticates packages to push to GPR
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:

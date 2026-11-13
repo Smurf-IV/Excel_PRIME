@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 
 using ExcelPRIME.Implementation;
@@ -20,7 +19,7 @@ public class StylesExtractionExample
 
         // Open an Excel file
         using Excel_PRIME excel = new Excel_PRIME();
-        excel.Open("Sample.xlsx");
+        excel.Open("Sample.xlsx", ct: ct);
 
         // Get a sheet
         using ISheet? sheet = excel.GetSheet("Sheet1", ct: ct);
@@ -71,7 +70,7 @@ public class StylesExtractionExample
         CancellationToken ct = CancellationToken.None;
 
         using Excel_PRIME excel = new Excel_PRIME();
-        excel.Open("Sample.xlsx");
+        excel.Open("Sample.xlsx", ct: ct);
 
         // After opening, styles are automatically extracted and available in the instance context
         // You can access them programmatically if needed
@@ -122,7 +121,7 @@ public class NumberFormatExample
         CancellationToken ct = CancellationToken.None;
 
         using Excel_PRIME excel = new Excel_PRIME();
-        excel.Open("Sample.xlsx");
+        excel.Open("Sample.xlsx", ct: ct);
 
         using ISheet? sheet = excel.GetSheet("Sheet1", ct: ct);
         if (sheet == null)

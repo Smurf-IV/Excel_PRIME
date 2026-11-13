@@ -45,6 +45,7 @@ internal class ZipReader : IZipReader
         }
         finally
         {
+            targetStream.Flush();
             ArrayPool<byte>.Shared.Return(buffer);
         }
         return true;
@@ -109,7 +110,7 @@ internal sealed class ZipReaderAsync : ZipReader, IZipReaderAsync
 #endif
         await decompressor.CopyToAsync(targetStream, BufferSize, ct)
                 .ConfigureAwait(false);
-        await decompressor.FlushAsync(ct).ConfigureAwait(false);
+        await targetStream.FlushAsync(ct).ConfigureAwait(false);
         return true;
     }
 

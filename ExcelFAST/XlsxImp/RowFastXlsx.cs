@@ -109,10 +109,6 @@ internal sealed class RowFastXlsx : IRowFast
         }
 
         CurrentRow++;
-        if (_dimensions.Height > 0 && CurrentRow > _dimensions.Height)
-        {
-            return false;
-        }
 
         if (CurrentRow < _startRow)
         {

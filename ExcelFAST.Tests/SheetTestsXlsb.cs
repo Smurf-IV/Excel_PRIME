@@ -4,8 +4,6 @@ using System.IO;
 
 using AwesomeAssertions;
 
-using ExcelPRIME;
-
 using NUnit.Framework;
 
 

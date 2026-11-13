@@ -61,3 +61,5 @@ nunit-*.xml
 /.junie
 BenchmarkDotNet.Artifacts/
 /.localpilot/map.txt
+/Excel_PRIME.Bench/.bdn/2
+/Excel_PRIMEXlsb.Bench/.bdn/1

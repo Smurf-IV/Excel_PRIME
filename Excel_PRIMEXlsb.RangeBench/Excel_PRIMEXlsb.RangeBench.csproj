@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
 		<NeutralLanguage>en</NeutralLanguage>
 		<LangVersion>preview</LangVersion>
 		<OutputType>Exe</OutputType>
@@ -23,9 +23,13 @@
 		<!-- NEW in .NET 9: Dynamic PGO gets better -->
 		<TieredCompilationDynamicPgo>true</TieredCompilationDynamicPgo>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
+		<!-- Opt into .NET 11 Runtime Async (no EnablePreviewFeatures needed) -->
+		<Features>$(Features);runtime-async=on</Features>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Aspose.Cells" Version="26.10.0" />
+		<PackageReference Include="Aspose.Cells" Version="26.11.0" />
 		<PackageReference Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
 		<PackageReference Include="ClosedXML" Version="0.105.1" />
 		<PackageReference Include="EPPlus-LGPL" Version="4.5.3.14" />
@@ -36,9 +40,11 @@
 		<PackageReference Condition="'$(TargetFramework)' == 'net8.0'" Include="System.Security.Cryptography.Xml" Version="10.0.13" />
 		<PackageReference Condition="'$(TargetFramework)' == 'net9.0'" Include="System.Security.Cryptography.Xml" Version="10.0.13" />
 		<PackageReference Condition="'$(TargetFramework)' == 'net10.0'" Include="System.Security.Cryptography.Xml" Version="11.0.0" />
+		<PackageReference Condition="'$(TargetFramework)' == 'net11.0'" Include="System.Security.Cryptography.Xml" Version="11.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\ExcelFAST\ExcelFAST.csproj" />
 	  <ProjectReference Include="..\Excel_PRIME.RangeBench\Excel_PRIME.RangeBench.csproj" />
 	  <ProjectReference Include="..\Excel_PRIME\Excel_PRIME.csproj" />
 	</ItemGroup>

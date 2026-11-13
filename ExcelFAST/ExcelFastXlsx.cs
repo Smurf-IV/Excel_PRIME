@@ -20,4 +20,7 @@ public sealed class ExcelFastXlsx : ExcelFastBase, IExcelFast
             )
     {
     }
+
+    /// <inheritdoc />
+    protected override IRowFast CreateRowFast() => new RowFastXlsx();
 }

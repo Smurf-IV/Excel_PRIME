@@ -353,9 +353,16 @@ Lets take each of the above elements and explain:
     - Use `ReadOnlySpan<Cell>` instead of `ArraySegment<Cell>`
       - Using `foreach` over `ReadOnlySpan<Cell>` is guaranteed to be allocation-free and boxing-free.
       - If you need LINQ-style processing on a span without allocations, iterate using `for` or `foreach` directly over the span
-- ExcelFAST is a **new** interface implementation, that allows for the fastest possible reading of Excel files, with minimal memory usage and maximum performance.
-- Does not currently have implementations for Range extraction (as that requires a little thought on the memory rental!)
+- ✅ **ExcelFAST High-Throughput Subsystem**:
+    - ✅ Dedicated zero-allocation sequential reader pipeline (`IExcelFast`, `ISheetFast`, `IRowFast`).
+    - ✅ Format-specific implementations: `ExcelFastXlsx` for OpenXML (.xlsx) and `ExcelFastXlsb` for binary OpenXML (.xlsb).
+    - ✅ Array pooling integration (`ReadOnlySpan<Cell>`) with `PooledCellView` and thread-static buffers for zero GC allocation during hot iteration loops.
+    - ✅ Full support across .NET 8.0, .NET 9.0, and .NET 10.0.
+    - ✅ Integrated test suite and benchmarking coverage in `ExcelFAST.Tests`.
+- ✅ Add .Net11 TFM support
+- ✅ Performance Optimizations for Prime (See breaking changes above)
 - [ ] Investigate separate nuget for Excel_FAST
+- [ ] Add Range extraction to ExcelFAST
 
 
 -----

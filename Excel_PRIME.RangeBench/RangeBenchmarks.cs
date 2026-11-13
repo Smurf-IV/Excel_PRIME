@@ -14,6 +14,7 @@ public class RangeBenchmarks
     public IEnumerable<Type> Rangers() // for multiple arguments it's an IEnumerable of IGetRange's
     {
         yield return typeof(GRExcelPrime);
+        yield return typeof(GRExcelFastXlsx);
         yield return typeof(GRClosedXML);
         yield return typeof(GREPPlus);
         yield return typeof(GRFreeSpire);

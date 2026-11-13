@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
 		<NeutralLanguage>en</NeutralLanguage>
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
@@ -23,6 +23,10 @@
 		<TieredPGO>true</TieredPGO>
 		<!-- NEW in .NET 9: Dynamic PGO gets better -->
 		<TieredCompilationDynamicPgo>true</TieredCompilationDynamicPgo>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'" >
+		<!-- Opt into .NET 11 Runtime Async (no EnablePreviewFeatures needed) -->
+		<Features>$(Features);runtime-async=on</Features>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -51,10 +55,13 @@
 	  <ProjectReference Include="..\ExcelFAST\ExcelFAST.csproj" />
 	  <ProjectReference Include="..\Excel_PRIME.Bench\Excel_PRIME.Bench.csproj" />
 	  <ProjectReference Include="..\Excel_PRIMEXlsb.Bench\Excel_PRIMEXlsb.Bench.csproj" />
+	  <ProjectReference Include="..\Excel_PRIMEXlsb.RangeBench\Excel_PRIMEXlsb.RangeBench.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Data\" />
+		<None Include="..\Excel_PRIME.Tests\Data\**" Link="Data\%(RecursiveDir)%(Filename)%(Extension)">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>
