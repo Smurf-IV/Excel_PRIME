@@ -229,4 +229,21 @@ Job=ShortRun  IterationCount=3  LaunchCount=1  WarmupCount=3
 | ExcelFastXlsb                | sampl(...).xlsb [30] | 1.58x slower |  28000.0000 |          - |         - |   502.7 MB |  1.92x more |
 | PrlAsyncExcel_PrimeXlsbTwice | sampl(...).xlsb [30] | 5.18x slower | 205000.0000 |  1000.0000 |         - | 3684.71 MB | 14.05x more |
 ```
+.NET SDK 11.0.100
+  [Host] : .NET 10.0.15 (10.0.15, 10.0.1526.53008), X64 RyuJIT x86-64-v3
+
+Job=InProcess  Toolchain=InProcessEmitToolchain  MaxIterationCount=6
+MinIterationCount=1  WarmupCount=2
+
+| Method            | Mean     | Error   | Ratio | Allocated   | Alloc Ratio |
+|------------------ |---------:|--------:|------:|------------:|------------:|
+| Baseline          | 103.5 ms | 1.19 ms |  1.00 |   249.36 KB |        1.00 |
+| SylvanXlsx        | 149.5 ms | 2.04 ms |  1.44 |   667.18 KB |        2.68 |
+| PrimeFastXlsxType | 154.1 ms | 1.49 ms |  1.49 |  2758.31 KB |       11.06 |
+| SylvanXlsx_BindT  | 157.6 ms | 2.54 ms |  1.52 | 11933.15 KB |       47.86 |
+| PrimeFastXlsxObj  | 157.8 ms | 1.43 ms |  1.52 | 16971.75 KB |       68.06 |
+| SylvanXlsxObj     | 163.4 ms | 1.52 ms |  1.58 | 14474.02 KB |       58.04 |
+| PrimeXlsxType     | 183.1 ms | 3.29 ms |  1.77 |  2757.26 KB |       11.06 |
+| PrimeXlsxObj      | 188.5 ms | 3.27 ms |  1.82 | 16970.51 KB |       68.06 |
+| XlsxHelperXlsx    | 197.5 ms | 1.38 ms |  1.91 | 93306.14 KB |      374.18 |
 
