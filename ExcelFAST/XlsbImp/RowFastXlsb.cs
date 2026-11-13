@@ -307,7 +307,7 @@ internal sealed class RowFastXlsb : IRowFast
 
         if (values.Length > minLength)
         {
-            values.Slice(minLength).Clear();
+            values[minLength..].Clear();
         }
     }
 }

@@ -174,7 +174,7 @@ internal sealed class RowFastXlsx : IRowFast
                     break;
                 }
             }
-            _reader.MoveToElement();
+            _ = _reader.MoveToElement();
         }
         return rowOffset;
     }
@@ -329,7 +329,7 @@ internal sealed class RowFastXlsx : IRowFast
 
         if (values.Length > minLength)
         {
-            values.Slice(minLength).Clear();
+            values[minLength..].Clear();
         }
     }
 }

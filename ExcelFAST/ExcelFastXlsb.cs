@@ -84,7 +84,7 @@ public sealed class ExcelFastXlsb : ExcelFastBase, IExcelFast
                 }
                 else
                 {
-                    definedRanges.TryAdd(name, dr);
+                    _ = definedRanges.TryAdd(name, dr);
                 }
             }
 

@@ -13,14 +13,18 @@ namespace ExcelFAST.Implementation;
 /// </summary>
 public class SheetFastBase : ISheetFast, IRowFast, IDisposable
 {
+    /// <summary>XML reader helpers instance.</summary>
     protected internal readonly IOpenXmlReaderHelpers _xmlReaderHelper;
+    /// <summary>ZIP archive reader instance.</summary>
     protected internal readonly IZipReader _zipReader;
+    /// <summary>Instance context containing shared strings and styles.</summary>
     protected internal readonly InstanceContext _instanceContext = new();
 
     private readonly RowFastBase _rowFast;
 
     private Sheet? _activeSheet;
 
+    /// <summary>Initializes a new instance of <see cref="SheetFastBase"/>.</summary>
     protected internal SheetFastBase(IOpenXmlReaderHelpers xmlReader, IZipReader zipReader, IRowFast rowFast)
     {
         _xmlReaderHelper = xmlReader;

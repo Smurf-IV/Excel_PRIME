@@ -125,17 +125,14 @@ public class ExcelFastBase : SheetFastBase, IExcelFast
     /// <InheritDoc />
     public IEnumerable<PooledCellView[]> GetDefinedRange(string rangeName, string? useThisSheetName = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
-        if (_definedRanges == null)
-        {
-            // Lazy load on first use
-            _definedRanges = LoadDefinedRanges(ct);
-        }
+        // Lazy load on first use
+        _definedRanges ??= LoadDefinedRanges(ct);
 
         DefinedRange? definedRange = null;
         // Perhaps Caller is trying to use a localSheetId reference via `useThisSheetName`
         if (!string.IsNullOrEmpty(useThisSheetName))
         {
-            _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
+            _ = _definedRanges.TryGetValue(string.Concat(rangeName, " (", useThisSheetName, ")"), out definedRange);
         }
         // Maybe it is not an override of the `localSheetId`, so try the expected reference
         if (definedRange == null)

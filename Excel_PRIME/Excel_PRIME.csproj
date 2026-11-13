@@ -73,12 +73,16 @@
 		<VersionPrefix>6.$([System.DateTime]::UtcNow.ToString(yyMM)).$([System.DateTime]::UtcNow.ToString(dd))</VersionPrefix>
 		<!--<VersionSuffix>beta ... Do this is the yml file</VersionSuffix>-->
 		<PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../Release_Notes.md"))</PackageReleaseNotes>
+
+		<!-- SourceLink and Symbol Configuration -->
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageIcon>Excel.png</PackageIcon>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<EnableSourceLink Condition="'$(GITHUB_ACTIONS)' == 'true'">true</EnableSourceLink>
+		<EnableSourceControlManagerQueries>true</EnableSourceControlManagerQueries>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageIcon>Excel.png</PackageIcon>
 		<PackageReadmeFile>Package_ReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

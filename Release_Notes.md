@@ -1,5 +1,5 @@
 ﻿## 2026-11-13 - V6 - Excel_FAST - Beta
-- ✅ Add .Net11 TFM support
+- ✅ Add .Net11 TFM support across all four target frameworks (`net8.0`, `net9.0`, `net10.0`, `net11.0`)
 - Replaced the previous float round-trip memory comparison in CellValue.IsExactlyDouble with a fast memory-overlay check on the underlying 64-bit decimal mantissa (lo64 <= 999_999_999_999_999UL and hi == 0).
 
 ## 2026-11-12 - V6 - Excel_FAST - Alpha

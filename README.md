@@ -360,9 +360,10 @@ Lets take each of the above elements and explain:
     - ✅ Full support across .NET 8.0, .NET 9.0, and .NET 10.0.
     - ✅ Integrated test suite and benchmarking coverage in `ExcelFAST.Tests`.
 - ✅ Add .Net11 TFM support
+- Replaced the previous float round-trip memory comparison in CellValue.IsExactlyDouble with a fast memory-overlay check on the underlying 64-bit decimal mantissa (lo64 <= 999_999_999_999_999UL and hi == 0).
 - ✅ Performance Optimizations for Prime (See breaking changes above)
+- ✅ Add Range extraction to ExcelFAST
 - [ ] Investigate separate nuget for Excel_FAST
-- [ ] Add Range extraction to ExcelFAST
 
 
 -----
