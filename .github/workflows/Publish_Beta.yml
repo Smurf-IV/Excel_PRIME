@@ -60,7 +60,7 @@ jobs:
     - name: Pack ExcelFAST
       run: dotnet pack "ExcelFAST/ExcelFAST.csproj" --configuration Release --no-restore --version-suffix Beta
 
-    - name: PushGithub Excel_PRIME
+    - name: PushGithub Excel-PRIME
       run: dotnet nuget push **/Excel-PRIME.*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -76,7 +76,7 @@ jobs:
       with:
         user: ${{ secrets.NUGET_USER }}
 
-    - name: PushNuget Excel_PRIME
-      run: dotnet nuget push **/Excel-PRIME.*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate -v diagnostic
+    - name: PushNuget Excel-PRIME
+      run: dotnet  --verbosity diagnostic nuget push **/Excel-PRIME.*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
     - name: PushNuget ExcelFAST
-      run: dotnet nuget push **/ExcelFAST.*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate -v diagnostic
+      run: dotnet  --verbosity diagnostic nuget push **/ExcelFAST.*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
