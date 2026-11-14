@@ -6,6 +6,7 @@
     <File Path="Excel.ico" />
     <File Path="Excel.png" />
     <File Path="LICENSE" />
+    <File Path="nuget.config" />
     <File Path="Performance.md" />
     <File Path="README.md" />
     <File Path="Release_Notes.md" />
