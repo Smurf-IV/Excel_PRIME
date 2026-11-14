@@ -9,6 +9,7 @@ jobs:
   build:
 
     runs-on: windows-latest
+    environment: Main
     permissions: write-all
       # packages: write
       # contents: read
