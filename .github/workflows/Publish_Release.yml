@@ -47,20 +47,35 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ github.token }}
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    # - name: Build
+    #   run: dotnet build --configuration Release --no-restore
 
     # - name: Test
     #   run: dotnet test --no-build --configuration Release --verbosity normal
 
-    - name: Pack
-      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --no-build --configuration Release
+    - name: Pack Excel_PRIME
+      run: dotnet pack "Excel_PRIME/Excel_PRIME.csproj" --configuration Release --no-restore
+    - name: Pack ExcelFAST
+      run: dotnet pack "ExcelFAST/ExcelFAST.csproj" --configuration Release --no-restore
 
-    - name: PushGithub
-      run: dotnet nuget push **/*.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
+    - name: PushGithub Excel_PRIME
+      run: dotnet nuget push **/Excel_PRIME.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: PushGithub ExcelFAST
+      run: dotnet nuget push **/ExcelFAST.nupkg --no-symbols --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: PushNuget
-      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.Excel_PRIME_Publish }} --skip-duplicate
+    # Get a short-lived NuGet API key
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
+    - name: PushNuget Excel_PRIME
+      run: dotnet nuget push **/Excel_PRIME.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate -v diagnostic
+    - name: PushNuget ExcelFAST
+      run: dotnet nuget push **/ExcelFAST.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate -v diagnostic
 

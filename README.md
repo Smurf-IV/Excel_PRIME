@@ -14,7 +14,7 @@
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12) in V3.##
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12)
 - Zip Deflate format _Only_
 
 ## Performant 🚀

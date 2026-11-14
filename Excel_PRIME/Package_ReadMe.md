@@ -8,11 +8,12 @@
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
     - .Net9 gives an extra 5% boost, 
     - .Net10 Another 5% over .Net9 ;-)
+    - .Net11 Another 5% -> 10% (`async`'s ;-)) over .Net10 ;-)
 
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** in V3.##
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B**
 - Zip Deflate format _Only_
 
 ## Performant 🚀
