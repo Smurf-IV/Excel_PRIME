@@ -144,8 +144,10 @@ Lets take each of the above elements and explain:
   - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
 - [2026-05-12 - V4 - Bug fixes](#2026-05-12---v4---bug-fixes)
   - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting--performance-optimizations-️)
-  - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
-  - [Phase 7 - ideas 💡](#phase-7---ideas-)
+  - [2026-10-18 - V5 nuget update](#2026-10-18---v5-nuget-update)
+  - [Phase 6 - ExcelFAST](#phase-6---excelfast)
+  - [Phase 7 - Third Party Nugets 📦](#phase-7---third-party-nugets-)
+  - [Phase 8 - ideas 💡](#phase-8---ideas-)
 <!-- TOC -->
 
 -----
@@ -388,7 +390,7 @@ Lets take each of the above elements and explain:
 - ✅ Performance Optimizations for Prime (See breaking changes above)
 - ✅ Add Range extraction to ExcelFAST
 - Fixed XLSB pooled-record ownership so consumed records are returned promptly, rollback records remain valid until consumed or disposed, and parse/read failures do not strand rented buffers.
-- [ ] Investigate separate nuget for Excel_FAST
+- ✅ A separate nuget for ExcelFAST
 
 
 -----

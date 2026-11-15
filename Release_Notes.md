@@ -1,8 +1,4 @@
-﻿## 2026-11-13 - V6 - Excel_FAST - Beta
-- ✅ Add .Net11 TFM support across all four target frameworks (`net8.0`, `net9.0`, `net10.0`, `net11.0`)
-- Replaced the previous float round-trip memory comparison in CellValue.IsExactlyDouble with a fast memory-overlay check on the underlying 64-bit decimal mantissa (lo64 <= 999_999_999_999_999UL and hi == 0).
-
-## 2026-11-12 - V6 - Excel_FAST - Alpha
+﻿# 2026-11-15 - V6 - ExcelFAST
 - ⛓️‍💥 **Breaking Change(s)**
     - If you want to use `Async` then create a `new Excel_PRIMEAsync()`
     - Same applies to `Xlsb`
@@ -14,6 +10,9 @@
     - ✅ Array pooling integration (`ReadOnlySpan<Cell>`) with `PooledCellView` and thread-static buffers for zero GC allocation during hot iteration loops.
     - ✅ Full support across .NET 8.0, .NET 9.0, and .NET 10.0.
     - ✅ Integrated test suite and benchmarking coverage in `ExcelFAST.Tests`.
+- ✅ Add .Net11 TFM support across all four target frameworks (`net8.0`, `net9.0`, `net10.0`, `net11.0`)
+- Replaced the previous float round-trip memory comparison in CellValue.IsExactlyDouble with a fast memory-overlay check on the underlying 64-bit decimal mantissa (lo64 <= 999_999_999_999_999UL and hi == 0).
+- ✅ A separate nuget for ExcelFAST
 - ✅ Performance Optimizations for Prime (See breaking changes above)
 
 # 2026-10-18 - V5 nuget update
