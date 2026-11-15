@@ -43,7 +43,7 @@ public sealed class ExcelFastXlsb : ExcelFastBase, IExcelFast
         using BufferedStream streamWb = new(stream, 64 * 1024);
         XlsbStreamReader readerWb = new(streamWb);
 
-        Dictionary<string, DefinedRange> definedRanges = new(StringComparer.InvariantCultureIgnoreCase);
+        Dictionary<string, DefinedRange> definedRanges = [with(StringComparer.InvariantCultureIgnoreCase)];
         List<string>? sheetRefs = null;
 
         PooledRecordBuffer nextRecord = readerWb.ReadNextRecord();
