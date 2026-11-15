@@ -1,4 +1,6 @@
-﻿namespace ExcelPRIME;
+﻿using System.Collections.Generic;
+
+namespace ExcelPRIME;
 
 /// <summary>
 /// The type of cell as indicated by the Excel schema (Not interpreted)

@@ -1,4 +1,6 @@
-﻿using ExcelPRIME.FromExternal;
+﻿using System;
+
+using ExcelPRIME.FromExternal;
 
 namespace ExcelPRIME;
 

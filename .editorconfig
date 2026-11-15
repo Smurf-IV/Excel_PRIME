@@ -124,7 +124,7 @@ csharp_style_prefer_readonly_struct_member = true
 csharp_prefer_braces = true:silent
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_system_threading_lock = true:suggestion
-csharp_style_namespace_declarations = block_scoped:silent
+csharp_style_namespace_declarations = file_scoped:silent
 csharp_style_prefer_method_group_conversion = true:silent
 csharp_style_prefer_primary_constructors = true:suggestion
 csharp_style_prefer_simple_property_accessors = true:suggestion
@@ -256,10 +256,16 @@ dotnet_style_null_propagation = true:suggestion
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1062.severity = none        # Validate arguments of public methods
 dotnet_diagnostic.CA1307.severity = none
+# CA1707: Remove the underscores from assembly name Excel_PRIME (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1707)
+dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA1860.severity = none
 
 # The EnumeratorCancellationAttribute applied to parameter 'ct' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
 dotnet_diagnostic.CS8424.severity = none
+
+
+# warning IDE0301: Collection initialization can be simplified
+dotnet_diagnostic.IDE0301.severity = none
 
 
 [*Test*.cs]

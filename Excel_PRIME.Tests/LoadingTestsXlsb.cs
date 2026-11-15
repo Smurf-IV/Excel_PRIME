@@ -19,7 +19,7 @@ internal class LoadingTestsXlsb
     {
         Func<Task> sutMethod = async () =>
         {
-            using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb();
+            using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync();
             await workbook.OpenAsync(fileName).ConfigureAwait(false);
         };
 
@@ -32,7 +32,7 @@ internal class LoadingTestsXlsb
     [TestCase("Data/multipleemptysheets.xlsb")]
     public async Task A010_EmptyXlsx(string fileName)
     {
-        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().NotBeEmpty();
     }
@@ -43,7 +43,7 @@ internal class LoadingTestsXlsb
     {
         Func<Task> sutMethod = async () =>
         {
-            using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb();
+            using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync();
             await workbook.OpenAsync(fileName).ConfigureAwait(false);
         };
 
@@ -57,7 +57,7 @@ internal class LoadingTestsXlsb
     //{
     //    Func<Task> sutMethod = async () =>
     //    {
-    //        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb();
+    //        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync();
     //        await workbook.OpenAsync(fileName).ConfigureAwait(false);
     //    };
     //    await sutMethod.Should().ThrowAsync<ArgumentNullException> ().ConfigureAwait(false);
@@ -67,7 +67,7 @@ internal class LoadingTestsXlsb
     [TestCase("Data/verysimple.xlsb")]
     public async Task A040_DisposeReleasesFile(string fileName)
     {
-        using (IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb())
+        using (IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync())
         {
             await workbook.OpenAsync(fileName).ConfigureAwait(false);
             //read lock is held

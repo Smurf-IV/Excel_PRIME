@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -8,9 +10,9 @@ using ExcelPRIME.Implementation;
 
 namespace ExcelPRIME.XlsbImp;
 
-internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
+internal class XlsbReaderHelpers : IOpenXmlReaderHelpers
 {
-    private TempFile? _shareStrings;
+    protected internal TempFile? _shareStrings;
     public void Dispose()
     {
         // Dispose of the TempFile if it has been initialized
@@ -18,6 +20,63 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
         _shareStrings = null;
     }
     
+    /// <InheritDoc />
+    public ISharedString GetSharedStrings(IZipReader zipReader, bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
+    {
+        Stream? sharedStringsStream = null;
+        if (optionsAccessExcelFileInForwardOnlyMode)
+        {
+            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.bin", ct);
+        }
+        else
+        {
+            _shareStrings = new TempFile("sharedStrings.bin");
+            bool exists;
+            using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
+            {
+                exists = zipReader.CopyTo("xl/sharedStrings.bin", targetStream, ct);
+            }
+
+            if (exists)
+            {
+                sharedStringsStream = _shareStrings.OpenForAsyncRead();
+            }
+        }
+
+        // Check that the shared string actually exists
+        if (sharedStringsStream == null)
+        {
+            return new XlsbLazyLoadSharedStrings();
+        }
+
+        XlsbLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
+        sharedStrings.Initialize(ct);
+        return sharedStrings;
+    }
+
+
+    /// <InheritDoc />
+    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XlsbWorkBookReader(zipReader, ct);
+
+    /// <InheritDoc />
+    public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
+        XmlNameTable _, CancellationToken ct)
+    {
+        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
+        XlsbSheetReader reader = new(new BufferedStream(stream, 64 * 1024), instanceContext);
+        reader.Initialize(ct);
+        return reader;
+    }
+
+    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReader zipReader, CancellationToken ct)
+    {
+        using XlsbStylesExtractor extractor = new(zipReader);
+        return extractor.ExtractStyles(ct);
+    }
+}
+
+internal sealed class XlsbReaderHelpersAsync : XlsbReaderHelpers, IOpenXmlReaderHelpersAsync
+{
     /// <InheritDoc />
     public async Task<ISharedString> GetSharedStringsAsync(IZipReaderAsync zipReader,
         bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
@@ -56,51 +115,12 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     }
 
     /// <InheritDoc />
-    public ISharedString GetSharedStrings(IZipReader zipReader, bool optionsAccessExcelFileInForwardOnlyMode, CancellationToken ct)
-    {
-        Stream? sharedStringsStream = null;
-        if (optionsAccessExcelFileInForwardOnlyMode)
-        {
-            sharedStringsStream = zipReader.GetEntry("xl/sharedStrings.bin");
-        }
-        else
-        {
-            _shareStrings = new TempFile("sharedStrings.bin");
-            bool exists;
-            using (FileStream targetStream = _shareStrings.OpenForAsyncWrite())
-            {
-                exists = zipReader.CopyTo("xl/sharedStrings.bin", targetStream, ct);
-            }
-
-            if (exists)
-            {
-                sharedStringsStream = _shareStrings.OpenForAsyncRead();
-            }
-        }
-
-        // Check that the shared string actually exists
-        if (sharedStringsStream == null)
-        {
-            return new XlsbLazyLoadSharedStrings();
-        }
-
-        XlsbLazyLoadSharedStrings sharedStrings = new(sharedStringsStream);
-        sharedStrings.Initialize(ct);
-        return sharedStrings;
-    }
-
-
-    /// <InheritDoc />
     public async Task<IOpenXmlWorkBookReaderAsync> CreateWorkBookReaderAsync(IZipReaderAsync zipReader, CancellationToken ct)
     {
         XlsbWorkBookReaderAsync xlsbWorkBookReaderAsync = new XlsbWorkBookReaderAsync(zipReader);
         await xlsbWorkBookReaderAsync.InitializeAsync(ct).ConfigureAwait(false);
         return xlsbWorkBookReaderAsync;
     }
-
-    /// <InheritDoc />
-    public IOpenXmlWorkBookReader CreateWorkBookReader(IZipReader zipReader, CancellationToken ct) => new XlsbWorkBookReader(zipReader, ct);
-
 
     /// <InheritDoc />
     public async Task<IOpenXmlSheetReaderAsync> CreateSheetReaderAsync(NonClosingStream stream,
@@ -118,21 +138,5 @@ internal sealed class XlsbReaderHelpersAsync : IOpenXmlReaderHelpersAsync
     {
         using XlsbStylesExtractor extractor = new(zipReader);
         return await extractor.ExtractStylesAsync(ct).ConfigureAwait(false);
-    }
-
-    /// <InheritDoc />
-    public IOpenXmlSheetReader CreateSheetReader(NonClosingStream stream, InstanceContext instanceContext,
-        XmlNameTable _, CancellationToken ct)
-    {
-        // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
-        XlsbSheetReader reader = new(new BufferedStream(stream, 64 * 1024), instanceContext);
-        reader.Initialize(ct);
-        return reader;
-    }
-
-    public IReadOnlyDictionary<short, CellStyle> GetExtractStyles(IZipReaderAsync zipReader, CancellationToken ct)
-    {
-        using XlsbStylesExtractor extractor = new(zipReader);
-        return extractor.ExtractStyles(ct);
     }
 }

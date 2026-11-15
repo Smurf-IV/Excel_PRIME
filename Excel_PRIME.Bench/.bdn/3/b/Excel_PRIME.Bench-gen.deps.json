@@ -1,0 +1,796 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Excel_PRIME.Bench-gen/1.0.0": {
+        "dependencies": {
+          "ExcelFAST.Reference": "5.2611.12.0",
+          "Excel_PRIME.Bench.Reference": "1.0.0.0",
+          "Excel_PRIME": "6.2611.12.0"
+        },
+        "runtime": {
+          "Excel_PRIME.Bench-gen.dll": {}
+        }
+      },
+      "Azure.Core/1.53.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "10.0.11",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.3",
+          "Microsoft.Identity.Client": "4.83.1",
+          "Microsoft.Identity.Client.Extensions.Msal": "4.83.1",
+          "System.ClientModel": "1.10.0",
+          "System.Memory.Data": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Azure.Core.dll": {
+            "assemblyVersion": "1.53.0.0",
+            "fileVersion": "1.5300.26.21006",
+            "localPath": "Azure.Core.dll"
+          }
+        }
+      },
+      "Azure.Identity/1.21.0": {
+        "dependencies": {
+          "Azure.Core": "1.53.0"
+        },
+        "runtime": {
+          "lib/net10.0/Azure.Identity.dll": {
+            "assemblyVersion": "1.21.0.0",
+            "fileVersion": "1.2100.26.21009",
+            "localPath": "Azure.Identity.dll"
+          }
+        }
+      },
+      "BenchmarkDotNet/0.16.0-preview.2": {
+        "dependencies": {
+          "BenchmarkDotNet.Annotations": "0.16.0-preview.2",
+          "CommandLineParser": "2.9.1",
+          "Gee.External.Capstone": "2.3.0",
+          "Iced": "1.21.0",
+          "Microsoft.Bcl.AsyncInterfaces": "10.0.11",
+          "Microsoft.CodeAnalysis.CSharp": "5.6.0",
+          "Microsoft.Diagnostics.Runtime": "4.1.745802",
+          "Microsoft.Diagnostics.Tracing.TraceEvent": "3.2.5",
+          "Perfolizer": "0.7.5",
+          "deniszykov.WebSocketListener": "4.2.19"
+        },
+        "runtime": {
+          "lib/net10.0/BenchmarkDotNet.dll": {
+            "assemblyVersion": "0.16.0.0",
+            "fileVersion": "0.16.0.0",
+            "localPath": "BenchmarkDotNet.dll"
+          }
+        }
+      },
+      "BenchmarkDotNet.Annotations/0.16.0-preview.2": {
+        "runtime": {
+          "lib/netstandard2.0/BenchmarkDotNet.Annotations.dll": {
+            "assemblyVersion": "0.16.0.0",
+            "fileVersion": "0.16.0.0",
+            "localPath": "BenchmarkDotNet.Annotations.dll"
+          }
+        }
+      },
+      "CommandLineParser/2.9.1": {
+        "runtime": {
+          "lib/netstandard2.0/CommandLine.dll": {
+            "assemblyVersion": "2.9.1.0",
+            "fileVersion": "2.9.1.0",
+            "localPath": "CommandLine.dll"
+          }
+        }
+      },
+      "deniszykov.WebSocketListener/4.2.19": {
+        "runtime": {
+          "lib/netstandard2.0/deniszykov.WebSocketListener.dll": {
+            "assemblyVersion": "4.2.19.0",
+            "fileVersion": "4.2.19.0",
+            "localPath": "deniszykov.WebSocketListener.dll"
+          }
+        }
+      },
+      "FastExcel/3.0.13": {
+        "runtime": {
+          "lib/netstandard2.0/FastExcel.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0",
+            "localPath": "FastExcel.dll"
+          }
+        }
+      },
+      "Gee.External.Capstone/2.3.0": {
+        "runtime": {
+          "lib/net7.0/Gee.External.Capstone.dll": {
+            "assemblyVersion": "2.3.0.0",
+            "fileVersion": "2.3.0.0",
+            "localPath": "Gee.External.Capstone.dll"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win-x64/native/capstone.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x64/native/capstone.dll"
+          }
+        }
+      },
+      "Iced/1.21.0": {
+        "runtime": {
+          "lib/netstandard2.1/Iced.dll": {
+            "assemblyVersion": "1.21.0.0",
+            "fileVersion": "1.21.0.0",
+            "localPath": "Iced.dll"
+          }
+        }
+      },
+      "Microsoft.Bcl.AsyncInterfaces/10.0.11": {
+        "runtime": {
+          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
+            "assemblyVersion": "10.0.0.11",
+            "fileVersion": "10.0.1126.37416",
+            "localPath": "Microsoft.Bcl.AsyncInterfaces.dll"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis.Common/5.6.0": {
+        "runtime": {
+          "lib/net10.0/Microsoft.CodeAnalysis.dll": {
+            "assemblyVersion": "5.6.0.0",
+            "fileVersion": "5.600.26.26310",
+            "localPath": "Microsoft.CodeAnalysis.dll"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp/5.6.0": {
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Common": "5.6.0"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.CodeAnalysis.CSharp.dll": {
+            "assemblyVersion": "5.6.0.0",
+            "fileVersion": "5.600.26.26310",
+            "localPath": "Microsoft.CodeAnalysis.CSharp.dll"
+          }
+        }
+      },
+      "Microsoft.Diagnostics.NETCore.Client/0.2.661903": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Diagnostics.NETCore.Client.dll": {
+            "assemblyVersion": "0.2.13.11903",
+            "fileVersion": "0.2.13.11903",
+            "localPath": "Microsoft.Diagnostics.NETCore.Client.dll"
+          }
+        }
+      },
+      "Microsoft.Diagnostics.Runtime/4.1.745802": {
+        "dependencies": {
+          "Azure.Identity": "1.21.0",
+          "Microsoft.Diagnostics.NETCore.Client": "0.2.661903"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Diagnostics.Runtime.dll": {
+            "assemblyVersion": "4.1.14.45802",
+            "fileVersion": "4.1.14.45802",
+            "localPath": "Microsoft.Diagnostics.Runtime.dll"
+          }
+        }
+      },
+      "Microsoft.Diagnostics.Tracing.TraceEvent/3.2.5": {
+        "dependencies": {
+          "Microsoft.Diagnostics.NETCore.Client": "0.2.661903"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Dia2Lib.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0",
+            "localPath": "Dia2Lib.dll"
+          },
+          "lib/netstandard2.0/Microsoft.Diagnostics.FastSerialization.dll": {
+            "assemblyVersion": "3.2.5.0",
+            "fileVersion": "3.2.5.0",
+            "localPath": "Microsoft.Diagnostics.FastSerialization.dll"
+          },
+          "lib/netstandard2.0/Microsoft.Diagnostics.Tracing.TraceEvent.dll": {
+            "assemblyVersion": "3.2.5.0",
+            "fileVersion": "3.2.5.0",
+            "localPath": "Microsoft.Diagnostics.Tracing.TraceEvent.dll"
+          },
+          "lib/netstandard2.0/TraceReloggerLib.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0",
+            "localPath": "TraceReloggerLib.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Configuration.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.3": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Diagnostics.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Options": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Diagnostics.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Diagnostics.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.FileProviders.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Hosting.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.3",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Diagnostics.Abstractions": "10.0.3",
+          "Microsoft.Extensions.FileProviders.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Hosting.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Logging.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Options/10.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Primitives": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Options.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Options.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Primitives/10.0.3": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Primitives.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "Microsoft.Extensions.Primitives.dll"
+          }
+        }
+      },
+      "Microsoft.Identity.Client/4.83.1": {
+        "dependencies": {
+          "Microsoft.IdentityModel.Abstractions": "8.14.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Identity.Client.dll": {
+            "assemblyVersion": "4.83.1.0",
+            "fileVersion": "4.83.1.0",
+            "localPath": "Microsoft.Identity.Client.dll"
+          }
+        }
+      },
+      "Microsoft.Identity.Client.Extensions.Msal/4.83.1": {
+        "dependencies": {
+          "Microsoft.Identity.Client": "4.83.1",
+          "System.Security.Cryptography.ProtectedData": "4.5.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll": {
+            "assemblyVersion": "4.83.1.0",
+            "fileVersion": "4.83.1.0",
+            "localPath": "Microsoft.Identity.Client.Extensions.Msal.dll"
+          }
+        }
+      },
+      "Microsoft.IdentityModel.Abstractions/8.14.0": {
+        "runtime": {
+          "lib/net9.0/Microsoft.IdentityModel.Abstractions.dll": {
+            "assemblyVersion": "8.14.0.0",
+            "fileVersion": "8.14.0.60815",
+            "localPath": "Microsoft.IdentityModel.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers/18.13.37903.2": {
+        "dependencies": {
+          "BenchmarkDotNet": "0.16.0-preview.2"
+        },
+        "runtime": {
+          "lib/netstandard2.0/DiagnosticsHub.StandardCollector.Host.Interop.dll": {
+            "assemblyVersion": "18.0.0.0",
+            "fileVersion": "18.13.37903.2",
+            "localPath": "DiagnosticsHub.StandardCollector.Host.Interop.dll"
+          },
+          "lib/netstandard2.0/Microsoft.VisualStudio.Interop.dll": {
+            "assemblyVersion": "18.0.0.0",
+            "fileVersion": "18.13.844.33593",
+            "localPath": "Microsoft.VisualStudio.Interop.dll"
+          },
+          "lib/netstandard2.0/VSDiagnostics.BenchmarkDotNet.dll": {
+            "assemblyVersion": "18.0.0.0",
+            "fileVersion": "18.13.37903.2",
+            "localPath": "VSDiagnostics.BenchmarkDotNet.dll"
+          }
+        }
+      },
+      "Perfolizer/0.7.5": {
+        "dependencies": {
+          "Pragmastat": "14.0.1"
+        },
+        "runtime": {
+          "lib/net6.0/Perfolizer.dll": {
+            "assemblyVersion": "0.7.5.0",
+            "fileVersion": "0.7.5.0",
+            "localPath": "Perfolizer.dll"
+          }
+        }
+      },
+      "Pragmastat/14.0.1": {
+        "runtime": {
+          "lib/net10.0/Pragmastat.dll": {
+            "assemblyVersion": "14.0.1.0",
+            "fileVersion": "14.0.1.0",
+            "localPath": "Pragmastat.dll"
+          }
+        }
+      },
+      "Sylvan.Data.Excel/0.5.8": {
+        "runtime": {
+          "lib/net8.0/Sylvan.Data.Excel.dll": {
+            "assemblyVersion": "0.5.8.0",
+            "fileVersion": "0.5.8.0",
+            "localPath": "Sylvan.Data.Excel.dll"
+          }
+        }
+      },
+      "System.ClientModel/1.10.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3",
+          "System.Memory.Data": "10.0.3"
+        },
+        "runtime": {
+          "lib/net10.0/System.ClientModel.dll": {
+            "assemblyVersion": "1.10.0.0",
+            "fileVersion": "1.1000.26.16607",
+            "localPath": "System.ClientModel.dll"
+          }
+        }
+      },
+      "System.Formats.Asn1/11.0.0": {
+        "runtime": {
+          "lib/net10.0/System.Formats.Asn1.dll": {
+            "assemblyVersion": "11.0.0.0",
+            "fileVersion": "11.0.26.53018",
+            "localPath": "System.Formats.Asn1.dll"
+          }
+        }
+      },
+      "System.Memory.Data/10.0.3": {
+        "runtime": {
+          "lib/net10.0/System.Memory.Data.dll": {
+            "assemblyVersion": "10.0.0.3",
+            "fileVersion": "10.0.326.7603",
+            "localPath": "System.Memory.Data.dll"
+          }
+        }
+      },
+      "System.Security.Cryptography.Pkcs/11.0.0": {
+        "dependencies": {
+          "System.Formats.Asn1": "11.0.0"
+        },
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "assemblyVersion": "11.0.0.0",
+            "fileVersion": "11.0.26.53018",
+            "localPath": "System.Security.Cryptography.Pkcs.dll"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "11.0.0.0",
+            "fileVersion": "11.0.26.53018",
+            "localPath": "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll"
+          }
+        }
+      },
+      "System.Security.Cryptography.ProtectedData/4.5.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll": {
+            "assemblyVersion": "4.0.3.0",
+            "fileVersion": "4.6.26515.6",
+            "localPath": "System.Security.Cryptography.ProtectedData.dll"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "4.0.3.0",
+            "fileVersion": "4.6.26515.6",
+            "localPath": "runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll"
+          }
+        }
+      },
+      "System.Security.Cryptography.Xml/11.0.0": {
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "11.0.0"
+        },
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Xml.dll": {
+            "assemblyVersion": "11.0.0.0",
+            "fileVersion": "11.0.26.53018",
+            "localPath": "System.Security.Cryptography.Xml.dll"
+          }
+        }
+      },
+      "XlsxHelper/2.1.0": {
+        "runtime": {
+          "lib/net6.0/XlsxHelper.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.0.0",
+            "localPath": "XlsxHelper.dll"
+          }
+        }
+      },
+      "ExcelFAST.Reference/5.2611.12.0": {
+        "runtime": {
+          "ExcelFAST.dll": {
+            "assemblyVersion": "5.2611.12.0",
+            "fileVersion": "5.2611.12.0"
+          }
+        }
+      },
+      "Excel_PRIME.Bench.Reference/1.0.0.0": {
+        "runtime": {
+          "Excel_PRIME.Bench.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Excel_PRIME/6.2611.12.0": {
+        "runtime": {
+          "Excel_PRIME.dll": {
+            "assemblyVersion": "6.2611.12.0",
+            "fileVersion": "6.2611.12.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Excel_PRIME.Bench-gen/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Azure.Core/1.53.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-x9c/toFMOtRrlTdFuE7rlGCVAduQzWVfKmLz5juj41zJAXEhYD5hluiUyyAEzJ6OxpBnKtiaBztzwpZITAVjtg==",
+      "path": "azure.core/1.53.0",
+      "hashPath": "azure.core.1.53.0.nupkg.sha512"
+    },
+    "Azure.Identity/1.21.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GeFv8sGwRKvDKwI2WFy8r0mhmlxEVZg24Sit2NogTjiSO8RVjllWM65OT6e1sKjOvG8V74y7hAbaELUUPjZQSw==",
+      "path": "azure.identity/1.21.0",
+      "hashPath": "azure.identity.1.21.0.nupkg.sha512"
+    },
+    "BenchmarkDotNet/0.16.0-preview.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5bC59TsJDtEMgRs45rwily6iuFFCkRCFCieGZI9+9lmM+GxFlP3nXVE1/whAC36HisUPPfTnKwBVngA2ZYcTCg==",
+      "path": "benchmarkdotnet/0.16.0-preview.2",
+      "hashPath": "benchmarkdotnet.0.16.0-preview.2.nupkg.sha512"
+    },
+    "BenchmarkDotNet.Annotations/0.16.0-preview.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-V+D1LCrn63UbeG8qQvoJiDTujP5Cb+yE5G4tTCUDqgQq8VxM7gk82+GtZSlF1/fpzQ6Wkt44LK30+RphvUBdWQ==",
+      "path": "benchmarkdotnet.annotations/0.16.0-preview.2",
+      "hashPath": "benchmarkdotnet.annotations.0.16.0-preview.2.nupkg.sha512"
+    },
+    "CommandLineParser/2.9.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OE0sl1/sQ37bjVsPKKtwQlWDgqaxWgtme3xZz7JssWUzg5JpMIyHgCTY9MVMxOg48fJ1AgGT3tgdH5m/kQ5xhA==",
+      "path": "commandlineparser/2.9.1",
+      "hashPath": "commandlineparser.2.9.1.nupkg.sha512"
+    },
+    "deniszykov.WebSocketListener/4.2.19": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Mt7/Bs3kyaXIkJrboodz9N3Fe+Ricm5J9S3UNP66UpyECTqYW3a7EJHXJf1qVLjHAIqqHkhpSOJ46U5qI1sUfA==",
+      "path": "deniszykov.websocketlistener/4.2.19",
+      "hashPath": "deniszykov.websocketlistener.4.2.19.nupkg.sha512"
+    },
+    "FastExcel/3.0.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-v0gF9hMHBiAucW4xWXbB/KGQurTTbSCSQY2Y9C9oVNlR+9QCEyWAXhHtG+LhpLZPq+BML8IXYqP0Mkdpzj9TKQ==",
+      "path": "fastexcel/3.0.13",
+      "hashPath": "fastexcel.3.0.13.nupkg.sha512"
+    },
+    "Gee.External.Capstone/2.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2ap/rYmjtzCOT8hxrnEW/QeiOt+paD8iRrIcdKX0cxVwWLFa1e+JDBNeECakmccXrSFeBQuu5AV8SNkipFMMMw==",
+      "path": "gee.external.capstone/2.3.0",
+      "hashPath": "gee.external.capstone.2.3.0.nupkg.sha512"
+    },
+    "Iced/1.21.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dv5+81Q1TBQvVMSOOOmRcjJmvWcX3BZPZsIq31+RLc5cNft0IHAyNlkdb7ZarOWG913PyBoFDsDXoCIlKmLclg==",
+      "path": "iced/1.21.0",
+      "hashPath": "iced.1.21.0.nupkg.sha512"
+    },
+    "Microsoft.Bcl.AsyncInterfaces/10.0.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pUkYI1f99hY9giu/MRaEVN53RO7skXwR7FGtVvFJCK5ezdg5i0W+z1yj/91X5aKv07xGuSB5n1g/Zt2P4Ooq6g==",
+      "path": "microsoft.bcl.asyncinterfaces/10.0.11",
+      "hashPath": "microsoft.bcl.asyncinterfaces.10.0.11.nupkg.sha512"
+    },
+    "Microsoft.CodeAnalysis.Common/5.6.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eWYNB5e92PSdkQ0xcmy2aLtrvBXNydnVi0Hj/VjaAely6XBqA3By+ClGAJaj4d16pzQmrXPLLK9RDVuS1Ec9xQ==",
+      "path": "microsoft.codeanalysis.common/5.6.0",
+      "hashPath": "microsoft.codeanalysis.common.5.6.0.nupkg.sha512"
+    },
+    "Microsoft.CodeAnalysis.CSharp/5.6.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-r1DrKQ/L0xTw03wJrLr36AMQNslyaeEKBFyFmQcOKa8HX3YvmhY//JEUafb6IR/m0gmaUVCfBTWitKJRNb7YAA==",
+      "path": "microsoft.codeanalysis.csharp/5.6.0",
+      "hashPath": "microsoft.codeanalysis.csharp.5.6.0.nupkg.sha512"
+    },
+    "Microsoft.Diagnostics.NETCore.Client/0.2.661903": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3ISv5jXar4dHBt/7Rz3YdnR3VpnC94BhSdSvuq8ZuKgCOcVuTdmgRnq0hUzJyL/z8Ge4VekFjhui2aufUXPdvg==",
+      "path": "microsoft.diagnostics.netcore.client/0.2.661903",
+      "hashPath": "microsoft.diagnostics.netcore.client.0.2.661903.nupkg.sha512"
+    },
+    "Microsoft.Diagnostics.Runtime/4.1.745802": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2rAGwsWz6eX8T9wXzkfBZH8sKOlq+YKLd7HaEIHn9iK/TL0mNn43ial6Li5VmLl8pzC2OATNPhI3q3ZS9mw9vg==",
+      "path": "microsoft.diagnostics.runtime/4.1.745802",
+      "hashPath": "microsoft.diagnostics.runtime.4.1.745802.nupkg.sha512"
+    },
+    "Microsoft.Diagnostics.Tracing.TraceEvent/3.2.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dVHew6DC1WpSrG2fUKg8bLvhr5/9mug41MJtcws4fKLJ4V9Kd2610PYg0mFd837YvJwvwWTYQlGBbWvRZHs2mg==",
+      "path": "microsoft.diagnostics.tracing.traceevent/3.2.5",
+      "hashPath": "microsoft.diagnostics.tracing.traceevent.3.2.5.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xVDHL0+SIgemfh95fTO9cGLe17TWv/ZP0n7m01z8X6pzt2DmQpucioWR/mYZA1sRlkWnkXzfl0JweLNWmE9WMg==",
+      "path": "microsoft.extensions.configuration.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.configuration.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bwGMrRcAMWx2s/RDgja97p27rxSz2pEQW0+rX5cWAUWVETVJ/eyxGfjAl8vuG5a+lckWmPIE+vcuaZNVB5YDdw==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Diagnostics.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mQiTzAj7PIJ2A9YXR5QhgulS1fTWhmQc3ckd1Mrf3hKW07d03fBDqx8vVaFw+cRTebDOeB6pNqdWdnRxsi1hBA==",
+      "path": "microsoft.extensions.diagnostics.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.diagnostics.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4TD9AXDRsipTmaemwnjt/DM5Ri0de2JzHQhvZ4woBTjUtL4XrPNsMrOk5oiLJAx1gTrE6pOIhxv+lEde5F6CZA==",
+      "path": "microsoft.extensions.fileproviders.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.fileproviders.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Hosting.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GdMpC10Jf6poxSvUJ4lgYpJ5F/kJeaAoJmrPufjBoPYyCTKKY5Dyl0rZA+LBNvFqTq1cZa/lhlptlUhNvU6xrg==",
+      "path": "microsoft.extensions.hosting.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.hosting.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lxl0WLk7ROgBFAsjcOYjQ8/DVK+VMszxGBzUhgtQmAsTNldLL5pk9NG/cWTsXHq0lUhUEAtZkEE7jOGOA8bGKQ==",
+      "path": "microsoft.extensions.logging.abstractions/10.0.3",
+      "hashPath": "microsoft.extensions.logging.abstractions.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Options/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hU6WzGTPvPoLA2ng1ILvWQb3g0qORdlHNsxI8IcPLumJb3suimYUl+bbDzdo1V4KFsvVhnMWzysHpKbZaoDQPQ==",
+      "path": "microsoft.extensions.options/10.0.3",
+      "hashPath": "microsoft.extensions.options.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Primitives/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GEcpTwo7sUoLGGNTqV1FZEuL+tTD9m81NX/mh099dqGNna07/UGZShKQNZRw4hv6nlliSUwYQgSYc7OR99Jufg==",
+      "path": "microsoft.extensions.primitives/10.0.3",
+      "hashPath": "microsoft.extensions.primitives.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Identity.Client/4.83.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jOLIrZ3cynoqHLLO1cXplFFabrhrMEYs/EuKHvmCyrOm1axqiVFT6nCSnHxk7w5+d2BeQfCdM12Yf/0X7OeS1g==",
+      "path": "microsoft.identity.client/4.83.1",
+      "hashPath": "microsoft.identity.client.4.83.1.nupkg.sha512"
+    },
+    "Microsoft.Identity.Client.Extensions.Msal/4.83.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-I3k4J4Hj4KbLEFanjeUzzDOVecukETaTgEkJ7h2pP/Yazs6SLp6TVUTo/Eo+ptPXMwvc+iX7rBFtMSUrA7R+Mg==",
+      "path": "microsoft.identity.client.extensions.msal/4.83.1",
+      "hashPath": "microsoft.identity.client.extensions.msal.4.83.1.nupkg.sha512"
+    },
+    "Microsoft.IdentityModel.Abstractions/8.14.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iwbCpSjD3ehfTwBhtSNEtKPK0ICun6ov7Ibx6ISNA9bfwIyzI2Siwyi9eJFCJBwxowK9xcA1mj+jBWiigeqgcQ==",
+      "path": "microsoft.identitymodel.abstractions/8.14.0",
+      "hashPath": "microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512"
+    },
+    "Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers/18.13.37903.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HjTFIyA/ubcxKAWbA2fvXeyqz8iJwEpHZUCrgXyAOlerSmk6HeON2gidknJTs5TIIxqQeC9m0S5nxcCcqPJoEA==",
+      "path": "microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers/18.13.37903.2",
+      "hashPath": "microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers.18.13.37903.2.nupkg.sha512"
+    },
+    "Perfolizer/0.7.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UQArE0sehmPulzxUVePEOZFvUwzAC0MLEOy6N1Ihb3ElMRPqBMLolnuYAkVUbldWJjtLjSnGAs/vc9gkORA+kQ==",
+      "path": "perfolizer/0.7.5",
+      "hashPath": "perfolizer.0.7.5.nupkg.sha512"
+    },
+    "Pragmastat/14.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CllI2zw44GpE95eN09GSDZIG5pEg1WYp5NYq7eOh7JkGcdcOh9WtwLXK+1KiqQLZ8NJoZSeKd57nSZObObrALA==",
+      "path": "pragmastat/14.0.1",
+      "hashPath": "pragmastat.14.0.1.nupkg.sha512"
+    },
+    "Sylvan.Data.Excel/0.5.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LHv82PtI577UG4gVgvWp9m40nowSBYrjZ6BAnWbfx++sRSugBFUODkxJWMwtZ7g4XI5lZE6I6oJu0DRP1yoZaA==",
+      "path": "sylvan.data.excel/0.5.8",
+      "hashPath": "sylvan.data.excel.0.5.8.nupkg.sha512"
+    },
+    "System.ClientModel/1.10.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lBEWs54F5Y5pZ9hC+8z4S/X76957ex+DPk7WecRHlbIHtrPfbRMMlOgI3iDn4Jpb3bSxvBnKaaHoD59auFjlBA==",
+      "path": "system.clientmodel/1.10.0",
+      "hashPath": "system.clientmodel.1.10.0.nupkg.sha512"
+    },
+    "System.Formats.Asn1/11.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RSIrJ7D8gEHykZWTfS/r9tz/G5YpxIQAaFFXSLLHhVaRed+/26KvqaXvUtqqMJMlNjubAcMvf3UJ+E6ABT8AWw==",
+      "path": "system.formats.asn1/11.0.0",
+      "hashPath": "system.formats.asn1.11.0.0.nupkg.sha512"
+    },
+    "System.Memory.Data/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MaGhRfGunmrj/nHjtsi9XkhlYJ/ERGWrbA+BiSKNtGnAjc9XlG5EhAvak6VRcX5LYzPF6pBO8nJ613dTgzabig==",
+      "path": "system.memory.data/10.0.3",
+      "hashPath": "system.memory.data.10.0.3.nupkg.sha512"
+    },
+    "System.Security.Cryptography.Pkcs/11.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-G8mTjSWrwaPJ2bJRbKuI4ZqdKUYcANK0KtNH3s8/va3nXiF/Pk/yhv2R17rv5PBKJO5+ZXDyhTnZXh0W9v0J8w==",
+      "path": "system.security.cryptography.pkcs/11.0.0",
+      "hashPath": "system.security.cryptography.pkcs.11.0.0.nupkg.sha512"
+    },
+    "System.Security.Cryptography.ProtectedData/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wLBKzFnDCxP12VL9ANydSYhk59fC4cvOr9ypYQLPnAj48NQIhqnjdD2yhP8yEKyBJEjERWS9DisKL7rX5eU25Q==",
+      "path": "system.security.cryptography.protecteddata/4.5.0",
+      "hashPath": "system.security.cryptography.protecteddata.4.5.0.nupkg.sha512"
+    },
+    "System.Security.Cryptography.Xml/11.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RfXWeKcljjYZx5l/4i+6V4G8jP690jbHDhg4Wa/tNdNWvXn/c0WyyQySbpYLTuXB0fqzfttPoBCWMc8DFJNQzA==",
+      "path": "system.security.cryptography.xml/11.0.0",
+      "hashPath": "system.security.cryptography.xml.11.0.0.nupkg.sha512"
+    },
+    "XlsxHelper/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CA1KlEv2RKRYSmleEBO0cETnps1L7946GB4zLc36h425Ffnf53zP8Y0A/UxRFvhnN/5lo4da9hLBgfYF3HN7wg==",
+      "path": "xlsxhelper/2.1.0",
+      "hashPath": "xlsxhelper.2.1.0.nupkg.sha512"
+    },
+    "ExcelFAST.Reference/5.2611.12.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Excel_PRIME.Bench.Reference/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Excel_PRIME/6.2611.12.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

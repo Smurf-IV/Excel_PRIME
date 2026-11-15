@@ -1,8 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 using ExcelPRIME.FromExternal;
@@ -24,10 +28,10 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
         _zipReader = zipReader;
     }
 
-    public XlsbWorkBookReader(IZipReader zipReader, CancellationToken _)
+    public XlsbWorkBookReader(IZipReader zipReader, CancellationToken ct)
         : this(zipReader)
     {
-        Stream? stream = zipReader.GetEntry("xl/workbook.bin");
+        Stream? stream = zipReader.GetEntry("xl/workbook.bin", ct);
         // For modern hardware in 2025, 65536(64KB) is the standard "sweet spot" for many workloads
         _streamWb = new BufferedStream(stream!, 64 * 1024);
         OpenWorkbookStream();
@@ -78,7 +82,7 @@ internal class XlsbWorkBookReader : IOpenXmlWorkBookReader
 
     private Dictionary<string, string> PopulateWorkSheetRels(CancellationToken ct)
     {
-        using Stream streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.bin.rels")!;
+        using Stream streamRelWb = _zipReader.GetEntry("xl/_rels/workbook.bin.rels", ct)!;
         using XmlReader readerRels = XmlReader.Create(streamRelWb, new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit, // Disable DTDs for untrusted sources

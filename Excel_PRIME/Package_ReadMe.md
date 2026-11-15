@@ -8,11 +8,12 @@
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
     - .Net9 gives an extra 5% boost, 
     - .Net10 Another 5% over .Net9 ;-)
+    - .Net11 Another 5% -> 10% (`async`'s ;-)) over .Net10 ;-)
 
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** in V3.##
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B**
 - Zip Deflate format _Only_
 
 ## Performant 🚀
@@ -82,17 +83,17 @@ Lets take each of the above elements and explain:
 -----
 
 # Caveats ⛔:
-## _Not_ Be: Same sheet Thread safe 📊
+## Will _Not_ Be: Same sheet Thread safe 📊
 - It will **Not** be _same sheet Instance_ thread safe, because the xml reader will be locked (Forward only) to the sheet in use.
     - but you **_can_** Open the sheet more than once, and have different threads running over it,
     - And you **_can_** have Parallel threads access the Excel file
     - Just remember to set `Options{ AccessExcelFileInForwardOnlyMode = false}`
-## _Not_ Do: Dynamic Ranges ⚠️
+## Will _Not_ Do: Dynamic Ranges ⚠️
 - i.e. Ones that contain formulas:
     - `<definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>`
-## _Not_ Do: Poco 🤖
+## Will _Not_ Do: Poco 🤖
 - A POCO / Type populator (Extensions can be written for that later)
-## _Not_ Be a: Writer / Modifier 📚
+## Will _Not_ Be a: Writer / Modifier 📚
 - Totally beyond the scope of this project remit
 
 -----

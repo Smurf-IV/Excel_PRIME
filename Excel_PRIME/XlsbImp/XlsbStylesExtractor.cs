@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ExcelPRIME.Implementation;
 
@@ -52,7 +55,7 @@ internal sealed class XlsbStylesExtractor : IDisposable
 
         try
         {
-            using Stream? styleStream = _zipReader.GetEntry("xl/styles.bin");
+            using Stream? styleStream = _zipReader.GetEntry("xl/styles.bin", ct);
             if (styleStream == null)
             {
                 return _cellStyles;
@@ -269,7 +272,7 @@ internal sealed class XlsbStylesExtractor : IDisposable
             }
 
             using BufferedStream bufferedStream = new(styleStream, 64 * 1024);
-            XlsbStreamReader reader = new(bufferedStream);
+            using XlsbStreamReader reader = new(bufferedStream);
             await ParseStylesXlsbAsync(reader, ct).ConfigureAwait(false);
             // XlsbStreamReader doesn't own the stream, so no dispose needed
         }

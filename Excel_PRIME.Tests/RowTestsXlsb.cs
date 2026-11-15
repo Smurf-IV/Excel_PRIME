@@ -16,7 +16,7 @@ internal class RowTestsXlsb
     [TestCase("Data/multipleemptysheets.xlsb")]
     public async Task A010_EmptyXlsb(string fileName)
     {
-        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsb();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIMEXlsbAsync();
         await workbook.OpenAsync(fileName).ConfigureAwait(false);
         workbook.SheetNames().Should().NotBeEmpty();
         foreach (string sheetName in workbook.SheetNames())

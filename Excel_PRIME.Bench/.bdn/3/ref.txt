@@ -1,0 +1,211 @@
+C:\Users\coghl\.nuget\packages\azure.core\1.53.0\lib\net10.0\Azure.Core.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\azure.identity\1.21.0\lib\net10.0\Azure.Identity.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\benchmarkdotnet.annotations\0.16.0-preview.2\lib\netstandard2.0\BenchmarkDotNet.Annotations.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\benchmarkdotnet\0.16.0-preview.2\lib\net10.0\BenchmarkDotNet.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\commandlineparser\2.9.1\lib\netstandard2.0\CommandLine.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\deniszykov.websocketlistener\4.2.19\lib\netstandard2.0\deniszykov.WebSocketListener.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Dia2Lib.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\DiagnosticsHub.StandardCollector.Host.Interop.dll|||{HintPathFromItem}
+Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\ExcelFAST\release_net10.0\ExcelFAST.dll|||Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\ExcelFAST\release_net10.0\ExcelFAST.dll
+Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME.Bench\release_net10.0\Excel_PRIME.Bench.dll|||Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME.Bench\release_net10.0\Excel_PRIME.Bench.dll
+Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME\release_net10.0\Excel_PRIME.dll|||Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a\bin\Excel_PRIME\release_net10.0\Excel_PRIME.dll
+C:\Users\coghl\.nuget\packages\fastexcel\3.0.13\lib\netstandard2.0\FastExcel.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\gee.external.capstone\2.3.0\lib\net7.0\Gee.External.Capstone.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\iced\1.21.0\lib\netstandard2.1\Iced.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.bcl.asyncinterfaces\10.0.11\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.codeanalysis.csharp\5.6.0\lib\net10.0\Microsoft.CodeAnalysis.CSharp.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.codeanalysis.common\5.6.0\lib\net10.0\Microsoft.CodeAnalysis.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\Microsoft.CSharp.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Microsoft.Diagnostics.FastSerialization.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.netcore.client\0.2.661903\lib\net8.0\Microsoft.Diagnostics.NETCore.Client.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.runtime\4.1.745802\lib\net10.0\Microsoft.Diagnostics.Runtime.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\Microsoft.Diagnostics.Tracing.TraceEvent.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.configuration.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Configuration.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.diagnostics.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Diagnostics.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.fileproviders.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.FileProviders.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.hosting.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Hosting.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.logging.abstractions\10.0.3\lib\net10.0\Microsoft.Extensions.Logging.Abstractions.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.options\10.0.3\lib\net10.0\Microsoft.Extensions.Options.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.extensions.primitives\10.0.3\lib\net10.0\Microsoft.Extensions.Primitives.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.identity.client\4.83.1\lib\net8.0\Microsoft.Identity.Client.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.identity.client.extensions.msal\4.83.1\lib\net8.0\Microsoft.Identity.Client.Extensions.Msal.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.identitymodel.abstractions\8.14.0\lib\net9.0\Microsoft.IdentityModel.Abstractions.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\Microsoft.VisualBasic.Core.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\Microsoft.VisualBasic.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\Microsoft.VisualStudio.Interop.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\Microsoft.Win32.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\Microsoft.Win32.Registry.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\mscorlib.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\netstandard.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\perfolizer\0.7.5\lib\net6.0\Perfolizer.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\pragmastat\14.0.1\lib\net10.0\Pragmastat.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\sylvan.data.excel\0.5.8\lib\net8.0\Sylvan.Data.Excel.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.AppContext.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Buffers.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.clientmodel\1.10.0\lib\net10.0\System.ClientModel.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Collections.Concurrent.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Collections.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Collections.Immutable.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Collections.NonGeneric.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Collections.Specialized.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.Annotations.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.DataAnnotations.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.EventBasedAsync.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ComponentModel.TypeConverter.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Configuration.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Console.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Core.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Data.Common.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Data.DataSetExtensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Data.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.Contracts.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.Debug.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.DiagnosticSource.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.FileVersionInfo.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.Process.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.StackTrace.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.TextWriterTraceListener.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.Tools.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.TraceSource.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Diagnostics.Tracing.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Drawing.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Drawing.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Dynamic.Runtime.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.formats.asn1\11.0.0\lib\net10.0\System.Formats.Asn1.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Formats.Tar.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Globalization.Calendars.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Globalization.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Globalization.Extensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Compression.Brotli.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Compression.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Compression.FileSystem.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Compression.ZipFile.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.FileSystem.AccessControl.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.FileSystem.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.FileSystem.DriveInfo.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.FileSystem.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.FileSystem.Watcher.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.IsolatedStorage.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.MemoryMappedFiles.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Pipelines.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Pipes.AccessControl.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.Pipes.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.IO.UnmanagedMemoryStream.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Linq.AsyncEnumerable.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Linq.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Linq.Expressions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Linq.Parallel.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Linq.Queryable.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.memory.data\10.0.3\lib\net10.0\System.Memory.Data.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Memory.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Http.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Http.Json.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.HttpListener.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Mail.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.NameResolution.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.NetworkInformation.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Ping.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Quic.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Requests.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Security.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.ServerSentEvents.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.ServicePoint.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.Sockets.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.WebClient.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.WebHeaderCollection.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.WebProxy.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.WebSockets.Client.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Net.WebSockets.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Numerics.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Numerics.Vectors.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ObjectModel.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.DispatchProxy.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Emit.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Emit.ILGeneration.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Emit.Lightweight.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Extensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Metadata.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Reflection.TypeExtensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Resources.Reader.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Resources.ResourceManager.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Resources.Writer.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.CompilerServices.Unsafe.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.CompilerServices.VisualC.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Extensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Handles.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.InteropServices.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.InteropServices.JavaScript.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.InteropServices.RuntimeInformation.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Intrinsics.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Loader.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Numerics.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Serialization.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Serialization.Formatters.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Serialization.Json.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Serialization.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Runtime.Serialization.Xml.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.AccessControl.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Claims.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.Algorithms.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.Cng.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.Csp.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.Encoding.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.OpenSsl.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.security.cryptography.pkcs\11.0.0\lib\net10.0\System.Security.Cryptography.Pkcs.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.Primitives.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.security.cryptography.protecteddata\4.5.0\ref\netstandard2.0\System.Security.Cryptography.ProtectedData.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Cryptography.X509Certificates.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\system.security.cryptography.xml\11.0.0\lib\net10.0\System.Security.Cryptography.Xml.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Principal.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.Principal.Windows.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Security.SecureString.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ServiceModel.Web.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ServiceProcess.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.Encoding.CodePages.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.Encoding.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.Encoding.Extensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.Encodings.Web.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.Json.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Text.RegularExpressions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.AccessControl.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Channels.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Overlapped.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Tasks.Dataflow.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Tasks.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Tasks.Extensions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Tasks.Parallel.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Thread.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.ThreadPool.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Threading.Timer.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Transactions.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Transactions.Local.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.ValueTuple.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Web.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Web.HttpUtility.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Windows.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.Linq.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.ReaderWriter.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.Serialization.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.XDocument.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.XmlDocument.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.XmlSerializer.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.XPath.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\System.Xml.XPath.XDocument.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\microsoft.diagnostics.tracing.traceevent\3.2.5\lib\netstandard2.0\TraceReloggerLib.dll|||{HintPathFromItem}
+C:\Users\coghl\.nuget\packages\microsoft.visualstudio.diagnosticshub.benchmarkdotnetdiagnosers\18.13.37903.2\lib\netstandard2.0\VSDiagnostics.BenchmarkDotNet.dll|||{HintPathFromItem}
+C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\10.0.15\ref\net10.0\WindowsBase.dll|Microsoft.NETCore.App||{RawFileName}
+C:\Users\coghl\.nuget\packages\xlsxhelper\2.1.0\lib\net6.0\XlsxHelper.dll|||{HintPathFromItem}

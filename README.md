@@ -9,11 +9,12 @@
     - Starting with .Net 8 as the performant Runtime (See Benchmarks)
     - .Net9 gives an extra 5% boost, 
     - .Net10 Another 5% over .Net9 ;-)
+    - .Net11 Another 5% -> 10% (`async`'s ;-)) over .Net10 ;-)
 
 Lets take each of the above elements and explain:
 
 ## Excel 📈
-- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12) in V3.##
+- Open _Large_ 2007 (Onwards) XLS**X** file formats and XLS**B** (BIFF12)
 - Zip Deflate format _Only_
 
 ## Performant 🚀
@@ -33,6 +34,7 @@ Lets take each of the above elements and explain:
     - Or allow multiple sheets to be read at the **same** time 
         - because others use global memory to represent the current row
         - Or have a single access into the Zip Excel file
+- A: And now there is ExcelFAST, which is a dedicated zero-allocation sequential reader pipeline (`IExcelFast`, `ISheetFast`, `IRowFast`), with format-specific implementations: `ExcelFastXlsx` for OpenXML (.xlsx) and `ExcelFastXlsb` for binary OpenXML (.xlsb). It integrates array pooling (`ReadOnlySpan<Cell>`) with `PooledCellView` and thread-static buffers for zero GC allocation during hot iteration loops.
 
 
 ## Reader 📋
@@ -109,21 +111,43 @@ Lets take each of the above elements and explain:
 <a href="https://info.flagcounter.com/dxXK"><img src="https://s01.flagcounter.com/map/dxXK/size_l/txt_000000/border_CCCCCC/pageviews_1/viewers_0/flags_0/" alt="Flag Counter" border="0"></a>
 -----
 <!-- TOC-->
+- [Excel_PRIME 🌟](#excel_prime-)
+- [What does that mean?](#what-does-that-mean)
+  - [Excel 📈](#excel-)
+  - [Performant 🚀](#performant-)
+    - [Q & A's](#q--as)
+  - [Reader 📋](#reader-)
+  - [Interfaces 🏗️](#interfaces-️)
+    - [Q & A's](#q--as-1)
+  - [Memory 🌐](#memory-)
+    - [Q & A's](#q--as-2)
+  - [Efficiency 📦](#efficiency-)
+    - [Q & A's](#q--as-3)
+  - [Etc. 🔧](#etc-)
+    - [`CancellationToken`s](#cancellationtokens)
+    - [IDisposable](#idisposable)
+    - [Challenges:](#challenges)
+- [Caveats ⛔:](#caveats-)
+  - [_It will not_ be: Same sheet thread instance safe 📊](#it-will-not-be-same-sheet-thread-instance-safe-)
+  - [_It will not_ do: Dynamic Ranges ⚠️](#it-will-not-do-dynamic-ranges-️)
+  - [_It will not_ do: Poco 🤖](#it-will-not-do-poco-)
+  - [_It will not_ be: Writer / Modifier 📚](#it-will-not-be-writer--modifier-)
 - [Targets 🎯](#targets-)
   - [Phase 0](#phase-0)
   - [Phase Alpha](#phase-alpha)
-  - [Phase Beta - Benchmarks ⏱️](#phase-beta---benchmarks-)
+  - [Phase Beta - Benchmarks ⏱️](#phase-beta---benchmarks-️)
   - [Phase 1 - MVP 🔍](#phase-1---mvp-)
   - [Phase 2](#phase-2)
-    - [V2 Changes ➡️ 2025-12-14](#v2-changes--2025-12-14)
+    - [V2 Changes ➡️ 2025-12-14](#v2-changes-️-2025-12-14)
   - [Phase V3 - XLS**B** 💾 (BIFF12)](#phase-v3---xlsb--biff12)
-    - [V3 Changes ➡️ 2026-01-16](#v3-changes--2026-01-16)
+    - [V3 Changes ➡️ 2026-01-16](#v3-changes-️-2026-01-16)
   - [Phase V4 - Specific Cell value type(s) #️⃣](#phase-v4---specific-cell-value-types-)
 - [2026-05-12 - V4 - Bug fixes](#2026-05-12---v4---bug-fixes)
-  - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting---performance-optimizations-)
+  - [Phase 5 - User Cell Value type formatting 💽 & Performance Optimizations 🏃‍➡️](#phase-5---user-cell-value-type-formatting--performance-optimizations-️)
   - [Phase 6 - Third Party Nugets 📦](#phase-6---third-party-nugets-)
   - [Phase 7 - ideas 💡](#phase-7---ideas-)
 <!-- TOC -->
+
 -----
 
 # Targets 🎯
@@ -346,7 +370,31 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 6 - Third Party Nugets 📦
+## Phase 6 - ExcelFAST
+- ⛓️‍💥 **Breaking Change(s)**
+    - If you want to use `Async` then create a `new Excel_PRIMEAsync()`
+    - Same applies to `Xlsb`
+    - Use `ReadOnlySpan<Cell>` instead of `ArraySegment<Cell>`
+      - Using `foreach` over `ReadOnlySpan<Cell>` is guaranteed to be allocation-free and boxing-free.
+      - If you need LINQ-style processing on a span without allocations, iterate using `for` or `foreach` directly over the span
+- ✅ **ExcelFAST High-Throughput Subsystem**:
+    - ✅ Dedicated zero-allocation sequential reader pipeline (`IExcelFast`, `ISheetFast`, `IRowFast`).
+    - ✅ Format-specific implementations: `ExcelFastXlsx` for OpenXML (.xlsx) and `ExcelFastXlsb` for binary OpenXML (.xlsb).
+    - ✅ Array pooling integration (`ReadOnlySpan<Cell>`) with `PooledCellView` and thread-static buffers for zero GC allocation during hot iteration loops.
+    - ✅ Full support across .NET 8.0, .NET 9.0, and .NET 10.0.
+    - ✅ Integrated test suite and benchmarking coverage in `ExcelFAST.Tests`.
+- ✅ Add .Net11 TFM support
+- Replaced the previous float round-trip memory comparison in CellValue.IsExactlyDouble with a fast memory-overlay check on the underlying 64-bit decimal mantissa (lo64 <= 999_999_999_999_999UL and hi == 0).
+- ✅ Performance Optimizations for Prime (See breaking changes above)
+- ✅ Add Range extraction to ExcelFAST
+- Fixed XLSB pooled-record ownership so consumed records are returned promptly, rollback records remain valid until consumed or disposed, and parse/read failures do not strand rented buffers.
+- [ ] Investigate separate nuget for Excel_FAST
+
+
+-----
+
+
+## Phase 7 - Third Party Nugets 📦
 - ⛓️‍💥 **Breaking Change(s)**
     - None yet.
 - [ ] Excercise the Implementation of Interfaces for other Libs (Xml / Zip)
@@ -357,7 +405,7 @@ Lets take each of the above elements and explain:
 
 -----
 
-## Phase 7 - ideas 💡
+## Phase 8 - ideas 💡
 - [ ] Investigate a different way of storing the _Shared strings_ to the Filesystem, when they are in the MB's
   - [ ] e.g. Search for `Class FileBufferingWriter`
 - [ ] Investigate possibility of using "Pipelining" to get data for Next row / cell population after yield?

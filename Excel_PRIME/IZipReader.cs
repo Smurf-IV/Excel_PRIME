@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace ExcelPRIME;
@@ -24,7 +26,7 @@ public interface IZipReader : IDisposable
     /// <summary>
     /// Helper function to get the actual internal Zip stream of an entry
     /// </summary>
-    Stream? GetEntry(string entryName);
+    Stream? GetEntry(string entryName, CancellationToken ct);
 }
 
 /// <summary>

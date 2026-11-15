@@ -24,7 +24,7 @@ internal class DefinedRangeTestsXlsb
     public async Task A010_ReadNamedRangeAsync()
     {
         const string fileName = "Data/named-range.xlsb";
-        using Excel_PRIMEXlsb workbook = new();
+        using Excel_PRIMEXlsbAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
         CellValue[] taxRate = await workbook.GetDefinedRangeAsync("TaxRate").FirstAsync();
         taxRate.First().ToString().Should().Be("0.1", "<definedName name=\"TaxRate\">0.1</definedName>");
@@ -60,7 +60,7 @@ internal class DefinedRangeTestsXlsb
     public async Task A020_DynamicNamedRange()
     {
         const string fileName = "Data/dynamic-named-range.xlsb";
-        using Excel_PRIMEXlsb workbook = new();
+        using Excel_PRIMEXlsbAsync workbook = new();
         await workbook.OpenAsync(fileName).ConfigureAwait(true);
 
         // Do not fallover with <definedName name="Prices">OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)</definedName>
@@ -72,7 +72,7 @@ internal class DefinedRangeTestsXlsb
     public async Task A030_LocalSheetID_NamedRange()
     {
         const string fileName = "Data/solver.xlsb";
-        using Excel_PRIMEXlsb workbook = new();
+        using Excel_PRIMEXlsbAsync workbook = new();
         await workbook.OpenAsync(fileName,
             options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 
@@ -141,7 +141,7 @@ internal class DefinedRangeTestsXlsb
     public async Task A060_UserRanges()
     {
         const string fileName = "Data/solver.xlsb";
-        using Excel_PRIMEXlsb workbook = new();
+        using Excel_PRIMEXlsbAsync workbook = new();
         await workbook.OpenAsync(fileName,
             options: new Options { AccessExcelFileInForwardOnlyMode = false }).ConfigureAwait(true);
 

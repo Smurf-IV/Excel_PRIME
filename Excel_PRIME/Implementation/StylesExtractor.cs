@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 
@@ -35,7 +39,7 @@ internal sealed class StylesExtractor : IDisposable
     {
         try
         {
-            using Stream? styleStream = _zipReader.GetEntry("xl/styles.xml");
+            using Stream? styleStream = _zipReader.GetEntry("xl/styles.xml", ct);
             if (styleStream == null)
             {
                 return _cellStyles;

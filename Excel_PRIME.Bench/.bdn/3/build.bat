@@ -1,0 +1,3 @@
+call dotnet restore gen.csproj /p:ArtifactsPath=Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a /p:BenchmarkDotNetGatherReferences=true --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true
+call dotnet build gen.csproj -f net10.0 -c Release /p:ArtifactsPath=Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a /p:BenchmarkDotNetGatherReferences=true --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true
+call dotnet build gen.csproj -f net10.0 -c Release /p:ArtifactsPath=Z:\GitHub\Smurf-IV\Excel_PRIME\Excel_PRIME.Bench\.bdn\3\a --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true

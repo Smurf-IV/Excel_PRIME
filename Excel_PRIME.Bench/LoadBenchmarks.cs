@@ -60,7 +60,7 @@ public class LoadBenchmarks
     //[Benchmark]
     public async Task LoadWithExcel_Prime()
     {
-        using IExcel_PRIMEAsync workbook = new Excel_PRIME();
+        using IExcel_PRIMEAsync workbook = new Excel_PRIMEAsync();
         await workbook.OpenAsync(FileName);
     }
 
